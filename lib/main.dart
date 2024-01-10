@@ -85,10 +85,9 @@ class MyApp extends StatelessWidget {
               child: state.busy
                   ? const CircularProgressIndicator()
                   : (state.timelineAll?.activeTimeline != null
-                      ? const MyTestItemsScreen()
-                      // TimelineItemsWidget(
-                      //     timeline: state.timelineAll!.activeTimeline!,
-                      //     timelineHost: state.timelineAll!.activeHost!)
+                      ? TimelineItemsWidget(
+                          timeline: state.timelineAll!.activeTimeline!,
+                          timelineHost: state.timelineAll!.activeHost!)
                       : ElevatedButton(
                           onPressed: state.timelineAll != null
                               ? () async {

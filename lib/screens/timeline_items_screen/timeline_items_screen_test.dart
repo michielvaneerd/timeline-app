@@ -17,14 +17,8 @@ class MyTestItemsScreen extends StatefulWidget {
 class _MyTestItemsScreenState extends State<MyTestItemsScreen> {
   List<Map<String, dynamic>>? items;
   final scrollController = ScrollController();
-  Timer? timer;
-  final List<int> currentlyBuiltIndexes = []; // current visible indexes
   int requestedIndex = -1; // clicked index
-  final Map<int, GlobalKey> keys =
-      {}; // Index is de index van het item, deze worden on the fly aangemaakt.
-  //final currentKey = GlobalKey();
-  //var currentKeyIndex = -1;
-  var lastBuiltIndex = 0;
+  final Map<int, GlobalKey> keys = {};
   final listViewKey = GlobalKey();
 
   @override
@@ -97,18 +91,6 @@ class _MyTestItemsScreenState extends State<MyTestItemsScreen> {
                   return InkWell(
                     onTap: () async {
                       final itemIndex = curItems.indexOf(e);
-                      // if (keys![itemIndex].currentContext != null) {
-                      //   print('Immediately make visible for index $itemIndex');
-                      //   Scrollable.ensureVisible(
-                      //       keys![itemIndex].currentContext!);
-                      // } else {
-                      print(
-                          'ItemIndex $itemIndex en lastBuiltIndex = $lastBuiltIndex');
-                      // Dit gaat dus fout als de itemindex dichtbij de lastBuildindex ligt...
-                      // de lastbuildindex is namelijk meestal niet degene die je nu ziet.
-                      // dus bijv je ziet nu 20 en men scrolde naar beneden, dus dan kan lasrBuildindex bijv. 22 zijn.
-                      // Als je nu op 21 klikt, dan zal men omhoiiog willen scrollen, waardoor men dus nooit bij het item uitkomt.
-                      // TODO: hoe doen?
                       print(
                           'Offset = ${scrollController.offset}'); // dit hoe ver listview gescrolt is.
                       final listViewRenderObject =
@@ -129,12 +111,9 @@ class _MyTestItemsScreenState extends State<MyTestItemsScreen> {
                       if (itemIndex == topIndex) {
                         return;
                       }
-                      var scrollDown = itemIndex > topIndex;
                       requestedIndex = itemIndex;
-                      print(
-                          'Scrolling ${scrollDown ? 'down' : 'up'} to ${scrollDown ? scrollController.position.maxScrollExtent : scrollController.position.minScrollExtent} for index $itemIndex');
                       await scrollController.animateTo(
-                          scrollDown
+                          itemIndex > topIndex
                               ? scrollController.position.maxScrollExtent
                               : scrollController.position.minScrollExtent,
                           duration: Duration(
@@ -161,14 +140,10 @@ class _MyTestItemsScreenState extends State<MyTestItemsScreen> {
                   controller: scrollController,
                   itemCount: curItems.length,
                   itemBuilder: (context, index) {
-                    lastBuiltIndex = index;
-                    // if (index == requestedIndex && !keys.containsKey(index)) {
-                    //   keys[index] = GlobalKey();
-                    // }
                     if (!keys.containsKey(index)) {
                       keys[index] = GlobalKey();
                     }
-                    print('Index = $index, requestedIndex = $requestedIndex');
+                    //print('Index = $index, requestedIndex = $requestedIndex');
                     final e = curItems[index];
                     final card = Card(
                       key: keys[index],
