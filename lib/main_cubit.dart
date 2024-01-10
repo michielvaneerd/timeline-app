@@ -29,6 +29,10 @@ class MainCubit extends Cubit<MainState> {
 
   void activateTimeline(int timelineId) async {
     emit(const MainState(busy: true));
+
+    // Needed, so the TimelineItemsScreen will be removed and created, so initState and BlocProvider.create will be called.
+    await Future.delayed(const Duration(seconds: 1));
+
     await MyStore.putActiveTimelineId(timelineId);
     checkAtStart(withBusy: false);
   }

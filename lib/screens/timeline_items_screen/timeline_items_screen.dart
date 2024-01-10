@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_host.dart';
+import 'package:timeline/my_html_text.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen_bloc.dart';
 
@@ -191,7 +192,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                             ),
                             Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: Text(e.intro),
+                              child: MyHtmlText.getRichText(e.intro),
                             ),
                             // Load image only if we scroll manually (requestedIndex == -1) or when the index is less than 3 away from requestedIndex
                             if (e.image != null &&

@@ -28,6 +28,27 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  List<Widget> _getDrawerItems(
+      TimelineAll timelineAll, MainCubit cubit, BuildContext context) {
+    final List<Widget> items = [];
+    for (final host in timelineAll.timelineHosts) {
+      items.add(ListTile(
+        title: Text(host.host),
+      ));
+      for (final timeline in timelineAll.timelines
+          .where((element) => element.hostId == host.id)) {
+        items.add(ListTile(
+          title: Text(timeline.name),
+          onTap: () {
+            cubit.activateTimeline(timeline.id);
+            Navigator.of(context).pop();
+          },
+        ));
+      }
+    }
+    return items;
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<MainCubit, MainState>(
@@ -36,16 +57,12 @@ class MyApp extends StatelessWidget {
       },
       builder: (context, state) {
         final cubit = BlocProvider.of<MainCubit>(context);
-        final activeTimeline = state.timelineAll?.activeTimelineId != null
-            ? state.timelineAll!.timelines.firstWhere(
-                (e) => e.id == state.timelineAll!.activeTimelineId,
-              )
-            : null;
         return Scaffold(
             appBar: AppBar(
-              title: Text(
-                  activeTimeline != null ? activeTimeline.name : 'Timeline'),
-              actions: activeTimeline != null
+              title: Text(state.timelineAll?.activeTimeline != null
+                  ? state.timelineAll!.activeTimeline!.name
+                  : 'Timeline'),
+              actions: state.timelineAll?.activeTimeline != null
                   ? [
                       TextButton(
                           onPressed: () {
@@ -55,15 +72,21 @@ class MyApp extends StatelessWidget {
                     ]
                   : null,
             ),
+            drawer: state.timelineAll != null
+                ? Drawer(
+                    child: ListView(
+                      children:
+                          _getDrawerItems(state.timelineAll!, cubit, context),
+                    ),
+                  )
+                : null,
             body: Center(
               child: state.busy
                   ? const CircularProgressIndicator()
-                  : (activeTimeline != null
+                  : (state.timelineAll?.activeTimeline != null
                       ? TimelineItemsWidget(
-                          timeline: activeTimeline,
-                          timelineHost: state.timelineAll!.timelineHosts
-                              .firstWhere((e) => e.id == activeTimeline.hostId),
-                        )
+                          timeline: state.timelineAll!.activeTimeline!,
+                          timelineHost: state.timelineAll!.activeHost!)
                       : ElevatedButton(
                           onPressed: state.timelineAll != null
                               ? () async {

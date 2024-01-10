@@ -58,24 +58,34 @@ class TimelineRepository {
     final activeTimelineId = await MyStore.getActiveTimelineId();
     final timelineHosts = await MyStore.getTimelineHosts();
     final timelines = await MyStore.getTimelines();
+    Timeline? activeTimeline;
+    TimelineHost? activeHost;
+    if (activeTimelineId != null) {
+      activeTimeline =
+          timelines.firstWhere((element) => element.id == activeTimelineId);
+      activeHost = timelineHosts
+          .firstWhere((element) => element.id == activeTimeline!.hostId);
+    }
     return TimelineAll(
-        activeTimelineId: activeTimelineId,
+        activeTimeline: activeTimeline,
+        activeHost: activeHost,
         timelineHosts: timelineHosts,
         timelines: timelines);
   }
 }
 
 class TimelineAll extends Equatable {
-  final int? activeTimelineId;
+  final Timeline? activeTimeline;
+  final TimelineHost? activeHost;
   final List<TimelineHost> timelineHosts;
   final List<Timeline> timelines;
-  //final List<TimelineItem>? timelineItems;
 
   const TimelineAll(
-      {required this.activeTimelineId,
+      {this.activeTimeline,
+      this.activeHost,
       required this.timelineHosts,
-      //this.timelineItems,
       required this.timelines});
   @override
-  List<Object?> get props => [activeTimelineId, timelineHosts, timelines];
+  List<Object?> get props =>
+      [activeTimeline, activeHost, timelineHosts, timelines];
 }
