@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,6 +29,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   @override
   void initState() {
     super.initState();
+
     scrollController.addListener(
       () async {
         await SchedulerBinding.instance
@@ -38,7 +37,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
         // zonder dit komt regelmatig de index niet voorbij.
         if (requestedIndex != -1 &&
             keys[requestedIndex]?.currentContext != null) {
-          scrollController.jumpTo(scrollController.offset);
+          //scrollController.jumpTo(scrollController.offset);
           await Scrollable.ensureVisible(keys[requestedIndex]!.currentContext!);
           requestedIndex = -1;
         }
