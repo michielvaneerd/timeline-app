@@ -36,23 +36,23 @@ class _MyTestItemsScreenState extends State<MyTestItemsScreen> {
           requestedIndex = -1;
           //await Future.delayed(Duration(milliseconds: 1000));
           // NU zouden we de images moeten laten van alle items die nu gebuild zijn.
-          setState(() {
-            builtIndexes = keys.entries
-                .where((e) => e.value.currentContext != null)
-                .map((e) => e.key)
-                .toList();
-          });
-          print('Indexes die nu zijn gebuild zijn: ${builtIndexes.join(', ')}');
-          if (tmp != -1) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (keys.containsKey(tmp) && keys[tmp]!.currentContext != null) {
-                print('Ensure visible for $tmp!');
-                // Tweede keer ensureVisible, omdat nu de images geladen zijn en dus de items van hoogte kunnen veranderen.
-                Scrollable.ensureVisible(keys[tmp]!
-                    .currentContext!); // This will cancel the animation, which is what we want.
-              }
-            });
-          }
+          // setState(() {
+          //   builtIndexes = keys.entries
+          //       .where((e) => e.value.currentContext != null)
+          //       .map((e) => e.key)
+          //       .toList();
+          // });
+          // print('Indexes die nu zijn gebuild zijn: ${builtIndexes.join(', ')}');
+          // if (tmp != -1) {
+          //   WidgetsBinding.instance.addPostFrameCallback((_) {
+          //     if (keys.containsKey(tmp) && keys[tmp]!.currentContext != null) {
+          //       print('Ensure visible for $tmp!');
+          //       // Tweede keer ensureVisible, omdat nu de images geladen zijn en dus de items van hoogte kunnen veranderen.
+          //       Scrollable.ensureVisible(keys[tmp]!
+          //           .currentContext!); // This will cancel the animation, which is what we want.
+          //     }
+          //   });
+          // }
         }
       },
     );
@@ -73,7 +73,7 @@ class _MyTestItemsScreenState extends State<MyTestItemsScreen> {
       //    List.of(tmp['items']).map((e) => e as Map<String, dynamic>).toList();
       final rand = Random();
       items = List.generate(
-          100,
+          1000,
           (index) => {
                 'key': 1500 + index,
                 'title': 'Item ${index + 1}',
@@ -111,7 +111,7 @@ class _MyTestItemsScreenState extends State<MyTestItemsScreen> {
                     onTap: () async {
                       final itemIndex = curItems.indexOf(e);
                       print(
-                          'Offset = ${scrollController.offset}'); // dit hoe ver listview gescrolt is.
+                          'Offset = ${scrollController.offset} en max = ${scrollController.position.maxScrollExtent}'); // dit hoe ver listview gescrolt is.
                       final listViewRenderObject =
                           listViewKey.currentContext!.findRenderObject();
                       var topIndex = -1;
@@ -131,19 +131,36 @@ class _MyTestItemsScreenState extends State<MyTestItemsScreen> {
                         return;
                       }
                       requestedIndex = itemIndex;
+                      // Dus huidige top item = topIndex
+                      // en men wil naar requestedIndex
+                      // Afhankelijk hoe ver men moet scrollen, kunnen we nu de duration instellen.
+                      // Als deze te snel is, dan kan Flutter het niet bijhouden (ik denk dat frames dan wegvallen) en dan zien we niet wanneer we bij het betreffende item zijn.
+                      // In totaal curItems.length
+                      final heightPerItem =
+                          scrollController.position.maxScrollExtent /
+                              curItems.length;
+                      final totalHeightToScroll =
+                          (requestedIndex - topIndex).abs() * heightPerItem;
+                      final seconds = (totalHeightToScroll / 10000).round();
+                      print(
+                          'Total height to scroll = $totalHeightToScroll en dat is aantal seconden $seconds');
+                      // We moeten nu een goede ratio hebben van aantal seconden / pixels
                       await scrollController.animateTo(
                           itemIndex > topIndex
-                              ? scrollController.position.maxScrollExtent
-                              : scrollController.position.minScrollExtent,
+                              ? scrollController.position.pixels +
+                                  totalHeightToScroll
+                              : scrollController.position.pixels -
+                                  totalHeightToScroll,
                           duration: Duration(
-                              seconds:
-                                  1), // deze kunnen we zetten a.h.v. of we dicht in de buurt zitten of niet.
+                              seconds: seconds != 0
+                                  ? seconds
+                                  : 1), // deze kunnen we zetten a.h.v. of we dicht in de buurt zitten of niet.
                           // hoe labger hoe beter, want dan worden items niet geskipt.
                           curve: Curves
                               .linear); // linear is belangrijk, want dan komen alle items even snel voorbij en worden de snelste niet geskipt.
                       // print('Animate completed: ${requestedIndex}');
                       // if (requestedIndex != -1) {
-                      //   // Niet gelukt, dus we kunnen dan eventueel nog 2 keer proberen bijv.
+                      //   print('NIET GELUKT!');
                       // }
                     },
                     child: Padding(
@@ -160,16 +177,17 @@ class _MyTestItemsScreenState extends State<MyTestItemsScreen> {
               return true;
             },
             child: ListView.builder(
-                key: listViewKey,
+                key: listViewKey, // needed!
                 controller: scrollController,
                 itemCount: curItems.length,
                 itemBuilder: (context, index) {
+                  // Call getKey(index) and add to item.
                   if (!keys.containsKey(index)) {
                     keys[index] = GlobalKey();
                   }
-                  if (requestedIndex == -1 || builtIndexes.contains(index)) {
-                    print('Image laden voor index $index');
-                  }
+                  // if (requestedIndex == -1 || builtIndexes.contains(index)) {
+                  //   print('Image laden voor index $index');
+                  // }
                   //print('Index = $index, requestedIndex = $requestedIndex');
                   final e = curItems[index];
                   final card = Card(
@@ -193,9 +211,9 @@ class _MyTestItemsScreenState extends State<MyTestItemsScreen> {
                         // Load image only if we scroll manually (requestedIndex == -1) or when the index is less than 3 away from requestedIndex
                         // if (requestedIndex == -1 ||
                         //     (index - requestedIndex).abs() < 3)
-                        if (requestedIndex == -1 ||
-                            builtIndexes.contains(index))
-                          Image.network(e['image'])
+                        // if (requestedIndex == -1 ||
+                        //     builtIndexes.contains(index))
+                        Image.network(e['image'])
                       ],
                     ),
                   );
