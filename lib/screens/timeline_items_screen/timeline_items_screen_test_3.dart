@@ -14,9 +14,11 @@ class MyTestItemsScreen3 extends StatefulWidget {
 
 class _MyTestItemsScreen3State extends State<MyTestItemsScreen3> {
   List<Map<String, dynamic>>? items;
-  final scrollController = ScrollController();
-  late final ListObserverController observerController;
-  final listViewKey = GlobalKey();
+  //final scrollController = ScrollController();
+  final ListObserverController observerController =
+      ListObserverController(controller: ScrollController())
+        ..cacheJumpIndexOffset = false;
+  //final listViewKey = GlobalKey();
   var requestedIndex = -1;
   var isScrollingToIndex = false;
   List<int> displayedIndexesAfterScrollToIndex = [];
@@ -25,15 +27,16 @@ class _MyTestItemsScreen3State extends State<MyTestItemsScreen3> {
   @override
   void initState() {
     super.initState();
-    observerController = ListObserverController(controller: scrollController)
-      ..cacheJumpIndexOffset =
-          false; // needed if we load only images for items that are displayed in rest.
+    // observerController = ListObserverController(controller: scrollController)
+    //   ..cacheJumpIndexOffset =
+    //       false; // needed if we load only images for items that are displayed in rest.
     init();
   }
 
   @override
   void dispose() {
-    scrollController.dispose();
+    //scrollController.dispose();
+    observerController.controller!.dispose();
     super.dispose();
   }
 
@@ -78,11 +81,12 @@ class _MyTestItemsScreen3State extends State<MyTestItemsScreen3> {
                 children: curItems.map((e) {
                   return InkWell(
                     onTap: () async {
+                      // START code
                       requestedIndex = curItems.indexOf(e);
                       isScrollingToIndex = true;
                       await observerController.jumpTo(index: requestedIndex);
-                      //requestedIndex = -1;
                       isScrollingToIndex = false;
+                      // EIND code
                       print('DONE!');
                     },
                     child: Padding(
@@ -96,6 +100,7 @@ class _MyTestItemsScreen3State extends State<MyTestItemsScreen3> {
               child: ListViewObserver(
             controller: observerController,
             onObserve: (p0) {
+              // START code
               if (requestedIndex > -1) {
                 final builtIndexes = keys.entries
                     .where((entry) => entry.value.currentContext != null)
@@ -127,24 +132,24 @@ class _MyTestItemsScreen3State extends State<MyTestItemsScreen3> {
                   requestedIndex = -1;
                 }
               }
+              // EIND code
             },
             child: ListView.builder(
-                key: listViewKey, // needed!
-                controller: scrollController,
+                //key: listViewKey, // needed!
+                controller: observerController.controller,
                 itemCount: curItems.length,
                 itemBuilder: (context, index) {
+                  // START code
                   if (!keys.containsKey(index)) {
                     keys[index] = GlobalKey();
                   }
                   final loadImage = requestedIndex == -1 ||
                       displayedIndexesAfterScrollToIndex.contains(index);
                   print('Load image $loadImage for $index');
-                  //print('Index = $index, requestedIndex = $requestedIndex');
-                  //print('Index $index when scrolling $isScrolling');
+                  // EIND code
                   final e = curItems[index];
                   final card = Card(
-                    key: keys[index],
-                    //key: keys[index],
+                    key: keys[index], // START code?
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,7 +166,8 @@ class _MyTestItemsScreen3State extends State<MyTestItemsScreen3> {
                           padding: const EdgeInsets.all(8.0),
                           child: Text(e['content']),
                         ),
-                        if (loadImage) Image.network(e['image'])
+                        if (loadImage) // START code?
+                          Image.network(e['image'])
                       ],
                     ),
                   );

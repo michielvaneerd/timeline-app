@@ -1,53 +1,45 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:timeline/screens/timeline_items_screen/listview_builder_scroll_to_index_screen.dart';
+import 'package:scrollview_observer/scrollview_observer.dart';
+import 'package:timeline/screens/timeline_items_screen/observer_controller_with_lazy_loading.dart';
 
 // https://github.com/fluttercandies/flutter_scrollview_observer/blob/main/lib/src/common/observer_controller.dart#L334
 // https://pub.dev/packages/scroll_to_index
 
-class MyTestItemsScreen2 extends StatefulWidget {
-  const MyTestItemsScreen2({super.key});
+class MyTestItemsScreen4 extends StatefulWidget {
+  const MyTestItemsScreen4({super.key});
 
   @override
-  State<MyTestItemsScreen2> createState() => _MyTestItemsScreen2State();
+  State<MyTestItemsScreen4> createState() => _MyTestItemsScreen4State();
 }
 
-class _MyTestItemsScreen2State extends State<MyTestItemsScreen2> {
+class _MyTestItemsScreen4State extends State<MyTestItemsScreen4> {
   List<Map<String, dynamic>>? items;
-  final scrollController = ScrollController();
-
-  final listViewKey = GlobalKey();
+  late final ObserverControllerWithLazyLoading
+      observerControllerWithLazyLoading;
   List<int> builtIndexes = [];
-  late final ListviewBuilderWithScrollToIndexController
-      listviewBuilderWithScrollToIndexController;
+
+  void onBuiltEnd(List<int> indexes) {
+    setState(() {
+      builtIndexes = indexes;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    listviewBuilderWithScrollToIndexController =
-        ListviewBuilderWithScrollToIndexController(
-            onBuiltIndexesAfterScrollToIndex: onBuiltIndexes,
-            scrollController: scrollController,
-            listViewKey: listViewKey);
+    observerControllerWithLazyLoading =
+        ObserverControllerWithLazyLoading(onBuiltEnd: onBuiltEnd)..init();
     init();
-  }
-
-  void onBuiltIndexes(List<int> indexes) {
-    // setState(() {
-    //   builtIndexes = indexes;
-    // });
-    print(indexes);
   }
 
   @override
   void dispose() {
-    scrollController.dispose();
+    observerControllerWithLazyLoading.dispose();
     super.dispose();
   }
 
   void init() async {
-    listviewBuilderWithScrollToIndexController.init();
-
     //final tmp = await getJson();
 
     setState(() {
@@ -73,9 +65,6 @@ class _MyTestItemsScreen2State extends State<MyTestItemsScreen2> {
   @override
   Widget build(BuildContext context) {
     final curItems = items ?? [];
-    // if (keys == null && items != null) {
-    //   keys = List<GlobalKey>.generate(items!.length, (index) => GlobalKey());
-    // }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Timeline'),
@@ -91,19 +80,8 @@ class _MyTestItemsScreen2State extends State<MyTestItemsScreen2> {
                 children: curItems.map((e) {
                   return InkWell(
                     onTap: () async {
-                      final itemIndex = curItems.indexOf(e);
-                      // print(
-                      //     'Start jump to ${scrollController.position.maxScrollExtent}');
-                      // scrollController.jumpTo(
-                      //     scrollController.position.maxScrollExtent * 2);
-                      // WidgetsBinding.instance.addPostFrameCallback(
-                      //   (_) {
-                      //     print('In post frame callback');
-                      //   },
-                      // );
-                      await listviewBuilderWithScrollToIndexController
-                          .scrollToIndex(itemIndex);
-                      print('Scrolled to $itemIndex');
+                      observerControllerWithLazyLoading
+                          .scrollToIndex(curItems.indexOf(e));
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -113,21 +91,23 @@ class _MyTestItemsScreen2State extends State<MyTestItemsScreen2> {
                 }).toList(),
               )),
           Expanded(
-              child: NotificationListener<ScrollEndNotification>(
-            onNotification: (notification) {
-              print('End for ${notification.metrics.pixels}');
-              return true;
-            },
+              child: ListViewObserver(
+            controller:
+                observerControllerWithLazyLoading.listObserverController,
+            onObserve: observerControllerWithLazyLoading.onObserve,
             child: ListView.builder(
-                key: listViewKey, // needed!
-                controller: scrollController,
+                controller: observerControllerWithLazyLoading
+                    .listObserverController.controller,
                 itemCount: curItems.length,
                 itemBuilder: (context, index) {
-                  print('Building $index');
+                  final shouldLoad = observerControllerWithLazyLoading
+                      .shouldActivelyLoad(index, builtIndexes);
+                  if (shouldLoad) {
+                    print('Load image for $index');
+                  }
                   final e = curItems[index];
                   final card = Card(
-                    key: listviewBuilderWithScrollToIndexController
-                        .getKey(index),
+                    key: observerControllerWithLazyLoading.getKey(index),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,10 +124,7 @@ class _MyTestItemsScreen2State extends State<MyTestItemsScreen2> {
                           padding: const EdgeInsets.all(8.0),
                           child: Text(e['content']),
                         ),
-                        if (listviewBuilderWithScrollToIndexController
-                                    .getRequestedIndex() ==
-                                -1 ||
-                            builtIndexes.contains(index))
+                        if (shouldLoad) // START code?
                           Image.network(e['image'])
                       ],
                     ),
