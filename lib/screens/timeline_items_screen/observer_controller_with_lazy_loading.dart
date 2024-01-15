@@ -18,14 +18,14 @@ class ObserverControllerWithLazyLoading {
   /// Callback after jumpTo / animateTo has ended and contains the indexes of the built list items.
   final void Function(List<int> indexes) onBuiltEnd;
 
-  final ScrollController? scrollController;
+  final ScrollController scrollController;
 
   /// The ListObserverController, important to set cacheJumpIndexOffset to false, as some content
   /// is only loaded after the scrolling ended.
   late final ListObserverController listObserverController;
 
   ObserverControllerWithLazyLoading(
-      {required this.onBuiltEnd, this.scrollController});
+      {required this.onBuiltEnd, required this.scrollController});
 
   /// Gets a unique key for each list item, should be called when building the list items.
   GlobalKey getKey(int index) {
@@ -37,18 +37,12 @@ class ObserverControllerWithLazyLoading {
 
   /// Should be called before using this class
   void init() {
-    listObserverController = ListObserverController(
-        controller: scrollController ?? ScrollController())
-      ..cacheJumpIndexOffset = false;
+    listObserverController =
+        ListObserverController(controller: scrollController)
+          ..cacheJumpIndexOffset = false;
   }
 
-  void dispose() {
-    if (scrollController == null) {
-      listObserverController.controller!.dispose();
-    }
-  }
-
-  void scrollToIndex(int index) async {
+  Future scrollToIndex(int index) async {
     requestedIndex = index;
     isScrollingToIndex = true;
     await listObserverController.jumpTo(index: requestedIndex);
@@ -74,8 +68,10 @@ class ObserverControllerWithLazyLoading {
       onBuiltEnd(builtIndexes);
       try {
         WidgetsBinding.instance.addPostFrameCallback((_) async {
+          //await Future.delayed(Duration(seconds: 1));
           if (keys[requestedIndex]?.currentContext != null) {
             try {
+              print('OK try');
               Scrollable.ensureVisible(keys[requestedIndex]!.currentContext!);
             } catch (ex) {
               debugPrintStack();

@@ -4,11 +4,11 @@ import 'package:timeline/main_cubit.dart';
 import 'package:timeline/my_http.dart';
 import 'package:timeline/my_store.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
+import 'package:timeline/screens/settings_screen/settings_screen.dart';
 import 'package:timeline/screens/timeline_hosts_screen/timeline_hosts_screen.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen.dart';
-import 'package:timeline/screens/timeline_items_screen/timeline_items_screen_test.dart';
-import 'package:timeline/screens/timeline_items_screen/timeline_items_screen_test_3.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen_test_4.dart';
+import 'package:timeline/screens/timeline_items_screen/timeline_items_screen_test_5.dart';
 
 // https://github.com/fluttercandies/flutter_scrollview_observer/blob/main/lib/src/common/observer_controller.dart#L334
 // https://pub.dev/packages/scroll_to_index
@@ -49,6 +49,17 @@ class MyApp extends StatelessWidget {
         ));
       }
     }
+    items.add(ListTile(
+      title: Text('Settings'),
+      onTap: () async {
+        Navigator.of(context).pop(); // Drawer
+        await Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) =>
+                SettingsScreen(initialSettings: timelineAll.settings)));
+        // Now get new Settings...
+        cubit.checkAtStart(); // TODO: only get settings?
+      },
+    ));
     return items;
   }
 
@@ -87,10 +98,12 @@ class MyApp extends StatelessWidget {
               child: state.busy
                   ? const CircularProgressIndicator()
                   : (state.timelineAll?.activeTimeline != null
-                      ? const MyTestItemsScreen4()
-                      // TimelineItemsWidget(
-                      //     timeline: state.timelineAll!.activeTimeline!,
-                      //     timelineHost: state.timelineAll!.activeHost!)
+                      ?
+                      //const MyTestItemsScreen5()
+                      TimelineItemsWidget(
+                          settings: state.timelineAll!.settings,
+                          timeline: state.timelineAll!.activeTimeline!,
+                          timelineHost: state.timelineAll!.activeHost!)
                       : ElevatedButton(
                           onPressed: state.timelineAll != null
                               ? () async {

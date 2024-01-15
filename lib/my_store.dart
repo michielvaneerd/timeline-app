@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:equatable/equatable.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as path;
+import 'package:timeline/models/settings.dart';
 import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_host.dart';
 import 'package:timeline/models/timeline_item.dart';
@@ -10,6 +12,7 @@ import 'dart:convert' as convert;
 
 class MyStore {
   static const keySettingsActiveTimelineId = 'active_timeline_id';
+  static const keySettingsLoadImages = 'load_images';
 
   static Database? database;
 
@@ -30,14 +33,46 @@ class MyStore {
     );
   }
 
-  static Future<int?> getActiveTimelineId() async {
-    final rows = await database!.query('settings',
-        where: 'key = ?', whereArgs: [keySettingsActiveTimelineId], limit: 1);
-    if (rows.isNotEmpty) {
-      return int.parse(rows[0]['value'].toString());
-    } else {
-      return null;
+  static Future<Settings> getSettings() async {
+    final rows = await database!.query('settings');
+    int? activeTimelineId;
+    bool loadImages = false;
+    for (var row in rows) {
+      switch (row['key']) {
+        case keySettingsActiveTimelineId:
+          activeTimelineId = int.parse(row['value'].toString());
+          break;
+        case keySettingsLoadImages:
+          loadImages = row['value'].toString() == '1';
+          break;
+      }
     }
+    return Settings(loadImages: loadImages, activeTimelineId: activeTimelineId);
+  }
+
+  static Future putSettings(Settings settings) async {
+    await database!.transaction((txn) async {
+      await txn.delete('settings');
+      await txn.insert('settings', {
+        'key': keySettingsLoadImages,
+        'value': settings.loadImages ? '1' : '0'
+      });
+      if (settings.activeTimelineId != null) {
+        await txn.insert('settings', {
+          'key': keySettingsActiveTimelineId,
+          'value': settings.activeTimelineId
+        });
+      }
+    });
+  }
+
+  static Future putLoadImages(bool value) async {
+    await database!.transaction((txn) async {
+      await txn.delete('settings',
+          where: 'key = ?', whereArgs: [keySettingsLoadImages]);
+      await txn.insert('settings',
+          {'key': keySettingsLoadImages, 'value': value ? '1' : '0'});
+    });
   }
 
   static Future putActiveTimelineId(int? timelineId) async {
@@ -106,13 +141,26 @@ class MyStore {
     });
   }
 
-  static Future<List<TimelineItem>> getTimelineItems(
+  static Future<YearAndTimelineItems> getTimelineItems(
       List<int> timelineIds) async {
     final rows = await database!.query('items',
         where: 'timeline_id IN (${_paramQuestions(timelineIds)})',
         whereArgs: timelineIds,
         orderBy: 'year ASC');
-    return rows.map((e) => TimelineItem.fromMap(e)).toList();
+    final List<TimelineAbstractItem> items = [];
+    final Map<int, int> years = {}; // year => index
+    var index = 0;
+    for (final row in rows) {
+      final item = TimelineItem.fromMap(row);
+      if (!years.containsKey(item.year)) {
+        years[item.year] = index;
+        items.add(TimelineYearItem(year: item.year));
+        index += 1;
+      }
+      items.add(item);
+      index += 1;
+    }
+    return YearAndTimelineItems(timelineItems: items, yearIndexes: years);
   }
 
   static Future putTimelineItems(
@@ -129,12 +177,17 @@ class MyStore {
   }
 
   static Future removeTimelineItems(int timelineId, {Transaction? txn}) async {
-    // final dir = await _localPath;
-    // final file = File(path.join(dir, '$timelineHostId-$timelineId.json'));
-    // if (await file.exists()) {
-    //   await file.delete();
-    // }
     await (txn ?? database!)
         .delete('items', where: 'timeline_id = ?', whereArgs: [timelineId]);
   }
+}
+
+class YearAndTimelineItems extends Equatable {
+  final List<TimelineAbstractItem> timelineItems;
+  final Map<int, int> yearIndexes;
+
+  const YearAndTimelineItems(
+      {required this.timelineItems, required this.yearIndexes});
+  @override
+  List<Object?> get props => [timelineItems, yearIndexes];
 }

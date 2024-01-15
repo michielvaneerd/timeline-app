@@ -7,7 +7,7 @@ import 'package:timeline/my_store.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 
 class TimelineItemsScreenState extends Equatable {
-  final List<TimelineItem> items;
+  final YearAndTimelineItems items;
   final bool busy;
 
   const TimelineItemsScreenState({required this.items, this.busy = false});
@@ -18,11 +18,14 @@ class TimelineItemsScreenState extends Equatable {
 class TimelineItemsScreenCubit extends Cubit<TimelineItemsScreenState> {
   final TimelineRepository timelineRepository;
   TimelineItemsScreenCubit(this.timelineRepository)
-      : super(const TimelineItemsScreenState(items: []));
+      : super(const TimelineItemsScreenState(
+            items: YearAndTimelineItems(timelineItems: [], yearIndexes: {})));
 
   Future getItems(TimelineHost timelineHost, Timeline timeline,
       {bool refresh = false}) async {
-    emit(const TimelineItemsScreenState(items: [], busy: true));
+    emit(const TimelineItemsScreenState(
+        items: YearAndTimelineItems(timelineItems: [], yearIndexes: {}),
+        busy: true));
     if (refresh) {
       await MyStore.removeTimelineItems(timeline.id);
     }

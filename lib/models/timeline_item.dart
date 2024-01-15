@@ -1,15 +1,26 @@
 import 'package:equatable/equatable.dart';
 
-class TimelineItem extends Equatable {
+abstract class TimelineAbstractItem extends Equatable {
+  final int year;
+  const TimelineAbstractItem({required this.year});
+  @override
+  List<Object?> get props => [year];
+}
+
+class TimelineYearItem extends TimelineAbstractItem {
+  const TimelineYearItem({required super.year});
+}
+
+class TimelineItem extends TimelineAbstractItem {
   final int id;
   final int timelineId;
   final String? image;
   final String intro;
-  final int year;
+
   final String title;
 
-  const TimelineItem(this.image, this.intro, this.year, this.title,
-      {required this.id, required this.timelineId});
+  const TimelineItem(this.image, this.intro, this.title,
+      {required this.id, required this.timelineId, required super.year});
 
   @override
   List<Object?> get props => [id, image, intro, year, title, timelineId];
@@ -21,6 +32,6 @@ class TimelineItem extends Equatable {
         timelineId = timelineId ?? map['timeline_id'],
         image = map['image'],
         intro = map['intro'],
-        year = int.parse(map['year'].toString()),
-        title = map['title'];
+        title = map['title'],
+        super(year: int.parse(map['year'].toString()));
 }

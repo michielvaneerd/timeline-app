@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:scrollview_observer/scrollview_observer.dart';
+import 'package:timeline/models/settings.dart';
 import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_host.dart';
+import 'package:timeline/models/timeline_item.dart';
 import 'package:timeline/my_html_text.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
+import 'package:timeline/screens/timeline_items_screen/observer_controller_with_lazy_loading.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen_bloc.dart';
 
 // https://github.com/fluttercandies/flutter_scrollview_observer/blob/main/lib/src/common/observer_controller.dart#L334
@@ -13,8 +17,12 @@ import 'package:timeline/screens/timeline_items_screen/timeline_items_screen_blo
 class TimelineItemsWidget extends StatefulWidget {
   final Timeline timeline;
   final TimelineHost timelineHost;
+  final Settings settings;
   const TimelineItemsWidget(
-      {super.key, required this.timeline, required this.timelineHost});
+      {super.key,
+      required this.timeline,
+      required this.timelineHost,
+      required this.settings});
 
   @override
   State<TimelineItemsWidget> createState() => _TimelineItemsWidgetState();
@@ -22,33 +30,36 @@ class TimelineItemsWidget extends StatefulWidget {
 
 class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   final scrollController = ScrollController();
-  int requestedIndex = -1; // clicked index
-  final Map<int, GlobalKey> keys = {};
-  final listViewKey = GlobalKey();
+  late final ObserverControllerWithLazyLoading
+      observerControllerWithLazyLoading;
+  List<int> builtIndexes = [];
+  //late final ListObserverController listObserverController;
+  List<int> imageIndexes = [];
+  List<int> imagesLoadedIndexes = [];
 
   @override
   void initState() {
     super.initState();
+    // listObserverController =
+    //     ListObserverController(controller: scrollController)
+    //       ..cacheJumpIndexOffset = false;
+    observerControllerWithLazyLoading = ObserverControllerWithLazyLoading(
+        onBuiltEnd: onBuiltEnd, scrollController: scrollController)
+      ..init();
+  }
 
-    scrollController.addListener(
-      () async {
-        await SchedulerBinding.instance
-            .endOfFrame; // Lijkt er voor te zorgen dat voordat de listener uitgevoerd wordt, de frame klaar is en dus ook de currentContext al beschikbaar is
-        // zonder dit komt regelmatig de index niet voorbij.
-        if (requestedIndex != -1 &&
-            keys[requestedIndex]?.currentContext != null) {
-          //scrollController.jumpTo(scrollController.offset);
-          await Scrollable.ensureVisible(keys[requestedIndex]!.currentContext!);
-          requestedIndex = -1;
-        }
-      },
-    );
+  void onBuiltEnd(List<int> indexes) async {
+    print('Set builtIndexes to ${indexes.join(', ')}');
+    setState(() {
+      builtIndexes = indexes;
+      imagesLoadedIndexes = List<int>.from(indexes);
+    });
   }
 
   @override
   void dispose() {
-    scrollController.dispose();
     super.dispose();
+    scrollController.dispose();
   }
 
   // This widget is the root of your application.
@@ -58,14 +69,12 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
     return BlocProvider(
       create: (context) => TimelineItemsScreenCubit(repo)
         ..getItems(widget.timelineHost, widget.timeline),
-      child: BlocConsumer<TimelineItemsScreenCubit, TimelineItemsScreenState>(
-        listener: (context, state) {
-          // TODO: implement listener
-        },
+      child: BlocBuilder<TimelineItemsScreenCubit, TimelineItemsScreenState>(
         builder: (context, state) {
-          if (state.items.isEmpty) {
+          if (state.items.timelineItems.isEmpty) {
             return Container();
           }
+
           final cubit = BlocProvider.of<TimelineItemsScreenCubit>(context);
           return Column(
             mainAxisSize: MainAxisSize.max,
@@ -75,45 +84,20 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                   height: 50,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
-                    children: state.items.map((e) {
+                    children: state.items.timelineItems
+                        .whereType<TimelineYearItem>()
+                        .map((e) {
                       return InkWell(
                         onTap: () async {
-                          final itemIndex = state.items.indexOf(e);
-                          print(
-                              'Offset = ${scrollController.offset}'); // dit hoe ver listview gescrolt is.
-                          final listViewRenderObject =
-                              listViewKey.currentContext!.findRenderObject();
-                          var topIndex = -1;
-                          for (final entry in keys.entries) {
-                            if (entry.value.currentContext != null) {
-                              final translation = entry.value.currentContext!
-                                  .findRenderObject()
-                                  ?.getTransformTo(listViewRenderObject)
-                                  .getTranslation();
-                              if (translation != null && translation.y >= 0) {
-                                topIndex = entry.key;
-                                break;
-                              }
-                            }
-                          }
-                          if (itemIndex == topIndex) {
-                            return;
-                          }
-                          requestedIndex = itemIndex;
-                          await scrollController.animateTo(
-                              itemIndex > topIndex
-                                  ? scrollController.position.maxScrollExtent
-                                  : scrollController.position.minScrollExtent,
-                              duration: Duration(
-                                  seconds:
-                                      1), // deze kunnen we zetten a.h.v. of we dicht in de buurt zitten of niet.
-                              // hoe labger hoe beter, want dan worden items niet geskipt.
-                              curve: Curves
-                                  .linear); // linear is belangrijk, want dan komen alle items even snel voorbij en worden de snelste niet geskipt.
-                          print('Animate completed: ${requestedIndex}');
-                          if (requestedIndex != -1) {
-                            // Niet gelukt, dus we kunnen dan eventueel nog 2 keer proberen bijv.
-                          }
+                          final index = state.items.yearIndexes[e.year]!;
+                          await observerControllerWithLazyLoading
+                              .scrollToIndex(index);
+                          WidgetsBinding.instance.addPostFrameCallback(
+                            (timeStamp) {
+                              observerControllerWithLazyLoading
+                                  .scrollToIndex(index);
+                            },
+                          );
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -128,44 +112,93 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                   return cubit.getItems(widget.timelineHost, widget.timeline,
                       refresh: true);
                 },
-                child: ListView.builder(
-                    key: listViewKey,
-                    controller: scrollController,
-                    itemCount: state.items.length,
-                    itemBuilder: (context, index) {
-                      if (!keys.containsKey(index)) {
-                        keys[index] = GlobalKey();
-                      }
-                      print('Index = $index, requestedIndex = $requestedIndex');
-                      final e = state.items[index];
-                      final card = Card(
-                        key: keys[index],
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
+                child: ListViewObserver(
+                  controller:
+                      observerControllerWithLazyLoading.listObserverController,
+                  onObserve: observerControllerWithLazyLoading.onObserve,
+                  child: ListView.builder(
+                      controller: scrollController,
+                      itemCount: state.items.timelineItems.length,
+                      itemBuilder: (context, index) {
+                        final e = state.items.timelineItems[index];
+                        if (e is TimelineYearItem) {
+                          return Card(
+                            color: Colors.amberAccent,
+                            child: Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: Text('$index: ' + e.year.toString()),
+                              child: Text(
+                                e.year.toString(),
+                                style: const TextStyle(
+                                    fontSize: 26, fontWeight: FontWeight.w900),
+                              ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(e.title),
+                          );
+                        } else {
+                          final TimelineItem item = e as TimelineItem;
+                          final loadImage = observerControllerWithLazyLoading
+                                  .shouldActivelyLoad(index, builtIndexes) &&
+                              (widget.settings.loadImages ||
+                                  imageIndexes.contains(index));
+                          if (loadImage) {
+                            print('Load image for $index');
+                          }
+                          return Card(
+                            key:
+                                observerControllerWithLazyLoading.getKey(index),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          item.title,
+                                          style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.normal),
+                                        ),
+                                      ),
+                                      if (!widget.settings.loadImages &&
+                                          item.image != null)
+                                        TextButton(
+                                            onPressed: () {
+                                              var tmp =
+                                                  List<int>.from(imageIndexes);
+                                              if (tmp.contains(index)) {
+                                                tmp.remove(index);
+                                              } else {
+                                                tmp.add(index);
+                                              }
+                                              setState(() {
+                                                imageIndexes = tmp;
+                                              });
+                                            },
+                                            child: Text('Image'))
+                                    ],
+                                  ),
+                                ),
+                                if (item.intro.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: MyHtmlText.getRichText(item.intro),
+                                  ),
+
+                                // Load image only if we scroll manually (requestedIndex == -1) or when the index is less than 3 away from requestedIndex
+                                if (loadImage)
+                                  Image.network(
+                                    item.image!,
+                                  )
+                              ],
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: MyHtmlText.getRichText(e.intro),
-                            ),
-                            // Load image only if we scroll manually (requestedIndex == -1) or when the index is less than 3 away from requestedIndex
-                            if (e.image != null &&
-                                ((requestedIndex == -1 ||
-                                    (index - requestedIndex).abs() < 3)))
-                              Image.network(e.image!)
-                          ],
-                        ),
-                      );
-                      return card;
-                    }),
+                          );
+                        }
+                      }),
+                ),
               ))
             ],
           );

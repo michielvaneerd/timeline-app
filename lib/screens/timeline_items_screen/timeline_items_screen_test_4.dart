@@ -15,27 +15,32 @@ class MyTestItemsScreen4 extends StatefulWidget {
 
 class _MyTestItemsScreen4State extends State<MyTestItemsScreen4> {
   List<Map<String, dynamic>>? items;
-  late final ObserverControllerWithLazyLoading
-      observerControllerWithLazyLoading;
-  List<int> builtIndexes = [];
+  final scrollController = ScrollController();
+  // late final ObserverControllerWithLazyLoading
+  //     observerControllerWithLazyLoading;
+  // List<int> builtIndexes = [];
+  late final ListObserverController listObserverController;
 
-  void onBuiltEnd(List<int> indexes) {
-    setState(() {
-      builtIndexes = indexes;
-    });
-  }
+  // void onBuiltEnd(List<int> indexes) {
+  //   setState(() {
+  //     builtIndexes = indexes;
+  //   });
+  // }
 
   @override
   void initState() {
     super.initState();
-    observerControllerWithLazyLoading =
-        ObserverControllerWithLazyLoading(onBuiltEnd: onBuiltEnd)..init();
+    listObserverController =
+        ListObserverController(controller: scrollController);
+    // observerControllerWithLazyLoading = ObserverControllerWithLazyLoading(
+    //     onBuiltEnd: onBuiltEnd, scrollController: scrollController)
+    //   ..init();
     init();
   }
 
   @override
   void dispose() {
-    observerControllerWithLazyLoading.dispose();
+    scrollController.dispose();
     super.dispose();
   }
 
@@ -80,8 +85,9 @@ class _MyTestItemsScreen4State extends State<MyTestItemsScreen4> {
                 children: curItems.map((e) {
                   return InkWell(
                     onTap: () async {
-                      observerControllerWithLazyLoading
-                          .scrollToIndex(curItems.indexOf(e));
+                      // observerControllerWithLazyLoading
+                      //     .scrollToIndex(curItems.indexOf(e));
+                      listObserverController.jumpTo(index: curItems.indexOf(e));
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -92,22 +98,22 @@ class _MyTestItemsScreen4State extends State<MyTestItemsScreen4> {
               )),
           Expanded(
               child: ListViewObserver(
-            controller:
-                observerControllerWithLazyLoading.listObserverController,
-            onObserve: observerControllerWithLazyLoading.onObserve,
+            controller: listObserverController,
+            // controller:
+            //     observerControllerWithLazyLoading.listObserverController,
+            //onObserve: observerControllerWithLazyLoading.onObserve,
             child: ListView.builder(
-                controller: observerControllerWithLazyLoading
-                    .listObserverController.controller,
+                controller: scrollController,
                 itemCount: curItems.length,
                 itemBuilder: (context, index) {
-                  final shouldLoad = observerControllerWithLazyLoading
-                      .shouldActivelyLoad(index, builtIndexes);
-                  if (shouldLoad) {
-                    print('Load image for $index');
-                  }
+                  // final shouldLoad = observerControllerWithLazyLoading
+                  //     .shouldActivelyLoad(index, builtIndexes);
+                  // if (shouldLoad) {
+                  //   print('Load image for $index');
+                  // }
                   final e = curItems[index];
                   final card = Card(
-                    key: observerControllerWithLazyLoading.getKey(index),
+                    //key: observerControllerWithLazyLoading.getKey(index),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,8 +130,8 @@ class _MyTestItemsScreen4State extends State<MyTestItemsScreen4> {
                           padding: const EdgeInsets.all(8.0),
                           child: Text(e['content']),
                         ),
-                        if (shouldLoad) // START code?
-                          Image.network(e['image'])
+                        //if (shouldLoad) // START code?
+                        Image.network(e['image'])
                       ],
                     ),
                   );
