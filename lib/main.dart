@@ -55,11 +55,11 @@ class MyApp extends StatelessWidget {
                   : 'Timeline'),
               actions: activeTimelines != null && activeTimelines.isNotEmpty
                   ? [
-                      TextButton(
+                      IconButton(
                           onPressed: () {
-                            cubit.closeTimeline();
+                            //cubit.closeTimeline();
                           },
-                          child: const Text('Close'))
+                          icon: const Icon(Icons.search))
                     ]
                   : null,
             ),
@@ -76,6 +76,7 @@ class MyApp extends StatelessWidget {
                       ?
                       //const MyTestItemsScreen5()
                       TimelineItemsWidget(
+                          showSearch: false,
                           settings: state.timelineAll!.settings,
                           activeTimelines: activeTimelines.toList(),
                           timelineHosts: state.timelineAll!.timelineHosts)

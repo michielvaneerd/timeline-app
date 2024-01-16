@@ -25,7 +25,7 @@ class MyStore {
         await db.execute(
             'CREATE TABLE timelines (id INTEGER PRIMARY KEY, term_id INTEGER, name TEXT, description TEXT, host_id INT, active INT)');
         await db.execute(
-            'CREATE TABLE items (id INTEGER PRIMARY KEY, timeline_id INTEGER, year INTEGER, intro TEXT, title TEXT, image TEXT)');
+            'CREATE TABLE items (id INTEGER PRIMARY KEY, timeline_id INTEGER, year INTEGER, intro TEXT, title TEXT, image TEXT, links TEXT)');
       },
     );
   }
@@ -165,7 +165,6 @@ class MyStore {
 
   static Future removeTimelineItems(List<int> timelineIds,
       {Transaction? txn}) async {
-    print('Delete timeline items for ${timelineIds.join(', ')}');
     await (txn ?? database!).delete('items',
         where: 'timeline_id IN (${_paramQuestions(timelineIds)})',
         whereArgs: timelineIds);

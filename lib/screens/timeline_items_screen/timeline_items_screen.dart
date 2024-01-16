@@ -18,9 +18,11 @@ class TimelineItemsWidget extends StatefulWidget {
   final List<Timeline> activeTimelines;
   final List<TimelineHost> timelineHosts;
   final Settings settings;
+  final bool showSearch;
   const TimelineItemsWidget(
       {super.key,
       required this.activeTimelines,
+      required this.showSearch,
       required this.timelineHosts,
       required this.settings});
 
@@ -131,7 +133,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                               final e = state.items.timelineItems[index];
                               if (e is TimelineYearItem) {
                                 return Card(
-                                  //color: Colors.amberAccent,
+                                  color: Colors.greenAccent,
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Text(
@@ -158,6 +160,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                       .getKey(index),
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.start,
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
@@ -174,31 +177,36 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                 children: [
                                                   Text(
                                                     item.title,
-                                                    style: TextStyle(
+                                                    style: const TextStyle(
                                                         fontSize: 18,
                                                         fontWeight:
                                                             FontWeight.normal),
                                                   ),
-                                                  Text(item.year.toString())
+                                                  Text(item.year.toString(),
+                                                      style: const TextStyle(
+                                                          fontSize: 12))
                                                 ],
                                               ),
                                             ),
                                             if (!widget.settings.loadImages &&
                                                 item.image != null)
-                                              TextButton(
-                                                  onPressed: () {
-                                                    var tmp = List<int>.from(
-                                                        imageIndexes);
-                                                    if (tmp.contains(index)) {
-                                                      tmp.remove(index);
-                                                    } else {
-                                                      tmp.add(index);
-                                                    }
-                                                    setState(() {
-                                                      imageIndexes = tmp;
-                                                    });
-                                                  },
-                                                  child: Text('Image'))
+                                              IconButton(
+                                                icon: const Icon(
+                                                    Icons.image_outlined,
+                                                    size: 16),
+                                                onPressed: () {
+                                                  var tmp = List<int>.from(
+                                                      imageIndexes);
+                                                  if (tmp.contains(index)) {
+                                                    tmp.remove(index);
+                                                  } else {
+                                                    tmp.add(index);
+                                                  }
+                                                  setState(() {
+                                                    imageIndexes = tmp;
+                                                  });
+                                                },
+                                              )
                                           ],
                                         ),
                                       ),
@@ -215,6 +223,34 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                           padding: const EdgeInsets.all(8.0),
                                           child: Image.network(
                                             item.image!,
+                                          ),
+                                        ),
+                                      if (item.links.isNotEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: item.links
+                                                .map((e) => InkWell(
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .only(
+                                                                bottom: 4.0),
+                                                        child: Text(e,
+                                                            style: const TextStyle(
+                                                                fontSize: 12,
+                                                                decoration:
+                                                                    TextDecoration
+                                                                        .underline)),
+                                                      ),
+                                                      onTap: () {
+                                                        print('Go to $e');
+                                                      },
+                                                    ))
+                                                .toList(),
                                           ),
                                         )
                                     ],
