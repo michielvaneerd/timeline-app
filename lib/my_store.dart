@@ -116,12 +116,10 @@ class MyStore {
   }
 
   static Future removeTimelineHosts(List<int> hostIds) async {
+    print('Delete hosts ${hostIds.join(', ')}');
     final timelines = await getTimelines(hostIds: hostIds);
     await database!.transaction((txn) async {
-      // for (final timeline in timelines) {
-      //   await removeTimelineItems(timeline.id, txn: txn);
-      // }
-      await removeTimelineItems(timelines.map((e) => e.id).toList());
+      await removeTimelineItems(timelines.map((e) => e.id).toList(), txn: txn);
       await txn.delete('timelines',
           where: 'host_id IN (${_paramQuestions(hostIds)})',
           whereArgs: hostIds);
@@ -167,8 +165,10 @@ class MyStore {
 
   static Future removeTimelineItems(List<int> timelineIds,
       {Transaction? txn}) async {
-    await (txn ?? database!)
-        .delete('items', where: 'timeline_id = ?', whereArgs: timelineIds);
+    print('Delete timeline items for ${timelineIds.join(', ')}');
+    await (txn ?? database!).delete('items',
+        where: 'timeline_id IN (${_paramQuestions(timelineIds)})',
+        whereArgs: timelineIds);
   }
 }
 

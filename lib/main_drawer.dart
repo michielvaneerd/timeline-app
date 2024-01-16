@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:timeline/main_cubit.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:timeline/screens/settings_screen/settings_screen.dart';
+import 'package:timeline/screens/timeline_hosts_screen/timeline_hosts_screen.dart';
 
 class MainDrawer extends StatefulWidget {
   const MainDrawer(
@@ -60,6 +61,17 @@ class _MainDrawerState extends State<MainDrawer> {
       onTap: () {
         Navigator.of(context).pop();
         widget.mainCubit.activateTimelines(activeTimelineIds);
+      },
+    ));
+    items.add(ListTile(
+      title: Text('Hosts'),
+      onTap: () async {
+        Navigator.of(context).pop();
+        await Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => TimelineHostsScreen(
+                  timelineAll: widget.timelineAll,
+                )));
+        widget.mainCubit.checkAtStart(withBusy: false);
       },
     ));
     items.add(ListTile(

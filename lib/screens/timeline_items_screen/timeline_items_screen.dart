@@ -131,7 +131,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                               final e = state.items.timelineItems[index];
                               if (e is TimelineYearItem) {
                                 return Card(
-                                  color: Colors.amberAccent,
+                                  //color: Colors.amberAccent,
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Text(
@@ -168,12 +168,19 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                               MainAxisAlignment.spaceBetween,
                                           children: [
                                             Flexible(
-                                              child: Text(
-                                                item.title,
-                                                style: TextStyle(
-                                                    fontSize: 18,
-                                                    fontWeight:
-                                                        FontWeight.normal),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    item.title,
+                                                    style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.normal),
+                                                  ),
+                                                  Text(item.year.toString())
+                                                ],
                                               ),
                                             ),
                                             if (!widget.settings.loadImages &&
@@ -204,8 +211,11 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
 
                                       // Load image only if we scroll manually (requestedIndex == -1) or when the index is less than 3 away from requestedIndex
                                       if (loadImage)
-                                        Image.network(
-                                          item.image!,
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Image.network(
+                                            item.image!,
+                                          ),
                                         )
                                     ],
                                   ),

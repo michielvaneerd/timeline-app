@@ -22,6 +22,11 @@ void main() async {
     value: repo,
     child: MaterialApp(
         title: 'Timeline',
+        theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          primary: Colors.black,
+        )),
         home: BlocProvider(
           create: (context) => MainCubit(repo)..checkAtStart(),
           child: const MyApp(),
