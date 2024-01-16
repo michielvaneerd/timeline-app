@@ -24,8 +24,8 @@ class SettingsScreen extends StatelessWidget {
                     onChanged: (newValue) {
                       if (newValue != null) {
                         cubit.updateSettings(Settings(
-                            loadImages: newValue,
-                            activeTimelineId: state.settings.activeTimelineId));
+                          loadImages: newValue,
+                        ));
                       }
                     })
               ],

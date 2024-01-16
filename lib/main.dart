@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timeline/main_cubit.dart';
+import 'package:timeline/main_drawer.dart';
 import 'package:timeline/my_http.dart';
 import 'package:timeline/my_store.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
@@ -31,38 +32,6 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  List<Widget> _getDrawerItems(
-      TimelineAll timelineAll, MainCubit cubit, BuildContext context) {
-    final List<Widget> items = [];
-    for (final host in timelineAll.timelineHosts) {
-      items.add(ListTile(
-        title: Text(host.host),
-      ));
-      for (final timeline in timelineAll.timelines
-          .where((element) => element.hostId == host.id)) {
-        items.add(ListTile(
-          title: Text(timeline.name),
-          onTap: () {
-            cubit.activateTimeline(timeline.id);
-            Navigator.of(context).pop();
-          },
-        ));
-      }
-    }
-    items.add(ListTile(
-      title: Text('Settings'),
-      onTap: () async {
-        Navigator.of(context).pop(); // Drawer
-        await Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) =>
-                SettingsScreen(initialSettings: timelineAll.settings)));
-        // Now get new Settings...
-        cubit.checkAtStart(); // TODO: only get settings?
-      },
-    ));
-    return items;
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<MainCubit, MainState>(
@@ -71,12 +40,15 @@ class MyApp extends StatelessWidget {
       },
       builder: (context, state) {
         final cubit = BlocProvider.of<MainCubit>(context);
+        final activeTimelines = state.timelineAll?.timelines.where(
+          (element) => element.isActive(),
+        );
         return Scaffold(
             appBar: AppBar(
-              title: Text(state.timelineAll?.activeTimeline != null
-                  ? state.timelineAll!.activeTimeline!.name
+              title: Text(activeTimelines != null && activeTimelines.isNotEmpty
+                  ? activeTimelines.map((e) => e.name).join(', ')
                   : 'Timeline'),
-              actions: state.timelineAll?.activeTimeline != null
+              actions: activeTimelines != null && activeTimelines.isNotEmpty
                   ? [
                       TextButton(
                           onPressed: () {
@@ -87,23 +59,21 @@ class MyApp extends StatelessWidget {
                   : null,
             ),
             drawer: state.timelineAll != null
-                ? Drawer(
-                    child: ListView(
-                      children:
-                          _getDrawerItems(state.timelineAll!, cubit, context),
-                    ),
+                ? MainDrawer(
+                    timelineAll: state.timelineAll!,
+                    mainCubit: cubit,
                   )
                 : null,
             body: Center(
               child: state.busy
                   ? const CircularProgressIndicator()
-                  : (state.timelineAll?.activeTimeline != null
+                  : (activeTimelines != null && activeTimelines.isNotEmpty
                       ?
                       //const MyTestItemsScreen5()
                       TimelineItemsWidget(
                           settings: state.timelineAll!.settings,
-                          timeline: state.timelineAll!.activeTimeline!,
-                          timelineHost: state.timelineAll!.activeHost!)
+                          activeTimelines: activeTimelines.toList(),
+                          timelineHosts: state.timelineAll!.timelineHosts)
                       : ElevatedButton(
                           onPressed: state.timelineAll != null
                               ? () async {
@@ -114,7 +84,8 @@ class MyApp extends StatelessWidget {
                                                 timelineAll: state.timelineAll!,
                                               )));
                                   if (timelineId != null) {
-                                    cubit.activateTimeline(timelineId);
+                                    //cubit.activateTimeline(timelineId);
+                                    // TODO...
                                   } else {
                                     // TODO: we can check if timelineAll has changed...
                                     cubit.checkAtStart(withBusy: false);

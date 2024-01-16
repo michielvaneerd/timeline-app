@@ -21,16 +21,16 @@ class TimelineItemsScreenCubit extends Cubit<TimelineItemsScreenState> {
       : super(const TimelineItemsScreenState(
             items: YearAndTimelineItems(timelineItems: [], yearIndexes: {})));
 
-  Future getItems(TimelineHost timelineHost, Timeline timeline,
+  Future getItems(List<TimelineHost> timelineHosts, List<Timeline> timelines,
       {bool refresh = false}) async {
     emit(const TimelineItemsScreenState(
         items: YearAndTimelineItems(timelineItems: [], yearIndexes: {}),
         busy: true));
     if (refresh) {
-      await MyStore.removeTimelineItems(timeline.id);
+      await MyStore.removeTimelineItems(timelines.map((e) => e.id).toList());
     }
     final items =
-        await timelineRepository.getTimelineItems(timelineHost, timeline);
+        await timelineRepository.getTimelineItems(timelineHosts, timelines);
     emit(TimelineItemsScreenState(items: items));
   }
 }

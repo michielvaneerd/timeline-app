@@ -15,13 +15,13 @@ import 'package:timeline/screens/timeline_items_screen/timeline_items_screen_blo
 // https://pub.dev/packages/scroll_to_index
 
 class TimelineItemsWidget extends StatefulWidget {
-  final Timeline timeline;
-  final TimelineHost timelineHost;
+  final List<Timeline> activeTimelines;
+  final List<TimelineHost> timelineHosts;
   final Settings settings;
   const TimelineItemsWidget(
       {super.key,
-      required this.timeline,
-      required this.timelineHost,
+      required this.activeTimelines,
+      required this.timelineHosts,
       required this.settings});
 
   @override
@@ -33,26 +33,19 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   late final ObserverControllerWithLazyLoading
       observerControllerWithLazyLoading;
   List<int> builtIndexes = [];
-  //late final ListObserverController listObserverController;
   List<int> imageIndexes = [];
-  List<int> imagesLoadedIndexes = [];
 
   @override
   void initState() {
     super.initState();
-    // listObserverController =
-    //     ListObserverController(controller: scrollController)
-    //       ..cacheJumpIndexOffset = false;
     observerControllerWithLazyLoading = ObserverControllerWithLazyLoading(
         onBuiltEnd: onBuiltEnd, scrollController: scrollController)
       ..init();
   }
 
   void onBuiltEnd(List<int> indexes) async {
-    print('Set builtIndexes to ${indexes.join(', ')}');
     setState(() {
       builtIndexes = indexes;
-      imagesLoadedIndexes = List<int>.from(indexes);
     });
   }
 
@@ -62,13 +55,29 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
     scrollController.dispose();
   }
 
+  Widget getRefreshIndicatorOrContainer(
+      Widget child, TimelineItemsScreenCubit cubit) {
+    if (widget.activeTimelines.length > 1) {
+      return Container(
+        child: child,
+      );
+    } else {
+      return RefreshIndicator(
+          onRefresh: () {
+            return cubit.getItems(widget.timelineHosts, widget.activeTimelines,
+                refresh: true);
+          },
+          child: child);
+    }
+  }
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     final repo = RepositoryProvider.of<TimelineRepository>(context);
     return BlocProvider(
       create: (context) => TimelineItemsScreenCubit(repo)
-        ..getItems(widget.timelineHost, widget.timeline),
+        ..getItems(widget.timelineHosts, widget.activeTimelines),
       child: BlocBuilder<TimelineItemsScreenCubit, TimelineItemsScreenState>(
         builder: (context, state) {
           if (state.items.timelineItems.isEmpty) {
@@ -93,7 +102,10 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                           await observerControllerWithLazyLoading
                               .scrollToIndex(index);
                           WidgetsBinding.instance.addPostFrameCallback(
-                            (timeStamp) {
+                            (timeStamp) async {
+                              await Future.delayed(const Duration(
+                                  milliseconds:
+                                      300)); // needed because images may still be loading so the list view items may get different height
                               observerControllerWithLazyLoading
                                   .scrollToIndex(index);
                             },
@@ -107,99 +119,101 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                     }).toList(),
                   )),
               Expanded(
-                  child: RefreshIndicator(
-                onRefresh: () {
-                  return cubit.getItems(widget.timelineHost, widget.timeline,
-                      refresh: true);
-                },
-                child: ListViewObserver(
-                  controller:
-                      observerControllerWithLazyLoading.listObserverController,
-                  onObserve: observerControllerWithLazyLoading.onObserve,
-                  child: ListView.builder(
-                      controller: scrollController,
-                      itemCount: state.items.timelineItems.length,
-                      itemBuilder: (context, index) {
-                        final e = state.items.timelineItems[index];
-                        if (e is TimelineYearItem) {
-                          return Card(
-                            color: Colors.amberAccent,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                e.year.toString(),
-                                style: const TextStyle(
-                                    fontSize: 26, fontWeight: FontWeight.w900),
-                              ),
-                            ),
-                          );
-                        } else {
-                          final TimelineItem item = e as TimelineItem;
-                          final loadImage = observerControllerWithLazyLoading
-                                  .shouldActivelyLoad(index, builtIndexes) &&
-                              (widget.settings.loadImages ||
-                                  imageIndexes.contains(index));
-                          if (loadImage) {
-                            print('Load image for $index');
-                          }
-                          return Card(
-                            key:
-                                observerControllerWithLazyLoading.getKey(index),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                  child: getRefreshIndicatorOrContainer(
+                      ListViewObserver(
+                        controller: observerControllerWithLazyLoading
+                            .listObserverController,
+                        onObserve: observerControllerWithLazyLoading.onObserve,
+                        child: ListView.builder(
+                            controller: scrollController,
+                            itemCount: state.items.timelineItems.length,
+                            itemBuilder: (context, index) {
+                              final e = state.items.timelineItems[index];
+                              if (e is TimelineYearItem) {
+                                return Card(
+                                  color: Colors.amberAccent,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      e.year.toString(),
+                                      style: const TextStyle(
+                                          fontSize: 26,
+                                          fontWeight: FontWeight.w900),
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                final TimelineItem item = e as TimelineItem;
+                                final loadImage =
+                                    observerControllerWithLazyLoading
+                                            .shouldActivelyLoad(
+                                                index, builtIndexes) &&
+                                        (widget.settings.loadImages ||
+                                            imageIndexes.contains(index));
+                                if (loadImage) {
+                                  print('Load image for $index');
+                                }
+                                return Card(
+                                  key: observerControllerWithLazyLoading
+                                      .getKey(index),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Flexible(
-                                        child: Text(
-                                          item.title,
-                                          style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.normal),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                item.title,
+                                                style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight:
+                                                        FontWeight.normal),
+                                              ),
+                                            ),
+                                            if (!widget.settings.loadImages &&
+                                                item.image != null)
+                                              TextButton(
+                                                  onPressed: () {
+                                                    var tmp = List<int>.from(
+                                                        imageIndexes);
+                                                    if (tmp.contains(index)) {
+                                                      tmp.remove(index);
+                                                    } else {
+                                                      tmp.add(index);
+                                                    }
+                                                    setState(() {
+                                                      imageIndexes = tmp;
+                                                    });
+                                                  },
+                                                  child: Text('Image'))
+                                          ],
                                         ),
                                       ),
-                                      if (!widget.settings.loadImages &&
-                                          item.image != null)
-                                        TextButton(
-                                            onPressed: () {
-                                              var tmp =
-                                                  List<int>.from(imageIndexes);
-                                              if (tmp.contains(index)) {
-                                                tmp.remove(index);
-                                              } else {
-                                                tmp.add(index);
-                                              }
-                                              setState(() {
-                                                imageIndexes = tmp;
-                                              });
-                                            },
-                                            child: Text('Image'))
+                                      if (item.intro.isNotEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: MyHtmlText.getRichText(
+                                              item.intro),
+                                        ),
+
+                                      // Load image only if we scroll manually (requestedIndex == -1) or when the index is less than 3 away from requestedIndex
+                                      if (loadImage)
+                                        Image.network(
+                                          item.image!,
+                                        )
                                     ],
                                   ),
-                                ),
-                                if (item.intro.isNotEmpty)
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: MyHtmlText.getRichText(item.intro),
-                                  ),
-
-                                // Load image only if we scroll manually (requestedIndex == -1) or when the index is less than 3 away from requestedIndex
-                                if (loadImage)
-                                  Image.network(
-                                    item.image!,
-                                  )
-                              ],
-                            ),
-                          );
-                        }
-                      }),
-                ),
-              ))
+                                );
+                              }
+                            }),
+                      ),
+                      cubit))
             ],
           );
         },

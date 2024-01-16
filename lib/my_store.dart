@@ -1,17 +1,14 @@
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
-import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as path;
 import 'package:timeline/models/settings.dart';
 import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_host.dart';
 import 'package:timeline/models/timeline_item.dart';
-import 'dart:convert' as convert;
 
 class MyStore {
-  static const keySettingsActiveTimelineId = 'active_timeline_id';
   static const keySettingsLoadImages = 'load_images';
 
   static Database? database;
@@ -26,7 +23,7 @@ class MyStore {
         await db
             .execute('CREATE TABLE hosts (id INTEGER PRIMARY KEY, host TEXT)');
         await db.execute(
-            'CREATE TABLE timelines (id INTEGER PRIMARY KEY, term_id INTEGER, name TEXT, description TEXT, host_id INT)');
+            'CREATE TABLE timelines (id INTEGER PRIMARY KEY, term_id INTEGER, name TEXT, description TEXT, host_id INT, active INT)');
         await db.execute(
             'CREATE TABLE items (id INTEGER PRIMARY KEY, timeline_id INTEGER, year INTEGER, intro TEXT, title TEXT, image TEXT)');
       },
@@ -35,19 +32,15 @@ class MyStore {
 
   static Future<Settings> getSettings() async {
     final rows = await database!.query('settings');
-    int? activeTimelineId;
     bool loadImages = false;
     for (var row in rows) {
       switch (row['key']) {
-        case keySettingsActiveTimelineId:
-          activeTimelineId = int.parse(row['value'].toString());
-          break;
         case keySettingsLoadImages:
           loadImages = row['value'].toString() == '1';
           break;
       }
     }
-    return Settings(loadImages: loadImages, activeTimelineId: activeTimelineId);
+    return Settings(loadImages: loadImages);
   }
 
   static Future putSettings(Settings settings) async {
@@ -57,12 +50,6 @@ class MyStore {
         'key': keySettingsLoadImages,
         'value': settings.loadImages ? '1' : '0'
       });
-      if (settings.activeTimelineId != null) {
-        await txn.insert('settings', {
-          'key': keySettingsActiveTimelineId,
-          'value': settings.activeTimelineId
-        });
-      }
     });
   }
 
@@ -75,13 +62,13 @@ class MyStore {
     });
   }
 
-  static Future putActiveTimelineId(int? timelineId) async {
+  static Future putActiveTimelineIds(List<int> timelineIds) async {
     await database!.transaction((txn) async {
-      await txn.delete('settings',
-          where: 'key = ?', whereArgs: [keySettingsActiveTimelineId]);
-      if (timelineId != null) {
-        await txn.insert('settings',
-            {'key': keySettingsActiveTimelineId, 'value': timelineId});
+      await txn.update('timelines', {'active': 0});
+      if (timelineIds.isNotEmpty) {
+        await txn.update('timelines', {'active': 1},
+            where: 'id in (${_paramQuestions(timelineIds)})',
+            whereArgs: timelineIds);
       }
     });
   }
@@ -120,7 +107,8 @@ class MyStore {
           'term_id': timeline['term_taxonomy_id'],
           'name': timeline['name'],
           'description': timeline['description'],
-          'host_id': timelineHostId
+          'host_id': timelineHostId,
+          'active': 0
         });
       }
       await batch.commit(noResult: true);
@@ -130,9 +118,10 @@ class MyStore {
   static Future removeTimelineHosts(List<int> hostIds) async {
     final timelines = await getTimelines(hostIds: hostIds);
     await database!.transaction((txn) async {
-      for (final timeline in timelines) {
-        await removeTimelineItems(timeline.id, txn: txn);
-      }
+      // for (final timeline in timelines) {
+      //   await removeTimelineItems(timeline.id, txn: txn);
+      // }
+      await removeTimelineItems(timelines.map((e) => e.id).toList());
       await txn.delete('timelines',
           where: 'host_id IN (${_paramQuestions(hostIds)})',
           whereArgs: hostIds);
@@ -176,9 +165,10 @@ class MyStore {
     });
   }
 
-  static Future removeTimelineItems(int timelineId, {Transaction? txn}) async {
+  static Future removeTimelineItems(List<int> timelineIds,
+      {Transaction? txn}) async {
     await (txn ?? database!)
-        .delete('items', where: 'timeline_id = ?', whereArgs: [timelineId]);
+        .delete('items', where: 'timeline_id = ?', whereArgs: timelineIds);
   }
 }
 
