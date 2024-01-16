@@ -34,9 +34,15 @@ void main() async {
   ));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  var showSearch = false;
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<MainCubit, MainState>(
@@ -58,6 +64,9 @@ class MyApp extends StatelessWidget {
                       IconButton(
                           onPressed: () {
                             //cubit.closeTimeline();
+                            setState(() {
+                              showSearch = !showSearch;
+                            });
                           },
                           icon: const Icon(Icons.search))
                     ]
@@ -76,7 +85,7 @@ class MyApp extends StatelessWidget {
                       ?
                       //const MyTestItemsScreen5()
                       TimelineItemsWidget(
-                          showSearch: false,
+                          showSearch: showSearch,
                           settings: state.timelineAll!.settings,
                           activeTimelines: activeTimelines.toList(),
                           timelineHosts: state.timelineAll!.timelineHosts)

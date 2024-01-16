@@ -87,20 +87,27 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
           }
 
           final cubit = BlocProvider.of<TimelineItemsScreenCubit>(context);
+          final realItems = state.filteredItems ?? state.items;
           return Column(
             mainAxisSize: MainAxisSize.max,
             children: [
+              if (widget.showSearch)
+                TextField(
+                  onChanged: (value) {
+                    cubit.filterItems(value, state.items);
+                  },
+                ),
               SizedBox(
                   //color: Colors.green,
                   height: 50,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
-                    children: state.items.timelineItems
+                    children: realItems.timelineItems
                         .whereType<TimelineYearItem>()
                         .map((e) {
                       return InkWell(
                         onTap: () async {
-                          final index = state.items.yearIndexes[e.year]!;
+                          final index = realItems.yearIndexes[e.year]!;
                           await observerControllerWithLazyLoading
                               .scrollToIndex(index);
                           WidgetsBinding.instance.addPostFrameCallback(
@@ -128,9 +135,9 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                         onObserve: observerControllerWithLazyLoading.onObserve,
                         child: ListView.builder(
                             controller: scrollController,
-                            itemCount: state.items.timelineItems.length,
+                            itemCount: realItems.timelineItems.length,
                             itemBuilder: (context, index) {
-                              final e = state.items.timelineItems[index];
+                              final e = realItems.timelineItems[index];
                               if (e is TimelineYearItem) {
                                 return Card(
                                   color: Colors.greenAccent,

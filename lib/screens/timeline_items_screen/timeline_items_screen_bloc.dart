@@ -8,11 +8,13 @@ import 'package:timeline/repositories/timeline_repository.dart';
 
 class TimelineItemsScreenState extends Equatable {
   final YearAndTimelineItems items;
+  final YearAndTimelineItems? filteredItems;
   final bool busy;
 
-  const TimelineItemsScreenState({required this.items, this.busy = false});
+  const TimelineItemsScreenState(
+      {required this.items, this.filteredItems, this.busy = false});
   @override
-  List<Object?> get props => [items, busy];
+  List<Object?> get props => [items, busy, filteredItems];
 }
 
 class TimelineItemsScreenCubit extends Cubit<TimelineItemsScreenState> {
@@ -32,5 +34,28 @@ class TimelineItemsScreenCubit extends Cubit<TimelineItemsScreenState> {
     final items =
         await timelineRepository.getTimelineItems(timelineHosts, timelines);
     emit(TimelineItemsScreenState(items: items));
+  }
+
+  Future filterItems(String q, YearAndTimelineItems items) async {
+    final List<TimelineAbstractItem> timelineItems = [];
+    var index = 0;
+    final Map<int, int> yearMap = {};
+    for (final item in items.timelineItems) {
+      if (item is TimelineItem) {
+        if (item.title.contains(q)) {
+          if (!yearMap.containsKey(item.year)) {
+            yearMap[item.year] = index;
+            timelineItems.add(TimelineYearItem(year: item.year));
+            index += 1;
+          }
+          timelineItems.add(item);
+          index += 1;
+        }
+      }
+    }
+    emit(TimelineItemsScreenState(
+        items: items,
+        filteredItems: YearAndTimelineItems(
+            timelineItems: timelineItems, yearIndexes: yearMap)));
   }
 }
