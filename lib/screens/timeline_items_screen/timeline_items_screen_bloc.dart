@@ -10,11 +10,15 @@ class TimelineItemsScreenState extends Equatable {
   final YearAndTimelineItems items;
   final YearAndTimelineItems? filteredItems;
   final bool busy;
+  final String filter;
 
   const TimelineItemsScreenState(
-      {required this.items, this.filteredItems, this.busy = false});
+      {required this.items,
+      this.filteredItems,
+      this.filter = '',
+      this.busy = false});
   @override
-  List<Object?> get props => [items, busy, filteredItems];
+  List<Object?> get props => [items, busy, filteredItems, filter];
 }
 
 class TimelineItemsScreenCubit extends Cubit<TimelineItemsScreenState> {
@@ -37,6 +41,10 @@ class TimelineItemsScreenCubit extends Cubit<TimelineItemsScreenState> {
   }
 
   Future filterItems(String q, YearAndTimelineItems items) async {
+    if (q.isEmpty) {
+      emit(TimelineItemsScreenState(items: items));
+      return;
+    }
     final List<TimelineAbstractItem> timelineItems = [];
     var index = 0;
     final Map<int, int> yearMap = {};
@@ -54,6 +62,7 @@ class TimelineItemsScreenCubit extends Cubit<TimelineItemsScreenState> {
       }
     }
     emit(TimelineItemsScreenState(
+        filter: q,
         items: items,
         filteredItems: YearAndTimelineItems(
             timelineItems: timelineItems, yearIndexes: yearMap)));

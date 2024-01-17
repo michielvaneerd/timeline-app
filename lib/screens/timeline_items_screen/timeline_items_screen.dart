@@ -36,6 +36,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
       observerControllerWithLazyLoading;
   List<int> builtIndexes = [];
   List<int> imageIndexes = [];
+  final searchController = TextEditingController();
 
   @override
   void initState() {
@@ -55,6 +56,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   void dispose() {
     super.dispose();
     scrollController.dispose();
+    searchController.dispose();
   }
 
   Widget getRefreshIndicatorOrContainer(
@@ -92,10 +94,30 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
             mainAxisSize: MainAxisSize.max,
             children: [
               if (widget.showSearch)
-                TextField(
-                  onChanged: (value) {
-                    cubit.filterItems(value, state.items);
-                  },
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextField(
+                    controller: searchController,
+                    decoration: InputDecoration(
+                        suffixIcon: state.filter.isNotEmpty
+                            ? IconButton(
+                                onPressed: () {
+                                  cubit.filterItems('', state.items);
+                                  searchController.clear();
+                                },
+                                icon: const Icon(Icons.close))
+                            : null,
+                        enabledBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(color: Colors.green),
+                            borderRadius: BorderRadius.circular(10)),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                const BorderSide(color: Colors.green, width: 2),
+                            borderRadius: BorderRadius.circular(10))),
+                    onChanged: (value) {
+                      cubit.filterItems(value, state.items);
+                    },
+                  ),
                 ),
               SizedBox(
                   //color: Colors.green,
@@ -187,7 +209,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                     style: const TextStyle(
                                                         fontSize: 18,
                                                         fontWeight:
-                                                            FontWeight.normal),
+                                                            FontWeight.bold),
                                                   ),
                                                   Text(item.year.toString(),
                                                       style: const TextStyle(
