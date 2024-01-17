@@ -5,11 +5,8 @@ import 'package:timeline/main_drawer.dart';
 import 'package:timeline/my_http.dart';
 import 'package:timeline/my_store.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
-import 'package:timeline/screens/settings_screen/settings_screen.dart';
 import 'package:timeline/screens/timeline_hosts_screen/timeline_hosts_screen.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen.dart';
-import 'package:timeline/screens/timeline_items_screen/timeline_items_screen_test_4.dart';
-import 'package:timeline/screens/timeline_items_screen/timeline_items_screen_test_5.dart';
 
 // https://github.com/fluttercandies/flutter_scrollview_observer/blob/main/lib/src/common/observer_controller.dart#L334
 // https://pub.dev/packages/scroll_to_index
@@ -43,11 +40,16 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   var showSearch = false;
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<MainCubit, MainState>(
       listener: (context, state) {
-        // TODO: implement listener
+        if (state.busy) {
+          setState(() {
+            showSearch = false;
+          });
+        }
       },
       builder: (context, state) {
         final cubit = BlocProvider.of<MainCubit>(context);
@@ -63,7 +65,6 @@ class _MyAppState extends State<MyApp> {
                   ? [
                       IconButton(
                           onPressed: () {
-                            //cubit.closeTimeline();
                             setState(() {
                               showSearch = !showSearch;
                             });

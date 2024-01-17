@@ -19,11 +19,13 @@ class TimelineItem extends TimelineAbstractItem {
   final String intro;
   final List<String> links;
   final String title;
+  final String? imageSource;
 
   const TimelineItem(this.image, this.intro, this.title,
       {required this.id,
       required this.timelineId,
       required super.year,
+      this.imageSource,
       required this.links});
 
   @override
@@ -34,6 +36,7 @@ class TimelineItem extends TimelineAbstractItem {
   TimelineItem.fromMap(Map<String, dynamic> map, {int? timelineId})
       : id = int.parse(map['id'].toString()),
         timelineId = timelineId ?? map['timeline_id'],
+        imageSource = map['image_source'],
         links = map.containsKey('links') &&
                 map['links'] != null &&
                 map['links'].toString().isNotEmpty

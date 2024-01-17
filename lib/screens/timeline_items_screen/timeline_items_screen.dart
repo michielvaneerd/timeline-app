@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
 import 'package:timeline/models/settings.dart';
@@ -10,6 +9,7 @@ import 'package:timeline/my_html_text.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:timeline/screens/timeline_items_screen/observer_controller_with_lazy_loading.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // https://github.com/fluttercandies/flutter_scrollview_observer/blob/main/lib/src/common/observer_controller.dart#L334
 // https://pub.dev/packages/scroll_to_index
@@ -37,10 +37,22 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   List<int> builtIndexes = [];
   List<int> imageIndexes = [];
   final searchController = TextEditingController();
+  late final double screenWidth;
+  late final double imageHorizontalPadding;
+  late final double imageWidth;
+  late final double pixelRatio;
 
   @override
   void initState() {
     super.initState();
+    pixelRatio =
+        WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
+    screenWidth = WidgetsBinding
+            .instance.platformDispatcher.views.first.physicalSize.width /
+        pixelRatio;
+    imageHorizontalPadding =
+        screenWidth >= 320 ? ((screenWidth - 300) / 2) : 8.0;
+    imageWidth = screenWidth >= 320 ? 300 : (screenWidth - 10);
     observerControllerWithLazyLoading = ObserverControllerWithLazyLoading(
         onBuiltEnd: onBuiltEnd, scrollController: scrollController)
       ..init();
@@ -79,6 +91,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   @override
   Widget build(BuildContext context) {
     final repo = RepositoryProvider.of<TimelineRepository>(context);
+    print(MediaQuery.of(context).size);
     return BlocProvider(
       create: (context) => TimelineItemsScreenCubit(repo)
         ..getItems(widget.timelineHosts, widget.activeTimelines),
@@ -175,15 +188,12 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                 );
                               } else {
                                 final TimelineItem item = e as TimelineItem;
-                                final loadImage =
+                                final loadImage = item.image != null &&
                                     observerControllerWithLazyLoading
-                                            .shouldActivelyLoad(
-                                                index, builtIndexes) &&
-                                        (widget.settings.loadImages ||
-                                            imageIndexes.contains(index));
-                                if (loadImage) {
-                                  print('Load image for $index');
-                                }
+                                        .shouldActivelyLoad(
+                                            index, builtIndexes) &&
+                                    (widget.settings.loadImages ||
+                                        imageIndexes.contains(index));
                                 return Card(
                                   key: observerControllerWithLazyLoading
                                       .getKey(index),
@@ -191,7 +201,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                     mainAxisSize: MainAxisSize.min,
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                        CrossAxisAlignment.stretch,
                                     children: [
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
@@ -249,9 +259,31 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                       // Load image only if we scroll manually (requestedIndex == -1) or when the index is less than 3 away from requestedIndex
                                       if (loadImage)
                                         Padding(
-                                          padding: const EdgeInsets.all(8.0),
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal:
+                                                  imageHorizontalPadding,
+                                              vertical: 8.0),
                                           child: Image.network(
                                             item.image!,
+                                            width: imageWidth,
+                                            cacheWidth:
+                                                (imageWidth * pixelRatio)
+                                                    .toInt(),
+                                          ),
+                                        ),
+                                      if (loadImage &&
+                                          item.imageSource != null &&
+                                          item.imageSource!.isNotEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              bottom: 8.0,
+                                              left: 8.0,
+                                              right: 8.0),
+                                          child: Text(
+                                            'Source: ${item.imageSource!}',
+                                            style:
+                                                const TextStyle(fontSize: 12),
+                                            textAlign: TextAlign.center,
                                           ),
                                         ),
                                       if (item.links.isNotEmpty)
@@ -275,13 +307,26 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                                     TextDecoration
                                                                         .underline)),
                                                       ),
-                                                      onTap: () {
-                                                        print('Go to $e');
+                                                      onTap: () async {
+                                                        if (!await launchUrl(
+                                                            Uri.parse(e))) {
+                                                          if (mounted) {
+                                                            ScaffoldMessenger
+                                                                    .of(context)
+                                                                .showSnackBar(
+                                                                    SnackBar(
+                                                                        content:
+                                                                            Text('Cannot open link $e')));
+                                                          }
+                                                        }
                                                       },
                                                     ))
                                                 .toList(),
                                           ),
-                                        )
+                                        ),
+                                      if (item.links.isEmpty)
+                                        const Padding(
+                                            padding: EdgeInsets.only(top: 8.0))
                                     ],
                                   ),
                                 );

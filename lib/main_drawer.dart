@@ -57,14 +57,22 @@ class _MainDrawerState extends State<MainDrawer> {
       }
     }
     items.add(ListTile(
-      title: Text('OK'),
-      onTap: () {
-        Navigator.of(context).pop();
-        widget.mainCubit.activateTimelines(activeTimelineIds);
-      },
+      title: ElevatedButton(
+        child: Text('OK'),
+        onPressed: () {
+          Navigator.of(context).pop();
+          widget.mainCubit.activateTimelines(activeTimelineIds);
+        },
+      ),
+      // onTap: () {
+      //   Navigator.of(context).pop();
+      //   widget.mainCubit.activateTimelines(activeTimelineIds);
+      // },
     ));
+    items.add(Divider());
     items.add(ListTile(
       title: Text('Hosts'),
+      titleTextStyle: TextStyle(color: Colors.black, fontSize: 20),
       onTap: () async {
         Navigator.of(context).pop();
         await Navigator.of(context).push(MaterialPageRoute(
@@ -74,6 +82,7 @@ class _MainDrawerState extends State<MainDrawer> {
         widget.mainCubit.checkAtStart(withBusy: false);
       },
     ));
+
     items.add(ListTile(
       title: Text('Settings'),
       titleTextStyle: TextStyle(color: Colors.black, fontSize: 20),

@@ -45,6 +45,7 @@ dependencies:
   webview_flutter: ^4.4.4
   html: ^0.15.4
   scrollview_observer: ^1.19.0
+  url_launcher: ^6.2.3
 
 dev_dependencies:
   flutter_test:

@@ -25,7 +25,7 @@ class MyStore {
         await db.execute(
             'CREATE TABLE timelines (id INTEGER PRIMARY KEY, term_id INTEGER, name TEXT, description TEXT, host_id INT, active INT)');
         await db.execute(
-            'CREATE TABLE items (id INTEGER PRIMARY KEY, timeline_id INTEGER, year INTEGER, intro TEXT, title TEXT, image TEXT, links TEXT)');
+            'CREATE TABLE items (id INTEGER PRIMARY KEY, timeline_id INTEGER, year INTEGER, intro TEXT, title TEXT, image TEXT, links TEXT, image_source TEXT)');
       },
     );
   }
