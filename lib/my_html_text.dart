@@ -25,11 +25,11 @@ class MyHtmlText {
   }
 
   static Text getRichText(String text,
-      {double? fontSize, TextAlign? textAlign, Color? color}) {
+      {double? fontSize, TextAlign? textAlign, TextStyle? textStyle}) {
     final fragment = html_parser.parseFragment(text);
     return Text.rich(
       TextSpan(children: _getRichTexts(fragment)),
-      style: TextStyle(fontSize: fontSize, color: color),
+      style: textStyle,
       textAlign: textAlign,
     );
   }

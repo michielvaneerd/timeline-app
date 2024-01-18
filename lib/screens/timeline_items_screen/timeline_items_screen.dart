@@ -38,7 +38,6 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   List<int> imageIndexes = [];
   final searchController = TextEditingController();
   late final double screenWidth;
-  late final double imageHorizontalPadding;
   late final double imageWidth;
   late final double pixelRatio;
 
@@ -50,9 +49,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
     screenWidth = WidgetsBinding
             .instance.platformDispatcher.views.first.physicalSize.width /
         pixelRatio;
-    imageHorizontalPadding =
-        screenWidth >= 320 ? ((screenWidth - 300) / 2) : 8.0;
-    imageWidth = screenWidth >= 320 ? 300 : (screenWidth - 10);
+    imageWidth = screenWidth >= 320 ? 300 : (screenWidth - 16);
     observerControllerWithLazyLoading = ObserverControllerWithLazyLoading(
         onBuiltEnd: onBuiltEnd, scrollController: scrollController)
       ..init();
@@ -156,8 +153,12 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                           );
                         },
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Center(child: Text(e.year.toString())),
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Center(
+                              child: Text(
+                            e.year.toString(),
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          )),
                         ),
                       );
                     }).toList(),
@@ -180,9 +181,9 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                     padding: const EdgeInsets.all(8.0),
                                     child: Text(
                                       e.year.toString(),
-                                      style: const TextStyle(
-                                          fontSize: 26,
-                                          fontWeight: FontWeight.w900),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .headlineLarge,
                                     ),
                                   ),
                                 );
@@ -216,14 +217,14 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                 children: [
                                                   Text(
                                                     item.title,
-                                                    style: const TextStyle(
-                                                        fontSize: 18,
-                                                        fontWeight:
-                                                            FontWeight.bold),
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .titleLarge,
                                                   ),
                                                   Text(item.year.toString(),
-                                                      style: const TextStyle(
-                                                          fontSize: 12))
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .bodySmall)
                                                 ],
                                               ),
                                             ),
@@ -253,16 +254,18 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: MyHtmlText.getRichText(
-                                              item.intro),
+                                              item.intro,
+                                              textStyle: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyLarge),
                                         ),
 
                                       // Load image only if we scroll manually (requestedIndex == -1) or when the index is less than 3 away from requestedIndex
-                                      if (loadImage)
-                                        Padding(
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal:
-                                                  imageHorizontalPadding,
-                                              vertical: 8.0),
+                                      if (loadImage) ...[
+                                        const Padding(
+                                          padding: EdgeInsets.only(top: 8.0),
+                                        ),
+                                        Center(
                                           child: Image.network(
                                             item.image!,
                                             width: imageWidth,
@@ -270,7 +273,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                 (imageWidth * pixelRatio)
                                                     .toInt(),
                                           ),
-                                        ),
+                                        )
+                                      ],
                                       if (loadImage &&
                                           item.imageSource != null &&
                                           item.imageSource!.isNotEmpty)
@@ -281,8 +285,9 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                               right: 8.0),
                                           child: Text(
                                             'Source: ${item.imageSource!}',
-                                            style:
-                                                const TextStyle(fontSize: 12),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall,
                                             textAlign: TextAlign.center,
                                           ),
                                         ),
@@ -293,35 +298,45 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                             mainAxisSize: MainAxisSize.min,
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
-                                            children: item.links
-                                                .map((e) => InkWell(
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .only(
-                                                                bottom: 4.0),
-                                                        child: Text(e,
-                                                            style: const TextStyle(
-                                                                fontSize: 12,
-                                                                decoration:
-                                                                    TextDecoration
-                                                                        .underline)),
-                                                      ),
-                                                      onTap: () async {
-                                                        if (!await launchUrl(
-                                                            Uri.parse(e))) {
-                                                          if (mounted) {
-                                                            ScaffoldMessenger
-                                                                    .of(context)
-                                                                .showSnackBar(
-                                                                    SnackBar(
-                                                                        content:
-                                                                            Text('Cannot open link $e')));
+                                            children: [
+                                              Text('Links',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleSmall),
+                                              ...item.links
+                                                  .map((e) => InkWell(
+                                                        child: Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .only(
+                                                                  bottom: 4.0),
+                                                          child: Text(e,
+                                                              style: Theme.of(
+                                                                      context)
+                                                                  .textTheme
+                                                                  .bodySmall
+                                                                  ?.copyWith(
+                                                                      decoration:
+                                                                          TextDecoration
+                                                                              .underline)),
+                                                        ),
+                                                        onTap: () async {
+                                                          if (!await launchUrl(
+                                                              Uri.parse(e))) {
+                                                            if (mounted) {
+                                                              ScaffoldMessenger
+                                                                      .of(
+                                                                          context)
+                                                                  .showSnackBar(
+                                                                      SnackBar(
+                                                                          content:
+                                                                              Text('Cannot open link $e')));
+                                                            }
                                                           }
-                                                        }
-                                                      },
-                                                    ))
-                                                .toList(),
+                                                        },
+                                                      ))
+                                                  .toList()
+                                            ],
                                           ),
                                         ),
                                       if (item.links.isEmpty)
