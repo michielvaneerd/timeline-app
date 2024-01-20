@@ -17,15 +17,17 @@ class TimelineItem extends TimelineAbstractItem {
   final int timelineId;
   final String? image;
   final String intro;
-  final List<String> links;
+  final List<TimelineItemLink> links;
   final String title;
   final String? imageSource;
+  final String? imageInfo;
 
   const TimelineItem(this.image, this.intro, this.title,
       {required this.id,
       required this.timelineId,
       required super.year,
       this.imageSource,
+      this.imageInfo,
       required this.links});
 
   @override
@@ -37,15 +39,31 @@ class TimelineItem extends TimelineAbstractItem {
       : id = int.parse(map['id'].toString()),
         timelineId = timelineId ?? map['timeline_id'],
         imageSource = map['image_source'],
+        imageInfo = map['image_info'],
         links = map.containsKey('links') &&
                 map['links'] != null &&
                 map['links'].toString().isNotEmpty
-            ? (convert.jsonDecode(map['links']) as List)
-                .map((e) => e.toString())
-                .toList()
+            ? (convert.jsonDecode(map['links']) as List).map((e) {
+                return TimelineItemLink.fromMap((e as Map<String, dynamic>)
+                    .map<String, String>(
+                        (key, value) => MapEntry(key, value.toString())));
+              }).toList()
             : [],
         image = map['image'],
         intro = map['intro'],
         title = map['title'],
         super(year: int.parse(map['year'].toString()));
+}
+
+class TimelineItemLink extends Equatable {
+  final String name;
+  final String url;
+
+  const TimelineItemLink({required this.name, required this.url});
+  @override
+  List<Object?> get props => [name, url];
+
+  TimelineItemLink.fromMap(Map<String, String> map)
+      : name = map['name']!,
+        url = map['url']!;
 }

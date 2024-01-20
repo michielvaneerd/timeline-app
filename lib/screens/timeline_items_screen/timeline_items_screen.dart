@@ -266,31 +266,61 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                           padding: EdgeInsets.only(top: 8.0),
                                         ),
                                         Center(
-                                          child: Image.network(
-                                            item.image!,
-                                            width: imageWidth,
-                                            cacheWidth:
-                                                (imageWidth * pixelRatio)
-                                                    .toInt(),
+                                          child: IntrinsicWidth(
+                                            child: Column(
+                                              children: [
+                                                Image.network(
+                                                  item.image!,
+                                                  width: imageWidth,
+                                                  cacheWidth:
+                                                      (imageWidth * pixelRatio)
+                                                          .toInt(),
+                                                ),
+                                                if (item.imageInfo != null)
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            8.0),
+                                                    child: Align(
+                                                      alignment:
+                                                          Alignment.centerRight,
+                                                      child: Text(
+                                                          item.imageInfo!,
+                                                          style:
+                                                              Theme.of(context)
+                                                                  .textTheme
+                                                                  .bodySmall),
+                                                    ),
+                                                  ),
+                                                if (item.imageSource != null)
+                                                  Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 8.0),
+                                                    child: Align(
+                                                      alignment:
+                                                          Alignment.centerRight,
+                                                      child: InkWell(
+                                                        onTap: () {
+                                                          ScaffoldMessenger.of(
+                                                                  context)
+                                                              .showSnackBar(SnackBar(
+                                                                  content: Text(
+                                                                      item.imageSource!)));
+                                                        },
+                                                        child: Text('Source',
+                                                            style: Theme.of(
+                                                                    context)
+                                                                .textTheme
+                                                                .bodySmall),
+                                                      ),
+                                                    ),
+                                                  )
+                                              ],
+                                            ),
                                           ),
                                         )
                                       ],
-                                      if (loadImage &&
-                                          item.imageSource != null &&
-                                          item.imageSource!.isNotEmpty)
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                              bottom: 8.0,
-                                              left: 8.0,
-                                              right: 8.0),
-                                          child: Text(
-                                            'Source: ${item.imageSource!}',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall,
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
                                       if (item.links.isNotEmpty)
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
@@ -310,7 +340,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                               const EdgeInsets
                                                                   .only(
                                                                   bottom: 4.0),
-                                                          child: Text(e,
+                                                          child: Text(e.name,
                                                               style: Theme.of(
                                                                       context)
                                                                   .textTheme
@@ -322,7 +352,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                         ),
                                                         onTap: () async {
                                                           if (!await launchUrl(
-                                                              Uri.parse(e))) {
+                                                              Uri.parse(
+                                                                  e.url))) {
                                                             if (mounted) {
                                                               ScaffoldMessenger
                                                                       .of(
@@ -330,7 +361,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                                   .showSnackBar(
                                                                       SnackBar(
                                                                           content:
-                                                                              Text('Cannot open link $e')));
+                                                                              Text('Cannot open link ${e.name} and ${e.url}')));
                                                             }
                                                           }
                                                         },

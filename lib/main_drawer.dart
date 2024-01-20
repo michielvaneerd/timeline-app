@@ -31,7 +31,7 @@ class _MainDrawerState extends State<MainDrawer> {
     for (final host in widget.timelineAll.timelineHosts) {
       items.add(ListTile(
         title: Text(host.host),
-        titleTextStyle: TextStyle(fontSize: 20, color: Colors.black),
+        titleTextStyle: Theme.of(context).textTheme.titleLarge,
       ));
       for (final timeline in widget.timelineAll.timelines
           .where((element) => element.hostId == host.id)) {
@@ -56,23 +56,25 @@ class _MainDrawerState extends State<MainDrawer> {
         ));
       }
     }
-    items.add(ListTile(
-      title: ElevatedButton(
-        child: Text('OK'),
-        onPressed: () {
-          Navigator.of(context).pop();
-          widget.mainCubit.activateTimelines(activeTimelineIds);
-        },
-      ),
-      // onTap: () {
-      //   Navigator.of(context).pop();
-      //   widget.mainCubit.activateTimelines(activeTimelineIds);
-      // },
-    ));
-    items.add(Divider());
+    if (widget.timelineAll.timelineHosts.isNotEmpty) {
+      items.add(ListTile(
+        title: ElevatedButton(
+          child: Text('OK'),
+          onPressed: () {
+            Navigator.of(context).pop();
+            widget.mainCubit.activateTimelines(activeTimelineIds);
+          },
+        ),
+        // onTap: () {
+        //   Navigator.of(context).pop();
+        //   widget.mainCubit.activateTimelines(activeTimelineIds);
+        // },
+      ));
+      items.add(Divider());
+    }
     items.add(ListTile(
       title: Text('Hosts'),
-      titleTextStyle: TextStyle(color: Colors.black, fontSize: 20),
+      titleTextStyle: Theme.of(context).textTheme.titleLarge,
       onTap: () async {
         Navigator.of(context).pop();
         await Navigator.of(context).push(MaterialPageRoute(
@@ -85,7 +87,7 @@ class _MainDrawerState extends State<MainDrawer> {
 
     items.add(ListTile(
       title: Text('Settings'),
-      titleTextStyle: TextStyle(color: Colors.black, fontSize: 20),
+      titleTextStyle: Theme.of(context).textTheme.titleLarge,
       onTap: () async {
         Navigator.of(context).pop(); // Drawer
         await Navigator.of(context).push(MaterialPageRoute(
