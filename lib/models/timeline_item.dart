@@ -21,17 +21,20 @@ class TimelineItem extends TimelineAbstractItem {
   final String title;
   final String? imageSource;
   final String? imageInfo;
+  final int? yearEnd;
 
   const TimelineItem(this.image, this.intro, this.title,
       {required this.id,
       required this.timelineId,
       required super.year,
+      this.yearEnd,
       this.imageSource,
       this.imageInfo,
       required this.links});
 
   @override
-  List<Object?> get props => [id, image, intro, year, title, timelineId];
+  List<Object?> get props =>
+      [id, image, intro, year, title, timelineId, yearEnd];
 
   // Can be called when we get response from server (then we don't have a timelineId)
   // or when getting from DB (in this case we HAVE a timelineId)
@@ -40,6 +43,7 @@ class TimelineItem extends TimelineAbstractItem {
         timelineId = timelineId ?? map['timeline_id'],
         imageSource = map['image_source'],
         imageInfo = map['image_info'],
+        yearEnd = map['year_end'],
         links = map.containsKey('links') &&
                 map['links'] != null &&
                 map['links'].toString().isNotEmpty

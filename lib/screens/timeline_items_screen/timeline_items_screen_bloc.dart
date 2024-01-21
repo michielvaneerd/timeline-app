@@ -48,9 +48,11 @@ class TimelineItemsScreenCubit extends Cubit<TimelineItemsScreenState> {
     final List<TimelineAbstractItem> timelineItems = [];
     var index = 0;
     final Map<int, int> yearMap = {};
+    final qToLower = q.toLowerCase();
     for (final item in items.timelineItems) {
       if (item is TimelineItem) {
-        if (item.title.contains(q)) {
+        if (item.title.toLowerCase().contains(qToLower) ||
+            (item.intro.toLowerCase().contains(qToLower))) {
           if (!yearMap.containsKey(item.year)) {
             yearMap[item.year] = index;
             timelineItems.add(TimelineYearItem(year: item.year));

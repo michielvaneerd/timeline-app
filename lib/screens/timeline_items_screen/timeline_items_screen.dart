@@ -49,7 +49,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
     screenWidth = WidgetsBinding
             .instance.platformDispatcher.views.first.physicalSize.width /
         pixelRatio;
-    imageWidth = screenWidth >= 320 ? 300 : (screenWidth - 16);
+    //imageWidth = screenWidth >= 320 ? 300 : (screenWidth - 16);
+    imageWidth = screenWidth;
     observerControllerWithLazyLoading = ObserverControllerWithLazyLoading(
         onBuiltEnd: onBuiltEnd, scrollController: scrollController)
       ..init();
@@ -76,7 +77,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
       );
     } else {
       return RefreshIndicator(
-          onRefresh: () {
+          onRefresh: () async {
+            await Future.delayed(const Duration(seconds: 1));
             return cubit.getItems(widget.timelineHosts, widget.activeTimelines,
                 refresh: true);
           },
@@ -88,7 +90,6 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   @override
   Widget build(BuildContext context) {
     final repo = RepositoryProvider.of<TimelineRepository>(context);
-    print(MediaQuery.of(context).size);
     return BlocProvider(
       create: (context) => TimelineItemsScreenCubit(repo)
         ..getItems(widget.timelineHosts, widget.activeTimelines),
@@ -130,35 +131,43 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                   ),
                 ),
               SizedBox(
-                  //color: Colors.green,
-                  height: 50,
+                  height: 60,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     children: realItems.timelineItems
                         .whereType<TimelineYearItem>()
                         .map((e) {
-                      return InkWell(
-                        onTap: () async {
-                          final index = realItems.yearIndexes[e.year]!;
-                          await observerControllerWithLazyLoading
-                              .scrollToIndex(index);
-                          WidgetsBinding.instance.addPostFrameCallback(
-                            (timeStamp) async {
-                              await Future.delayed(const Duration(
-                                  milliseconds:
-                                      300)); // needed because images may still be loading so the list view items may get different height
-                              observerControllerWithLazyLoading
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Material(
+                          //color: Colors.orangeAccent,
+                          borderRadius: BorderRadius.circular(8),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () async {
+                              final index = realItems.yearIndexes[e.year]!;
+                              await observerControllerWithLazyLoading
                                   .scrollToIndex(index);
+                              WidgetsBinding.instance.addPostFrameCallback(
+                                (timeStamp) async {
+                                  await Future.delayed(const Duration(
+                                      milliseconds:
+                                          300)); // needed because images may still be loading so the list view items may get different height
+                                  observerControllerWithLazyLoading
+                                      .scrollToIndex(index);
+                                },
+                              );
                             },
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Center(
-                              child: Text(
-                            e.year.toString(),
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          )),
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Center(
+                                  child: Text(
+                                e.year.toString(),
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              )),
+                            ),
+                          ),
                         ),
                       );
                     }).toList(),
@@ -170,6 +179,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                             .listObserverController,
                         onObserve: observerControllerWithLazyLoading.onObserve,
                         child: ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             controller: scrollController,
                             itemCount: realItems.timelineItems.length,
                             itemBuilder: (context, index) {
@@ -195,6 +205,10 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                             index, builtIndexes) &&
                                     (widget.settings.loadImages ||
                                         imageIndexes.contains(index));
+                                final yearText = item.year.toString() +
+                                    (item.yearEnd != null
+                                        ? (' - ${item.yearEnd}')
+                                        : '');
                                 return Card(
                                   key: observerControllerWithLazyLoading
                                       .getKey(index),
@@ -209,6 +223,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                         child: Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Flexible(
                                               child: Column(
@@ -221,20 +237,26 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                         .textTheme
                                                         .titleLarge,
                                                   ),
-                                                  Text(item.year.toString(),
+                                                  Text(yearText,
                                                       style: Theme.of(context)
                                                           .textTheme
-                                                          .bodySmall)
+                                                          .bodySmall),
                                                 ],
                                               ),
                                             ),
                                             if (!widget.settings.loadImages &&
                                                 item.image != null)
-                                              IconButton(
-                                                icon: const Icon(
+                                              InkWell(
+                                                child: Icon(
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .secondary,
                                                     Icons.image_outlined,
-                                                    size: 16),
-                                                onPressed: () {
+                                                    size: Theme.of(context)
+                                                        .textTheme
+                                                        .titleLarge
+                                                        ?.fontSize),
+                                                onTap: () {
                                                   var tmp = List<int>.from(
                                                       imageIndexes);
                                                   if (tmp.contains(index)) {
@@ -266,58 +288,73 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                           padding: EdgeInsets.only(top: 8.0),
                                         ),
                                         Center(
-                                          child: IntrinsicWidth(
-                                            child: Column(
-                                              children: [
-                                                Image.network(
-                                                  item.image!,
-                                                  width: imageWidth,
-                                                  cacheWidth:
-                                                      (imageWidth * pixelRatio)
-                                                          .toInt(),
-                                                ),
-                                                if (item.imageInfo != null)
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: Align(
-                                                      alignment:
-                                                          Alignment.centerRight,
-                                                      child: Text(
-                                                          item.imageInfo!,
-                                                          style:
-                                                              Theme.of(context)
+                                          //widthFactor: imageWidth,
+                                          child: Column(
+                                            // crossAxisAlignment:
+                                            //     CrossAxisAlignment.stretch,
+                                            children: [
+                                              Image.network(
+                                                item.image!,
+                                                //width: imageWidth,
+                                                cacheWidth:
+                                                    (imageWidth * pixelRatio)
+                                                        .toInt(),
+                                              ),
+                                              Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  if (item.imageInfo != null)
+                                                    Flexible(
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(8.0),
+                                                        child: Align(
+                                                          alignment: Alignment
+                                                              .centerRight,
+                                                          child: Text(
+                                                              item.imageInfo!,
+                                                              style: Theme.of(
+                                                                      context)
                                                                   .textTheme
-                                                                  .bodySmall),
-                                                    ),
-                                                  ),
-                                                if (item.imageSource != null)
-                                                  Padding(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 8.0),
-                                                    child: Align(
-                                                      alignment:
-                                                          Alignment.centerRight,
-                                                      child: InkWell(
-                                                        onTap: () {
-                                                          ScaffoldMessenger.of(
-                                                                  context)
-                                                              .showSnackBar(SnackBar(
-                                                                  content: Text(
-                                                                      item.imageSource!)));
-                                                        },
-                                                        child: Text('Source',
-                                                            style: Theme.of(
-                                                                    context)
-                                                                .textTheme
-                                                                .bodySmall),
+                                                                  .bodySmall!
+                                                                  .copyWith(
+                                                                      color: Theme.of(
+                                                                              context)
+                                                                          .colorScheme
+                                                                          .secondary)),
+                                                        ),
                                                       ),
                                                     ),
-                                                  )
-                                              ],
-                                            ),
+                                                  if (item.imageSource != null)
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8.0),
+                                                      child: Align(
+                                                        alignment: Alignment
+                                                            .centerRight,
+                                                        child: InkWell(
+                                                          onTap: () {
+                                                            ScaffoldMessenger
+                                                                    .of(context)
+                                                                .showSnackBar(SnackBar(
+                                                                    content:
+                                                                        Text(item
+                                                                            .imageSource!)));
+                                                          },
+                                                          child: Text('Source',
+                                                              style: Theme.of(
+                                                                      context)
+                                                                  .textTheme
+                                                                  .bodySmall),
+                                                        ),
+                                                      ),
+                                                    )
+                                                ],
+                                              ),
+                                            ],
                                           ),
                                         )
                                       ],
