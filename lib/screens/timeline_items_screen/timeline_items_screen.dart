@@ -101,6 +101,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
 
           final cubit = BlocProvider.of<TimelineItemsScreenCubit>(context);
           final realItems = state.filteredItems ?? state.items;
+          final yearItems =
+              realItems.timelineItems.whereType<TimelineYearItem>().toList();
           return Column(
             mainAxisSize: MainAxisSize.max,
             children: [
@@ -132,11 +134,11 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                 ),
               SizedBox(
                   height: 60,
-                  child: ListView(
+                  child: ListView.builder(
+                    itemCount: yearItems.length,
                     scrollDirection: Axis.horizontal,
-                    children: realItems.timelineItems
-                        .whereType<TimelineYearItem>()
-                        .map((e) {
+                    itemBuilder: (context, index) {
+                      final item = yearItems[index];
                       return Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Material(
@@ -145,7 +147,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                           child: InkWell(
                             borderRadius: BorderRadius.circular(8),
                             onTap: () async {
-                              final index = realItems.yearIndexes[e.year]!;
+                              final index = realItems.yearIndexes[item.year]!;
                               await observerControllerWithLazyLoading
                                   .scrollToIndex(index);
                               WidgetsBinding.instance.addPostFrameCallback(
@@ -163,14 +165,51 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                   const EdgeInsets.symmetric(horizontal: 16.0),
                               child: Center(
                                   child: Text(
-                                e.year.toString(),
+                                item.year.toString(),
                                 style: Theme.of(context).textTheme.bodyLarge,
                               )),
                             ),
                           ),
                         ),
                       );
-                    }).toList(),
+                    },
+                    // children: realItems.timelineItems
+                    //     .whereType<TimelineYearItem>()
+                    //     .map((e) {
+                    //   return Padding(
+                    //     padding: const EdgeInsets.all(8.0),
+                    //     child: Material(
+                    //       //color: Colors.orangeAccent,
+                    //       borderRadius: BorderRadius.circular(8),
+                    //       child: InkWell(
+                    //         borderRadius: BorderRadius.circular(8),
+                    //         onTap: () async {
+                    //           final index = realItems.yearIndexes[e.year]!;
+                    //           await observerControllerWithLazyLoading
+                    //               .scrollToIndex(index);
+                    //           WidgetsBinding.instance.addPostFrameCallback(
+                    //             (timeStamp) async {
+                    //               await Future.delayed(const Duration(
+                    //                   milliseconds:
+                    //                       300)); // needed because images may still be loading so the list view items may get different height
+                    //               observerControllerWithLazyLoading
+                    //                   .scrollToIndex(index);
+                    //             },
+                    //           );
+                    //         },
+                    //         child: Padding(
+                    //           padding:
+                    //               const EdgeInsets.symmetric(horizontal: 16.0),
+                    //           child: Center(
+                    //               child: Text(
+                    //             e.year.toString(),
+                    //             style: Theme.of(context).textTheme.bodyLarge,
+                    //           )),
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   );
+                    // }).toList(),
                   )),
               Expanded(
                   child: getRefreshIndicatorOrContainer(
@@ -199,6 +238,9 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                 );
                               } else {
                                 final TimelineItem item = e as TimelineItem;
+                                final timeline = widget.activeTimelines
+                                    .firstWhere((element) =>
+                                        element.id == e.timelineId);
                                 final loadImage = item.image != null &&
                                     observerControllerWithLazyLoading
                                         .shouldActivelyLoad(
@@ -231,6 +273,35 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 children: [
+                                                  if (widget.activeTimelines
+                                                          .length >
+                                                      1) ...[
+                                                    Container(
+                                                      decoration: BoxDecoration(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .cardColor,
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(4)),
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 8.0,
+                                                          vertical: 2.0),
+                                                      child: Text(timeline.name,
+                                                          style: Theme.of(
+                                                                  context)
+                                                              .textTheme
+                                                              .bodySmall!
+                                                              .copyWith(
+                                                                  color: Colors
+                                                                      .black)),
+                                                    ),
+                                                    const Padding(
+                                                        padding:
+                                                            EdgeInsets.only(
+                                                                top: 4.0))
+                                                  ],
                                                   Text(
                                                     item.title,
                                                     style: Theme.of(context)

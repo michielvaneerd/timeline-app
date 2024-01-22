@@ -21,9 +21,16 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
   TimelineHostsScreenCubit(this.timelineRepository)
       : super(const TimelineHostsScreenState());
 
+  void refresh() async {
+    emit(const TimelineHostsScreenState(busy: true));
+    await Future.delayed(const Duration(seconds: 1));
+    final all = await timelineRepository.getAll();
+    emit(TimelineHostsScreenState(timelineAll: all));
+  }
+
   void removeHosts(List<int> hostIds) async {
     emit(const TimelineHostsScreenState(busy: true));
-    //await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 1));
 
     await MyStore.removeTimelineHosts(hostIds);
     final all = await timelineRepository.getAll();

@@ -43,7 +43,9 @@ class TimelineItem extends TimelineAbstractItem {
         timelineId = timelineId ?? map['timeline_id'],
         imageSource = map['image_source'],
         imageInfo = map['image_info'],
-        yearEnd = map['year_end'],
+        yearEnd = map['year_end'] != null && map['year_end'] != ''
+            ? int.parse(map['year_end'].toString())
+            : null,
         links = map.containsKey('links') &&
                 map['links'] != null &&
                 map['links'].toString().isNotEmpty
