@@ -19,15 +19,26 @@ class SettingsScreen extends StatelessWidget {
             body: Column(
               children: [
                 CheckboxListTile(
-                    title: Text('Load images'),
-                    value: state.settings.loadImages,
+                    title: Text('Condensed view'),
+                    value: state.settings.condensed,
                     onChanged: (newValue) {
                       if (newValue != null) {
                         cubit.updateSettings(Settings(
-                          loadImages: newValue,
-                        ));
+                            loadImages: state.settings.loadImages,
+                            condensed: newValue));
                       }
-                    })
+                    }),
+                if (!state.settings.condensed)
+                  CheckboxListTile(
+                      title: Text('Load images'),
+                      value: state.settings.loadImages,
+                      onChanged: (newValue) {
+                        if (newValue != null) {
+                          cubit.updateSettings(Settings(
+                              loadImages: newValue,
+                              condensed: state.settings.condensed));
+                        }
+                      }),
               ],
             ),
           );

@@ -7,6 +7,7 @@ import 'package:timeline/my_store.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:timeline/screens/timeline_hosts_screen/timeline_hosts_screen.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen.dart';
+import 'color_schemes.g.dart';
 
 // https://github.com/fluttercandies/flutter_scrollview_observer/blob/main/lib/src/common/observer_controller.dart#L334
 // https://pub.dev/packages/scroll_to_index
@@ -19,12 +20,14 @@ void main() async {
     value: repo,
     child: MaterialApp(
         title: 'Timeline',
+        // theme: ThemeData(useMaterial3: true, colorScheme: lightColorScheme),
+        // darkTheme: ThemeData(useMaterial3: true, colorScheme: darkColorScheme),
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.blue,
-            primary: Colors.black,
-          ),
-        ),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF005BBE),
+              //primary: const Color(0xFF005BBE),
+            ),
+            appBarTheme: const AppBarTheme(backgroundColor: Color(0xFFd1e4ff))),
         home: BlocProvider(
           create: (context) => MainCubit(repo)..checkAtStart(),
           child: const MyApp(),
@@ -59,6 +62,7 @@ class _MyAppState extends State<MyApp> {
         );
         return Scaffold(
             appBar: AppBar(
+              //backgroundColor: Theme.of(context).secondaryHeaderColor,
               title: Text(activeTimelines != null && activeTimelines.isNotEmpty
                   ? activeTimelines.map((e) => e.name).join(', ')
                   : 'Timeline'),

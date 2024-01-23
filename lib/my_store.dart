@@ -10,6 +10,7 @@ import 'package:timeline/models/timeline_item.dart';
 
 class MyStore {
   static const keySettingsLoadImages = 'load_images';
+  static const keySettingsCondensed = 'condensed';
 
   static Database? database;
 
@@ -33,32 +34,33 @@ class MyStore {
   static Future<Settings> getSettings() async {
     final rows = await database!.query('settings');
     bool loadImages = false;
+    bool condensed = false;
     for (var row in rows) {
       switch (row['key']) {
         case keySettingsLoadImages:
           loadImages = row['value'].toString() == '1';
           break;
+        case keySettingsCondensed:
+          condensed = row['value'].toString() == '1';
+          break;
       }
     }
-    return Settings(loadImages: loadImages);
+    return Settings(loadImages: loadImages, condensed: condensed);
   }
 
   static Future putSettings(Settings settings) async {
     await database!.transaction((txn) async {
-      await txn.delete('settings');
-      await txn.insert('settings', {
+      final batch = txn.batch();
+      batch.delete('settings');
+      batch.insert('settings', {
         'key': keySettingsLoadImages,
         'value': settings.loadImages ? '1' : '0'
       });
-    });
-  }
-
-  static Future putLoadImages(bool value) async {
-    await database!.transaction((txn) async {
-      await txn.delete('settings',
-          where: 'key = ?', whereArgs: [keySettingsLoadImages]);
-      await txn.insert('settings',
-          {'key': keySettingsLoadImages, 'value': value ? '1' : '0'});
+      batch.insert('settings', {
+        'key': keySettingsCondensed,
+        'value': settings.condensed ? '1' : '0'
+      });
+      await batch.commit(noResult: true);
     });
   }
 

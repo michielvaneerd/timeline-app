@@ -47,12 +47,12 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
     final isSelected = _isSelected(host.id);
     final List<Widget> widgets = [
       ListTile(
-          onLongPress: () {
-            setState(() {
-              selectionMode = !selectionMode;
-              selectedHosts = {host.id: true};
-            });
-          },
+          // onLongPress: () {
+          //   setState(() {
+          //     selectionMode = !selectionMode;
+          //     selectedHosts = {host.id: true};
+          //   });
+          // },
           onTap: () async {
             if (selectionMode) {
               var copy = Map<int, bool>.of(selectedHosts);
@@ -76,9 +76,10 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
               }
             }
           },
-          leading: Icon(selectionMode
-              ? (isSelected ? Icons.check_box : Icons.check_box_outline_blank)
-              : Icons.circle_outlined),
+          // leading: Icon(selectionMode
+          //     ? (isSelected ? Icons.check_box : Icons.check_box_outline_blank)
+          //     : Icons.circle_outlined),
+          trailing: const Icon(Icons.arrow_forward_ios),
           title:
               Text(host.host, style: Theme.of(context).textTheme.headlineSmall))
     ];

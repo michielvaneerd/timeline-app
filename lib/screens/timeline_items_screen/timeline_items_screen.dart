@@ -121,18 +121,21 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                 icon: const Icon(Icons.close))
                             : null,
                         enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Colors.green),
+                            borderSide: BorderSide(
+                                color: Theme.of(context).primaryColorLight),
                             borderRadius: BorderRadius.circular(10)),
                         focusedBorder: OutlineInputBorder(
-                            borderSide:
-                                const BorderSide(color: Colors.green, width: 2),
+                            borderSide: BorderSide(
+                                color: Theme.of(context).primaryColor,
+                                width: 2),
                             borderRadius: BorderRadius.circular(10))),
                     onChanged: (value) {
                       cubit.filterItems(value, state.items);
                     },
                   ),
                 ),
-              SizedBox(
+              Container(
+                  color: Theme.of(context).secondaryHeaderColor,
                   height: 60,
                   child: ListView.builder(
                     itemCount: yearItems.length,
@@ -142,10 +145,10 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                       return Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Material(
-                          //color: Colors.orangeAccent,
-                          borderRadius: BorderRadius.circular(8),
+                          color: Theme.of(context).primaryColorLight,
+                          borderRadius: BorderRadius.circular(32),
                           child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(32),
                             onTap: () async {
                               final index = realItems.yearIndexes[item.year]!;
                               await observerControllerWithLazyLoading
@@ -173,43 +176,6 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                         ),
                       );
                     },
-                    // children: realItems.timelineItems
-                    //     .whereType<TimelineYearItem>()
-                    //     .map((e) {
-                    //   return Padding(
-                    //     padding: const EdgeInsets.all(8.0),
-                    //     child: Material(
-                    //       //color: Colors.orangeAccent,
-                    //       borderRadius: BorderRadius.circular(8),
-                    //       child: InkWell(
-                    //         borderRadius: BorderRadius.circular(8),
-                    //         onTap: () async {
-                    //           final index = realItems.yearIndexes[e.year]!;
-                    //           await observerControllerWithLazyLoading
-                    //               .scrollToIndex(index);
-                    //           WidgetsBinding.instance.addPostFrameCallback(
-                    //             (timeStamp) async {
-                    //               await Future.delayed(const Duration(
-                    //                   milliseconds:
-                    //                       300)); // needed because images may still be loading so the list view items may get different height
-                    //               observerControllerWithLazyLoading
-                    //                   .scrollToIndex(index);
-                    //             },
-                    //           );
-                    //         },
-                    //         child: Padding(
-                    //           padding:
-                    //               const EdgeInsets.symmetric(horizontal: 16.0),
-                    //           child: Center(
-                    //               child: Text(
-                    //             e.year.toString(),
-                    //             style: Theme.of(context).textTheme.bodyLarge,
-                    //           )),
-                    //         ),
-                    //       ),
-                    //     ),
-                    //   );
-                    // }).toList(),
                   )),
               Expanded(
                   child: getRefreshIndicatorOrContainer(
@@ -225,7 +191,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                               final e = realItems.timelineItems[index];
                               if (e is TimelineYearItem) {
                                 return Card(
-                                  color: Colors.greenAccent,
+                                  color: Theme.of(context).secondaryHeaderColor,
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: Text(
@@ -249,7 +215,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                         imageIndexes.contains(index));
                                 final yearText = item.year.toString() +
                                     (item.yearEnd != null
-                                        ? (' - ${item.yearEnd}')
+                                        ? (' / ${item.yearEnd}')
                                         : '');
                                 return Card(
                                   key: observerControllerWithLazyLoading
@@ -315,7 +281,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                 ],
                                               ),
                                             ),
-                                            if (!widget.settings.loadImages &&
+                                            if (!widget.settings.condensed &&
+                                                !widget.settings.loadImages &&
                                                 item.image != null)
                                               InkWell(
                                                 child: Icon(
@@ -343,7 +310,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                           ],
                                         ),
                                       ),
-                                      if (item.intro.isNotEmpty)
+                                      if (!widget.settings.condensed &&
+                                          item.intro.isNotEmpty)
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: MyHtmlText.getRichText(
@@ -354,7 +322,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                         ),
 
                                       // Load image only if we scroll manually (requestedIndex == -1) or when the index is less than 3 away from requestedIndex
-                                      if (loadImage) ...[
+                                      if (!widget.settings.condensed &&
+                                          loadImage) ...[
                                         const Padding(
                                           padding: EdgeInsets.only(top: 8.0),
                                         ),
@@ -429,7 +398,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                           ),
                                         )
                                       ],
-                                      if (item.links.isNotEmpty)
+                                      if (!widget.settings.condensed &&
+                                          item.links.isNotEmpty)
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: Column(
@@ -441,40 +411,34 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                   style: Theme.of(context)
                                                       .textTheme
                                                       .titleSmall),
-                                              ...item.links
-                                                  .map((e) => InkWell(
-                                                        child: Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .only(
-                                                                  bottom: 4.0),
-                                                          child: Text(e.name,
-                                                              style: Theme.of(
-                                                                      context)
-                                                                  .textTheme
-                                                                  .bodySmall
-                                                                  ?.copyWith(
-                                                                      decoration:
-                                                                          TextDecoration
-                                                                              .underline)),
-                                                        ),
-                                                        onTap: () async {
-                                                          if (!await launchUrl(
-                                                              Uri.parse(
-                                                                  e.url))) {
-                                                            if (mounted) {
-                                                              ScaffoldMessenger
-                                                                      .of(
-                                                                          context)
-                                                                  .showSnackBar(
-                                                                      SnackBar(
-                                                                          content:
-                                                                              Text('Cannot open link ${e.name} and ${e.url}')));
-                                                            }
-                                                          }
-                                                        },
-                                                      ))
-                                                  .toList()
+                                              ...item.links.map((e) => InkWell(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              bottom: 4.0),
+                                                      child: Text(e.name,
+                                                          style: Theme.of(
+                                                                  context)
+                                                              .textTheme
+                                                              .bodySmall
+                                                              ?.copyWith(
+                                                                  decoration:
+                                                                      TextDecoration
+                                                                          .underline)),
+                                                    ),
+                                                    onTap: () async {
+                                                      if (!await launchUrl(
+                                                          Uri.parse(e.url))) {
+                                                        if (mounted) {
+                                                          ScaffoldMessenger.of(
+                                                                  context)
+                                                              .showSnackBar(SnackBar(
+                                                                  content: Text(
+                                                                      'Cannot open link ${e.name} and ${e.url}')));
+                                                        }
+                                                      }
+                                                    },
+                                                  ))
                                             ],
                                           ),
                                         ),
