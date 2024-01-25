@@ -28,9 +28,37 @@ class _MainDrawerState extends State<MainDrawer> {
 
   List<Widget> _getDrawerItems(BuildContext context) {
     final List<Widget> items = [];
+
+    items.add(ListTile(
+      title: Text('Hosts'),
+      titleTextStyle: Theme.of(context).textTheme.titleLarge,
+      onTap: () async {
+        Navigator.of(context).pop();
+        await Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => TimelineHostsScreen(
+                  timelineAll: widget.timelineAll,
+                )));
+        widget.mainCubit.checkAtStart(withBusy: false);
+      },
+    ));
+
+    items.add(ListTile(
+      title: Text('Settings'),
+      titleTextStyle: Theme.of(context).textTheme.titleLarge,
+      onTap: () async {
+        Navigator.of(context).pop(); // Drawer
+        await Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) =>
+                SettingsScreen(initialSettings: widget.timelineAll.settings)));
+        widget.mainCubit.checkAtStart();
+      },
+    ));
+
+    items.add(Divider());
+
     for (final host in widget.timelineAll.timelineHosts) {
       items.add(ListTile(
-        title: Text(host.host),
+        title: Text(host.name),
         titleTextStyle: Theme.of(context).textTheme.titleLarge,
       ));
       for (final timeline in widget.timelineAll.timelines
@@ -70,32 +98,8 @@ class _MainDrawerState extends State<MainDrawer> {
         //   widget.mainCubit.activateTimelines(activeTimelineIds);
         // },
       ));
-      items.add(Divider());
     }
-    items.add(ListTile(
-      title: Text('Hosts'),
-      titleTextStyle: Theme.of(context).textTheme.titleLarge,
-      onTap: () async {
-        Navigator.of(context).pop();
-        await Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => TimelineHostsScreen(
-                  timelineAll: widget.timelineAll,
-                )));
-        widget.mainCubit.checkAtStart(withBusy: false);
-      },
-    ));
 
-    items.add(ListTile(
-      title: Text('Settings'),
-      titleTextStyle: Theme.of(context).textTheme.titleLarge,
-      onTap: () async {
-        Navigator.of(context).pop(); // Drawer
-        await Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) =>
-                SettingsScreen(initialSettings: widget.timelineAll.settings)));
-        widget.mainCubit.checkAtStart();
-      },
-    ));
     return items;
   }
 

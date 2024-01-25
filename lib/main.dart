@@ -20,14 +20,14 @@ void main() async {
     value: repo,
     child: MaterialApp(
         title: 'Timeline',
-        // theme: ThemeData(useMaterial3: true, colorScheme: lightColorScheme),
-        // darkTheme: ThemeData(useMaterial3: true, colorScheme: darkColorScheme),
-        theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF005BBE),
-              //primary: const Color(0xFF005BBE),
-            ),
-            appBarTheme: const AppBarTheme(backgroundColor: Color(0xFFd1e4ff))),
+        //theme: ThemeData(useMaterial3: true, colorScheme: lightColorScheme),
+        //darkTheme: ThemeData(useMaterial3: true, colorScheme: darkColorScheme),
+        // theme: ThemeData(
+        //     colorScheme: ColorScheme.fromSeed(
+        //       seedColor: const Color(0xFF005BBE),
+        //       //primary: const Color(0xFF005BBE),
+        //     ),
+        //     appBarTheme: const AppBarTheme(backgroundColor: Color(0xFFd1e4ff))),
         home: BlocProvider(
           create: (context) => MainCubit(repo)..checkAtStart(),
           child: const MyApp(),

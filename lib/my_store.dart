@@ -11,6 +11,7 @@ import 'package:timeline/models/timeline_item.dart';
 class MyStore {
   static const keySettingsLoadImages = 'load_images';
   static const keySettingsCondensed = 'condensed';
+  static const keySettingsImageWidth = 'image_width';
 
   static Database? database;
 
@@ -21,8 +22,8 @@ class MyStore {
       onCreate: (db, version) async {
         await db.execute(
             'CREATE TABLE settings (id INTEGER PRIMARY KEY, key TEXT, value TEXT)');
-        await db
-            .execute('CREATE TABLE hosts (id INTEGER PRIMARY KEY, host TEXT)');
+        await db.execute(
+            'CREATE TABLE hosts (id INTEGER PRIMARY KEY, host TEXT, name TEXT)');
         await db.execute(
             'CREATE TABLE timelines (id INTEGER PRIMARY KEY, term_id INTEGER, name TEXT, description TEXT, host_id INT, active INT)');
         await db.execute(
@@ -35,6 +36,7 @@ class MyStore {
     final rows = await database!.query('settings');
     bool loadImages = false;
     bool condensed = false;
+    int? imageWidth;
     for (var row in rows) {
       switch (row['key']) {
         case keySettingsLoadImages:
@@ -43,9 +45,13 @@ class MyStore {
         case keySettingsCondensed:
           condensed = row['value'].toString() == '1';
           break;
+        case keySettingsImageWidth:
+          imageWidth = int.tryParse(row['value'].toString());
+          break;
       }
     }
-    return Settings(loadImages: loadImages, condensed: condensed);
+    return Settings(
+        loadImages: loadImages, condensed: condensed, imageWidth: imageWidth);
   }
 
   static Future putSettings(Settings settings) async {
@@ -60,6 +66,8 @@ class MyStore {
         'key': keySettingsCondensed,
         'value': settings.condensed ? '1' : '0'
       });
+      batch.insert('settings',
+          {'key': keySettingsImageWidth, 'value': settings.imageWidth});
       await batch.commit(noResult: true);
     });
   }
@@ -80,9 +88,9 @@ class MyStore {
     return rows.map((e) => TimelineHost.fromMap(e)).toList();
   }
 
-  static Future<TimelineHost> putTimelineHost(String host) async {
-    final id = await database!.insert('hosts', {'host': host});
-    return TimelineHost(id: id, host: host);
+  static Future<TimelineHost> putTimelineHost(String host, String name) async {
+    final id = await database!.insert('hosts', {'host': host, 'name': name});
+    return TimelineHost(id: id, host: host, name: name);
   }
 
   static String _paramQuestions(List params) {
@@ -117,16 +125,18 @@ class MyStore {
     });
   }
 
-  static Future removeTimelineHosts(List<int> hostIds) async {
-    print('Delete hosts ${hostIds.join(', ')}');
+  static Future removeTimelineHosts(List<int> hostIds,
+      {bool removeHosts = true}) async {
     final timelines = await getTimelines(hostIds: hostIds);
     await database!.transaction((txn) async {
       await removeTimelineItems(timelines.map((e) => e.id).toList(), txn: txn);
       await txn.delete('timelines',
           where: 'host_id IN (${_paramQuestions(hostIds)})',
           whereArgs: hostIds);
-      await txn.delete('hosts',
-          where: 'id IN (${_paramQuestions(hostIds)})', whereArgs: hostIds);
+      if (removeHosts) {
+        await txn.delete('hosts',
+            where: 'id IN (${_paramQuestions(hostIds)})', whereArgs: hostIds);
+      }
     });
   }
 

@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:timeline/models/settings.dart';
 import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_host.dart';
+import 'package:timeline/models/timeline_item.dart';
 import 'package:timeline/my_http.dart';
 import 'package:timeline/my_store.dart';
 
@@ -14,11 +15,27 @@ class TimelineRepository {
       List<TimelineHost> timelineHosts, List<Timeline> timelines) async {
     final itemsFromStore =
         await MyStore.getTimelineItems(timelines.map((e) => e.id).toList());
-    if (itemsFromStore.timelineItems.isNotEmpty) {
-      return itemsFromStore;
+
+    // Watch out because for some timelines we may have items, but for other we don't, so we have to see for which ones we need to fetch the items.
+    // See for which timelines we already have items
+    List<int> timelineIdsToFetch = timelines.map((e) => e.id).toList();
+    for (final item in itemsFromStore.timelineItems) {
+      if (item is TimelineItem) {
+        if (timelineIdsToFetch.contains(item.timelineId)) {
+          timelineIdsToFetch.remove(item.timelineId);
+          if (timelineIdsToFetch.isEmpty) {
+            return itemsFromStore;
+          }
+        }
+      }
     }
+
+    final timelinesToFetch = timelineIdsToFetch
+        .map((e) => timelines.firstWhere((element) => element.id == e))
+        .toList();
+
     final List<Future> fetchFutures = [];
-    for (final timeline in timelines) {
+    for (final timeline in timelinesToFetch) {
       final host =
           timelineHosts.firstWhere((element) => element.id == timeline.hostId);
       final uri =
@@ -30,9 +47,9 @@ class TimelineRepository {
     for (var i = 0; i < responses.length; i++) {
       putFutures.add(MyStore.putTimelineItems(
           timelineHosts
-              .firstWhere((element) => element.id == timelines[i].hostId)
+              .firstWhere((element) => element.id == timelinesToFetch[i].hostId)
               .id,
-          timelines[i].id,
+          timelinesToFetch[i].id,
           responses[i]));
     }
     await Future.wait(putFutures);
@@ -47,26 +64,20 @@ class TimelineRepository {
     final settings = await MyStore.getSettings();
     final timelineHosts = await MyStore.getTimelineHosts();
     final timelines = await MyStore.getTimelines();
-    TimelineHost? activeHost;
     return TimelineAll(
-        settings: settings,
-        activeHost: activeHost,
-        timelineHosts: timelineHosts,
-        timelines: timelines);
+        settings: settings, timelineHosts: timelineHosts, timelines: timelines);
   }
 }
 
 class TimelineAll extends Equatable {
   final Settings settings;
-  final TimelineHost? activeHost;
   final List<TimelineHost> timelineHosts;
   final List<Timeline> timelines;
 
   const TimelineAll(
       {required this.settings,
-      this.activeHost,
       required this.timelineHosts,
       required this.timelines});
   @override
-  List<Object?> get props => [activeHost, timelineHosts, timelines, settings];
+  List<Object?> get props => [timelineHosts, timelines, settings];
 }

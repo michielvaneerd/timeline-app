@@ -17,7 +17,7 @@ class Timeline extends Equatable {
       required this.description});
 
   @override
-  List<Object?> get props => [id, name, description, hostId, termId];
+  List<Object?> get props => [id, name, description, hostId, termId, active];
 
   Map<String, dynamic> toMap() {
     return {
