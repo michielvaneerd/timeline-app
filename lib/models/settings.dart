@@ -10,7 +10,7 @@ class Settings extends Equatable {
       required this.condensed,
       required this.imageWidth});
 
-  Settings copyFrom(
+  Settings copyWith(
       {bool? loadImages,
       bool? condensed,
       int? imageWidth,

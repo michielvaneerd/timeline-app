@@ -4,6 +4,7 @@ import 'package:timeline/main_cubit.dart';
 import 'package:timeline/main_drawer.dart';
 import 'package:timeline/my_http.dart';
 import 'package:timeline/my_store.dart';
+import 'package:timeline/my_themes.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:timeline/screens/timeline_hosts_screen/timeline_hosts_screen.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen.dart';
@@ -23,14 +24,8 @@ void main() async {
         title: 'Timeline',
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        //theme: ThemeData(useMaterial3: true, colorScheme: lightColorScheme),
-        //darkTheme: ThemeData(useMaterial3: true, colorScheme: darkColorScheme),
-        // theme: ThemeData(
-        //     colorScheme: ColorScheme.fromSeed(
-        //       seedColor: const Color(0xFF005BBE),
-        //       //primary: const Color(0xFF005BBE),
-        //     ),
-        //     appBarTheme: const AppBarTheme(backgroundColor: Color(0xFFd1e4ff))),
+        theme: lightTheme,
+        darkTheme: darkTheme,
         home: BlocProvider(
           create: (context) => MainCubit(repo)..checkAtStart(),
           child: const MyApp(),

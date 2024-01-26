@@ -17,11 +17,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController imageWidthController;
   late Settings settings;
   final _loadingOverlay = LoadingOverlay();
+  late final int initialSettingsHash;
 
   @override
   void initState() {
     super.initState();
-    settings = widget.initialSettings.copyFrom();
+    settings = widget.initialSettings.copyWith();
+    initialSettingsHash = settings.hashCode;
     imageWidthController = TextEditingController(
         text: widget.initialSettings.imageWidth?.toString());
   }
@@ -46,10 +48,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               if (didPop) {
                 return;
               }
-              _loadingOverlay.show(context);
-              await cubit.updateSettings(settings);
+              final hasChanged = initialSettingsHash != settings.hashCode;
+              if (hasChanged) {
+                _loadingOverlay.show(context);
+                await cubit.updateSettings(settings);
+              }
               if (mounted) {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop<bool>(hasChanged);
               }
             },
             child: Scaffold(
@@ -62,7 +67,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onChanged: (newValue) {
                         if (newValue != null) {
                           setState(() {
-                            settings = settings.copyFrom(condensed: newValue);
+                            settings = settings.copyWith(condensed: newValue);
                           });
                         }
                       }),
@@ -74,7 +79,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           if (newValue != null) {
                             setState(() {
                               settings =
-                                  settings.copyFrom(loadImages: newValue);
+                                  settings.copyWith(loadImages: newValue);
                             });
                           }
                         }),
@@ -82,7 +87,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       padding: const EdgeInsets.all(16.0),
                       child: Row(
                         children: [
-                          Expanded(child: Text(myLoc(context).imageWidth)),
+                          Expanded(
+                              child: Text(
+                            myLoc(context).imageWidth,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          )),
                           Expanded(
                               child: TextField(
                             controller: imageWidthController,
@@ -90,7 +99,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               final valueInt =
                                   value.isNotEmpty ? int.tryParse(value) : null;
                               setState(() {
-                                settings = settings.copyFrom(
+                                settings = settings.copyWith(
                                     imageWidth: valueInt,
                                     useImageWidthParameter: true);
                               });

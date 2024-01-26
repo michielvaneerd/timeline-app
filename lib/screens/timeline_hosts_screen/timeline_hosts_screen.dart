@@ -60,7 +60,7 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
+                  child: FilledButton(
                       onPressed: () {
                         _loadingOverlay.show(context);
                         cubit.refreshHost(timelineAll, host);
@@ -71,7 +71,10 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
+                  child: FilledButton(
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStatePropertyAll(
+                              Theme.of(context).colorScheme.error)),
                       onPressed: () async {
                         final response = await showDialog<bool?>(
                           context: context,
@@ -85,7 +88,7 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
                                       Navigator.of(context).pop(false);
                                     },
                                     child: Text(myLoc(context).cancel)),
-                                TextButton(
+                                FilledButton(
                                     onPressed: () {
                                       Navigator.of(context).pop(true);
                                     },
@@ -99,10 +102,7 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
                           cubit.removeHosts(timelineAll, [host.id]);
                         }
                       },
-                      child: const Text(
-                        'Delete',
-                        style: TextStyle(color: Colors.red),
-                      )),
+                      child: Text(myLoc(context).delete)),
                 ),
               ),
             ],

@@ -48,10 +48,13 @@ class _MainDrawerState extends State<MainDrawer> {
       titleTextStyle: Theme.of(context).textTheme.titleLarge,
       onTap: () async {
         Navigator.of(context).pop(); // Drawer
-        await Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) =>
-                SettingsScreen(initialSettings: widget.timelineAll.settings)));
-        widget.mainCubit.checkAtStart();
+        final hasChanged = await Navigator.of(context).push<bool?>(
+            MaterialPageRoute(
+                builder: (context) => SettingsScreen(
+                    initialSettings: widget.timelineAll.settings)));
+        if (hasChanged != null && hasChanged) {
+          widget.mainCubit.checkAtStart();
+        }
       },
     ));
 
@@ -87,18 +90,13 @@ class _MainDrawerState extends State<MainDrawer> {
     }
     if (widget.timelineAll.timelineHosts.isNotEmpty) {
       items.add(ListTile(
-        title: ElevatedButton(
-          child: Text(myLoc(context).ok),
-          onPressed: () {
-            Navigator.of(context).pop();
-            widget.mainCubit.activateTimelines(activeTimelineIds);
-          },
-        ),
-        // onTap: () {
-        //   Navigator.of(context).pop();
-        //   widget.mainCubit.activateTimelines(activeTimelineIds);
-        // },
-      ));
+          title: FilledButton(
+        child: Text(myLoc(context).ok),
+        onPressed: () {
+          Navigator.of(context).pop();
+          widget.mainCubit.activateTimelines(activeTimelineIds);
+        },
+      )));
     }
 
     return items;

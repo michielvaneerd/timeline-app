@@ -138,7 +138,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                   ),
                 ),
               Container(
-                  color: Theme.of(context).secondaryHeaderColor,
+                  color: Theme.of(context).colorScheme.secondary,
                   height: 90,
                   child: Scrollbar(
                     thickness: 8,
@@ -155,7 +155,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                           //height: 70,
                           padding: const EdgeInsets.all(12.0),
                           child: Material(
-                            color: Theme.of(context).primaryColorLight,
+                            color: Theme.of(context).scaffoldBackgroundColor,
                             borderRadius: BorderRadius.circular(32),
                             child: InkWell(
                               borderRadius: BorderRadius.circular(32),
@@ -206,7 +206,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                 if (e is TimelineYearItem) {
                                   return Card(
                                     color:
-                                        Theme.of(context).secondaryHeaderColor,
+                                        Theme.of(context).colorScheme.tertiary,
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Text(
