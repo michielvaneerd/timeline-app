@@ -139,8 +139,9 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                 ),
               Container(
                   color: Theme.of(context).secondaryHeaderColor,
-                  height: 80,
+                  height: 90,
                   child: Scrollbar(
+                    thickness: 8,
                     scrollbarOrientation: ScrollbarOrientation.top,
                     controller: yearScrollController,
                     child: ListView.builder(
@@ -150,9 +151,9 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                       itemBuilder: (context, index) {
                         final item = yearItems[index];
                         return Container(
-                          width: 90,
-                          height: 80,
-                          padding: const EdgeInsets.all(8.0),
+                          width: 100,
+                          //height: 70,
+                          padding: const EdgeInsets.all(12.0),
                           child: Material(
                             color: Theme.of(context).primaryColorLight,
                             borderRadius: BorderRadius.circular(32),
@@ -194,6 +195,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                             .listObserverController,
                         onObserve: observerControllerWithLazyLoading.onObserve,
                         child: Scrollbar(
+                          thickness: 8,
                           controller: scrollController,
                           child: ListView.builder(
                               physics: const AlwaysScrollableScrollPhysics(),

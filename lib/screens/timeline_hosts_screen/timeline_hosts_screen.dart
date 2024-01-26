@@ -72,8 +72,31 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton(
                       onPressed: () async {
-                        _loadingOverlay.show(context);
-                        cubit.removeHosts(timelineAll, [host.id]);
+                        final response = await showDialog<bool?>(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              content: Text(
+                                  'Are you sure you want to delete the host ${host.name}?'),
+                              actions: [
+                                TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop(false);
+                                    },
+                                    child: const Text('Cancel')),
+                                TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop(true);
+                                    },
+                                    child: const Text('Delete'))
+                              ],
+                            );
+                          },
+                        );
+                        if (mounted && response != null && response) {
+                          _loadingOverlay.show(context);
+                          cubit.removeHosts(timelineAll, [host.id]);
+                        }
                       },
                       child: const Text(
                         'Delete',
