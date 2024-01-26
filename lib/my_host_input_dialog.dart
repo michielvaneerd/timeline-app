@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:timeline/utils.dart';
 
 class MyHostInputDialogResult extends Equatable {
   final String host;
@@ -34,10 +35,10 @@ class MyHostInputDialog {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
-                    decoration: const InputDecoration(labelText: 'Enter name'),
+                    decoration: InputDecoration(labelText: myLoc(context).name),
                     controller: nameController),
                 TextField(
-                  decoration: const InputDecoration(labelText: 'Enter host'),
+                  decoration: InputDecoration(labelText: myLoc(context).host),
                   controller: hostController,
                 ),
               ],
@@ -48,12 +49,12 @@ class MyHostInputDialog {
                     Navigator.of(context).pop(MyHostInputDialogResult(
                         host: hostController.text, name: nameController.text));
                   },
-                  child: const Text('OK')),
+                  child: Text(myLoc(context).ok)),
               TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: const Text('Cancel'))
+                  child: Text(myLoc(context).cancel))
             ],
           );
         });

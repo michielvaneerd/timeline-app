@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timeline/models/settings.dart';
+import 'package:timeline/my_loading_overlay.dart';
 import 'package:timeline/screens/settings_screen/settings_screen_bloc.dart';
+import 'package:timeline/utils.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Settings initialSettings;
@@ -13,10 +15,13 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController imageWidthController;
+  late Settings settings;
+  final _loadingOverlay = LoadingOverlay();
 
   @override
   void initState() {
     super.initState();
+    settings = widget.initialSettings.copyFrom();
     imageWidthController = TextEditingController(
         text: widget.initialSettings.imageWidth?.toString());
   }
@@ -24,6 +29,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void dispose() {
     imageWidthController.dispose();
+    _loadingOverlay.hide();
     super.dispose();
   }
 
@@ -34,56 +40,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: BlocBuilder<SettingsScreenCubit, SettingsScreenState>(
         builder: (context, state) {
           final cubit = BlocProvider.of<SettingsScreenCubit>(context);
-          return Scaffold(
-            appBar: AppBar(title: Text('Settings')),
-            body: Column(
-              children: [
-                CheckboxListTile(
-                    title: Text('Condensed view'),
-                    value: state.settings.condensed,
-                    onChanged: (newValue) {
-                      if (newValue != null) {
-                        cubit.updateSettings(Settings(
-                            loadImages: state.settings.loadImages,
-                            imageWidth: state.settings.imageWidth,
-                            condensed: newValue));
-                      }
-                    }),
-                if (!state.settings.condensed) ...[
+          return PopScope(
+            canPop: false,
+            onPopInvoked: (didPop) async {
+              if (didPop) {
+                return;
+              }
+              _loadingOverlay.show(context);
+              await cubit.updateSettings(settings);
+              if (mounted) {
+                Navigator.of(context).pop();
+              }
+            },
+            child: Scaffold(
+              appBar: AppBar(title: Text(myLoc(context).settings)),
+              body: Column(
+                children: [
                   CheckboxListTile(
-                      title: Text('Load images'),
-                      value: state.settings.loadImages,
+                      title: Text(myLoc(context).condensedView),
+                      value: settings.condensed,
                       onChanged: (newValue) {
                         if (newValue != null) {
-                          cubit.updateSettings(Settings(
-                              imageWidth: state.settings.imageWidth,
-                              loadImages: newValue,
-                              condensed: state.settings.condensed));
+                          setState(() {
+                            settings = settings.copyFrom(condensed: newValue);
+                          });
                         }
                       }),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Expanded(child: Text('Image width')),
-                        Expanded(
-                            child: TextField(
-                          controller: imageWidthController,
-                          onChanged: (value) {
-                            final valueInt =
-                                value.isNotEmpty ? int.tryParse(value) : null;
-
-                            cubit.updateSettings(Settings(
-                                imageWidth: valueInt,
-                                loadImages: state.settings.loadImages,
-                                condensed: state.settings.condensed));
-                          },
-                        ))
-                      ],
-                    ),
-                  )
+                  if (!settings.condensed) ...[
+                    CheckboxListTile(
+                        title: Text(myLoc(context).loadImagesByDefault),
+                        value: settings.loadImages,
+                        onChanged: (newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              settings =
+                                  settings.copyFrom(loadImages: newValue);
+                            });
+                          }
+                        }),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Expanded(child: Text(myLoc(context).imageWidth)),
+                          Expanded(
+                              child: TextField(
+                            controller: imageWidthController,
+                            onChanged: (value) {
+                              final valueInt =
+                                  value.isNotEmpty ? int.tryParse(value) : null;
+                              setState(() {
+                                settings = settings.copyFrom(
+                                    imageWidth: valueInt,
+                                    useImageWidthParameter: true);
+                              });
+                            },
+                          ))
+                        ],
+                      ),
+                    )
+                  ],
                 ],
-              ],
+              ),
             ),
           );
         },

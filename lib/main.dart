@@ -7,7 +7,8 @@ import 'package:timeline/my_store.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:timeline/screens/timeline_hosts_screen/timeline_hosts_screen.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen.dart';
-import 'color_schemes.g.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:timeline/utils.dart';
 
 // https://github.com/fluttercandies/flutter_scrollview_observer/blob/main/lib/src/common/observer_controller.dart#L334
 // https://pub.dev/packages/scroll_to_index
@@ -20,6 +21,8 @@ void main() async {
     value: repo,
     child: MaterialApp(
         title: 'Timeline',
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         //theme: ThemeData(useMaterial3: true, colorScheme: lightColorScheme),
         //darkTheme: ThemeData(useMaterial3: true, colorScheme: darkColorScheme),
         // theme: ThemeData(
@@ -65,7 +68,7 @@ class _MyAppState extends State<MyApp> {
               //backgroundColor: Theme.of(context).secondaryHeaderColor,
               title: Text(activeTimelines != null && activeTimelines.isNotEmpty
                   ? activeTimelines.map((e) => e.name).join(', ')
-                  : 'Timeline'),
+                  : myLoc(context).timeline),
               actions: activeTimelines != null && activeTimelines.isNotEmpty
                   ? [
                       IconButton(
@@ -113,7 +116,7 @@ class _MyAppState extends State<MyApp> {
                                   }
                                 }
                               : null,
-                          child: const Text('Add Host'))),
+                          child: Text(myLoc(context).addHost))),
             ));
       },
     );

@@ -15,8 +15,8 @@ class SettingsScreenCubit extends Cubit<SettingsScreenState> {
   SettingsScreenCubit(Settings settings)
       : super(SettingsScreenState(settings: settings));
 
-  void updateSettings(Settings settings) async {
+  Future updateSettings(Settings settings) async {
     await MyStore.putSettings(settings);
-    emit(SettingsScreenState(settings: settings));
+    //emit(SettingsScreenState(settings: settings));
   }
 }

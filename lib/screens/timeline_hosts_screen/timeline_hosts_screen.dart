@@ -5,6 +5,7 @@ import 'package:timeline/my_host_input_dialog.dart';
 import 'package:timeline/my_loading_overlay.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:timeline/screens/timeline_hosts_screen/timeline_hosts_screen_bloc.dart';
+import 'package:timeline/utils.dart';
 
 class TimelineHostsScreen extends StatefulWidget {
   final TimelineAll timelineAll;
@@ -64,7 +65,7 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
                         _loadingOverlay.show(context);
                         cubit.refreshHost(timelineAll, host);
                       },
-                      child: const Text('Refresh')),
+                      child: Text(myLoc(context).refresh)),
                 ),
               ),
               Expanded(
@@ -77,18 +78,18 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
                           builder: (context) {
                             return AlertDialog(
                               content: Text(
-                                  'Are you sure you want to delete the host ${host.name}?'),
+                                  myLoc(context).confirmDeleteHost(host.name)),
                               actions: [
                                 TextButton(
                                     onPressed: () {
                                       Navigator.of(context).pop(false);
                                     },
-                                    child: const Text('Cancel')),
+                                    child: Text(myLoc(context).cancel)),
                                 TextButton(
                                     onPressed: () {
                                       Navigator.of(context).pop(true);
                                     },
-                                    child: const Text('Delete'))
+                                    child: Text(myLoc(context).delete))
                               ],
                             );
                           },
@@ -144,7 +145,7 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
           }
           return Scaffold(
               appBar: AppBar(
-                title: const Text('Hosts'),
+                title: Text(myLoc(context).hosts),
                 actions: [
                   IconButton(
                       onPressed: () async {
@@ -160,7 +161,7 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
                         onPressed: () {
                           onAddHost(cubit, timelineAll);
                         },
-                        child: const Text('Add host'),
+                        child: Text(myLoc(context).addHost),
                       ),
                     ));
         },

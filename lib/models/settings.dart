@@ -10,6 +10,19 @@ class Settings extends Equatable {
       required this.condensed,
       required this.imageWidth});
 
+  Settings copyFrom(
+      {bool? loadImages,
+      bool? condensed,
+      int? imageWidth,
+      bool useImageWidthParameter = false}) {
+    return Settings(
+        loadImages: loadImages ?? this.loadImages,
+        condensed: condensed ?? this.condensed,
+        imageWidth: useImageWidthParameter
+            ? imageWidth
+            : (imageWidth ?? this.imageWidth));
+  }
+
   @override
   List<Object?> get props => [loadImages, condensed, imageWidth];
 }

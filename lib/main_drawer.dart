@@ -3,6 +3,7 @@ import 'package:timeline/main_cubit.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:timeline/screens/settings_screen/settings_screen.dart';
 import 'package:timeline/screens/timeline_hosts_screen/timeline_hosts_screen.dart';
+import 'package:timeline/utils.dart';
 
 class MainDrawer extends StatefulWidget {
   const MainDrawer(
@@ -30,7 +31,7 @@ class _MainDrawerState extends State<MainDrawer> {
     final List<Widget> items = [];
 
     items.add(ListTile(
-      title: Text('Hosts'),
+      title: Text(myLoc(context).hosts),
       titleTextStyle: Theme.of(context).textTheme.titleLarge,
       onTap: () async {
         Navigator.of(context).pop();
@@ -43,7 +44,7 @@ class _MainDrawerState extends State<MainDrawer> {
     ));
 
     items.add(ListTile(
-      title: Text('Settings'),
+      title: Text(myLoc(context).settings),
       titleTextStyle: Theme.of(context).textTheme.titleLarge,
       onTap: () async {
         Navigator.of(context).pop(); // Drawer
@@ -54,7 +55,7 @@ class _MainDrawerState extends State<MainDrawer> {
       },
     ));
 
-    items.add(Divider());
+    items.add(const Divider());
 
     for (final host in widget.timelineAll.timelineHosts) {
       items.add(ListTile(
@@ -87,7 +88,7 @@ class _MainDrawerState extends State<MainDrawer> {
     if (widget.timelineAll.timelineHosts.isNotEmpty) {
       items.add(ListTile(
         title: ElevatedButton(
-          child: Text('OK'),
+          child: Text(myLoc(context).ok),
           onPressed: () {
             Navigator.of(context).pop();
             widget.mainCubit.activateTimelines(activeTimelineIds);
