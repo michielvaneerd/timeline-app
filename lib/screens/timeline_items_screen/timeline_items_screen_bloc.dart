@@ -27,6 +27,7 @@ class TimelineItemsScreenCubit extends Cubit<TimelineItemsScreenState> {
       : super(const TimelineItemsScreenState(
             items: YearAndTimelineItems(timelineItems: [], yearIndexes: {})));
 
+  // TODO: Deze moet ik denk ik naar drawer cubit of main cubit brengen omdat hiermee ook de yearMin en yearMax verandert van de timelines.
   Future getItems(List<TimelineHost> timelineHosts, List<Timeline> timelines,
       {bool refresh = false}) async {
     emit(const TimelineItemsScreenState(

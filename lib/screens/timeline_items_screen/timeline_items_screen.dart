@@ -138,9 +138,10 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                   ),
                 ),
               Container(
-                  color: Theme.of(context).colorScheme.secondary,
+                  color: Theme.of(context).colorScheme.primaryContainer,
                   height: 90,
                   child: Scrollbar(
+                    interactive: true,
                     thickness: 8,
                     scrollbarOrientation: ScrollbarOrientation.top,
                     controller: yearScrollController,
@@ -155,7 +156,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                           //height: 70,
                           padding: const EdgeInsets.all(12.0),
                           child: Material(
-                            color: Theme.of(context).scaffoldBackgroundColor,
+                            color: Theme.of(context).colorScheme.inversePrimary,
                             borderRadius: BorderRadius.circular(32),
                             child: InkWell(
                               borderRadius: BorderRadius.circular(32),
@@ -196,6 +197,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                         onObserve: observerControllerWithLazyLoading.onObserve,
                         child: Scrollbar(
                           thickness: 8,
+                          interactive: true,
                           controller: scrollController,
                           child: ListView.builder(
                               physics: const AlwaysScrollableScrollPhysics(),
@@ -205,8 +207,9 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                 final e = realItems.timelineItems[index];
                                 if (e is TimelineYearItem) {
                                   return Card(
-                                    color:
-                                        Theme.of(context).colorScheme.tertiary,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer,
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Text(
@@ -233,6 +236,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                           ? (' / ${item.yearEnd}')
                                           : '');
                                   return Card(
+                                    // color:
+                                    //     Theme.of(context).colorScheme.surface,
                                     key: observerControllerWithLazyLoading
                                         .getKey(index),
                                     child: Column(
@@ -262,7 +267,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                         decoration: BoxDecoration(
                                                             color: Theme.of(
                                                                     context)
-                                                                .cardColor,
+                                                                .colorScheme
+                                                                .tertiaryContainer,
                                                             borderRadius:
                                                                 BorderRadius
                                                                     .circular(
@@ -279,8 +285,10 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                                 .textTheme
                                                                 .bodySmall!
                                                                 .copyWith(
-                                                                    color: Colors
-                                                                        .black)),
+                                                                    color: Theme.of(
+                                                                            context)
+                                                                        .colorScheme
+                                                                        .onTertiaryContainer)),
                                                       ),
                                                       const Padding(
                                                           padding:
@@ -307,7 +315,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                   child: Icon(
                                                       color: Theme.of(context)
                                                           .colorScheme
-                                                          .secondary,
+                                                          .primary,
                                                       Icons.image_outlined,
                                                       size: Theme.of(context)
                                                           .textTheme

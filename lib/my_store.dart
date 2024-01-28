@@ -96,11 +96,20 @@ class MyStore {
   }
 
   static Future<List<Timeline>> getTimelines({List<int>? hostIds}) async {
-    final rows = await database!.query('timelines',
-        where:
-            hostIds != null ? 'host_id IN (${_paramQuestions(hostIds)})' : null,
-        whereArgs: hostIds,
-        orderBy: 'name ASC');
+    final hostIdsWhere = hostIds != null
+        ? (' where host_id in (${_paramQuestions(hostIds)})')
+        : '';
+    final rows = await database!.rawQuery("""
+      select
+      timelines.*,
+      min(items.year) as year_min,
+      max(items.year) as year_max
+      from timelines
+      left join items on items.timeline_id = timelines.id
+      $hostIdsWhere
+      group by timelines.id
+      order by timelines.name asc
+      """, hostIds);
     return rows.map((e) => Timeline.fromMap(e)).toList();
   }
 

@@ -69,6 +69,9 @@ class _MainDrawerState extends State<MainDrawer> {
           .where((element) => element.hostId == host.id)) {
         items.add(CheckboxListTile(
           title: Text(timeline.name),
+          subtitle: timeline.yearMin != null
+              ? Text(timeline.yearMin.toString())
+              : const Text('?'),
           value: activeTimelineIds.contains(timeline.id),
           onChanged: (newValue) {
             if (newValue != null) {

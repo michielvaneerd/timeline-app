@@ -7,6 +7,8 @@ class Timeline extends Equatable {
   final String name;
   final String description;
   final int active;
+  final int? yearMin;
+  final int? yearMax;
 
   const Timeline(
       {required this.id,
@@ -14,10 +16,13 @@ class Timeline extends Equatable {
       required this.hostId,
       required this.name,
       required this.active,
-      required this.description});
+      required this.description,
+      this.yearMax,
+      this.yearMin});
 
   @override
-  List<Object?> get props => [id, name, description, hostId, termId, active];
+  List<Object?> get props =>
+      [id, name, description, hostId, termId, active, yearMax, yearMax];
 
   Map<String, dynamic> toMap() {
     return {
@@ -26,7 +31,9 @@ class Timeline extends Equatable {
       'term_id': termId,
       'host_id': hostId,
       'name': name,
-      'description': description
+      'description': description,
+      'year_min': yearMin,
+      'year_max': yearMax
     };
   }
 
@@ -39,5 +46,7 @@ class Timeline extends Equatable {
         name = map['name'],
         hostId = hostId ??
             map['host_id'], // When we select from database, myHostId can be null, but when we fetch from API, then we need myHostId.
-        description = map['description'];
+        description = map['description'],
+        yearMin = map['year_min'],
+        yearMax = map['year_max'];
 }
