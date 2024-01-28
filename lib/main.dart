@@ -88,9 +88,12 @@ class _MyAppState extends State<MyApp> {
                   : (activeTimelines != null && activeTimelines.isNotEmpty
                       ? TimelineItemsWidget(
                           showSearch: showSearch,
-                          settings: state.timelineAll!.settings,
-                          activeTimelines: activeTimelines.toList(),
-                          timelineHosts: state.timelineAll!.timelineHosts)
+                          timelineAll: state.timelineAll!,
+                          yearAndTimelineItems: state.items!,
+                          onRefresh: () {
+                            cubit.checkAtStart(withBusy: true, refresh: true);
+                          },
+                        )
                       : ElevatedButton(
                           onPressed: state.timelineAll != null
                               ? () async {

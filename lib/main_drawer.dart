@@ -70,7 +70,7 @@ class _MainDrawerState extends State<MainDrawer> {
         items.add(CheckboxListTile(
           title: Text(timeline.name),
           subtitle: timeline.yearMin != null
-              ? Text(timeline.yearMin.toString())
+              ? Text(timeline.yearMinMax())
               : const Text('?'),
           value: activeTimelineIds.contains(timeline.id),
           onChanged: (newValue) {

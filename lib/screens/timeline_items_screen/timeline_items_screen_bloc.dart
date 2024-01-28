@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:timeline/models/settings.dart';
 import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_host.dart';
 import 'package:timeline/models/timeline_item.dart';
@@ -7,43 +8,25 @@ import 'package:timeline/my_store.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 
 class TimelineItemsScreenState extends Equatable {
-  final YearAndTimelineItems items;
   final YearAndTimelineItems? filteredItems;
   final bool busy;
   final String filter;
 
   const TimelineItemsScreenState(
-      {required this.items,
-      this.filteredItems,
-      this.filter = '',
-      this.busy = false});
+      {this.filteredItems, this.filter = '', this.busy = false});
   @override
-  List<Object?> get props => [items, busy, filteredItems, filter];
+  List<Object?> get props => [busy, filteredItems, filter];
 }
 
 class TimelineItemsScreenCubit extends Cubit<TimelineItemsScreenState> {
   final TimelineRepository timelineRepository;
   TimelineItemsScreenCubit(this.timelineRepository)
-      : super(const TimelineItemsScreenState(
-            items: YearAndTimelineItems(timelineItems: [], yearIndexes: {})));
+      : super(const TimelineItemsScreenState());
 
-  // TODO: Deze moet ik denk ik naar drawer cubit of main cubit brengen omdat hiermee ook de yearMin en yearMax verandert van de timelines.
-  Future getItems(List<TimelineHost> timelineHosts, List<Timeline> timelines,
-      {bool refresh = false}) async {
-    emit(const TimelineItemsScreenState(
-        items: YearAndTimelineItems(timelineItems: [], yearIndexes: {}),
-        busy: true));
-    if (refresh) {
-      await MyStore.removeTimelineItems(timelines.map((e) => e.id).toList());
-    }
-    final items =
-        await timelineRepository.getTimelineItems(timelineHosts, timelines);
-    emit(TimelineItemsScreenState(items: items));
-  }
-
-  Future filterItems(String q, YearAndTimelineItems items) async {
+  Future filterItems(
+      String q, YearAndTimelineItems items, Settings settings) async {
     if (q.isEmpty) {
-      emit(TimelineItemsScreenState(items: items));
+      emit(const TimelineItemsScreenState());
       return;
     }
     final List<TimelineAbstractItem> timelineItems = [];
@@ -53,7 +36,8 @@ class TimelineItemsScreenCubit extends Cubit<TimelineItemsScreenState> {
     for (final item in items.timelineItems) {
       if (item is TimelineItem) {
         if (item.title.toLowerCase().contains(qToLower) ||
-            (item.intro.toLowerCase().contains(qToLower))) {
+            (!settings.condensed &&
+                item.intro.toLowerCase().contains(qToLower))) {
           if (!yearMap.containsKey(item.year)) {
             yearMap[item.year] = index;
             timelineItems.add(TimelineYearItem(year: item.year));
@@ -66,7 +50,6 @@ class TimelineItemsScreenCubit extends Cubit<TimelineItemsScreenState> {
     }
     emit(TimelineItemsScreenState(
         filter: q,
-        items: items,
         filteredItems: YearAndTimelineItems(
             timelineItems: timelineItems, yearIndexes: yearMap)));
   }

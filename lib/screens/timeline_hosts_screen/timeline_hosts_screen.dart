@@ -83,16 +83,16 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
                               content: Text(
                                   myLoc(context).confirmDeleteHost(host.name)),
                               actions: [
+                                FilledButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop(true);
+                                    },
+                                    child: Text(myLoc(context).delete)),
                                 TextButton(
                                     onPressed: () {
                                       Navigator.of(context).pop(false);
                                     },
                                     child: Text(myLoc(context).cancel)),
-                                FilledButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop(true);
-                                    },
-                                    child: Text(myLoc(context).delete))
                               ],
                             );
                           },

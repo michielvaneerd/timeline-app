@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
-import 'package:timeline/models/settings.dart';
 import 'package:timeline/models/timeline.dart';
-import 'package:timeline/models/timeline_host.dart';
 import 'package:timeline/models/timeline_item.dart';
 import 'package:timeline/my_html_text.dart';
+import 'package:timeline/my_store.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:timeline/screens/timeline_items_screen/observer_controller_with_lazy_loading.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen_bloc.dart';
@@ -15,16 +14,16 @@ import 'package:url_launcher/url_launcher.dart';
 // https://pub.dev/packages/scroll_to_index
 
 class TimelineItemsWidget extends StatefulWidget {
-  final List<Timeline> activeTimelines;
-  final List<TimelineHost> timelineHosts;
-  final Settings settings;
+  final TimelineAll timelineAll;
+  final YearAndTimelineItems yearAndTimelineItems;
   final bool showSearch;
+  final void Function() onRefresh;
   const TimelineItemsWidget(
       {super.key,
-      required this.activeTimelines,
-      required this.showSearch,
-      required this.timelineHosts,
-      required this.settings});
+      required this.timelineAll,
+      required this.yearAndTimelineItems,
+      required this.onRefresh,
+      required this.showSearch});
 
   @override
   State<TimelineItemsWidget> createState() => _TimelineItemsWidgetState();
@@ -69,9 +68,9 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
     searchController.dispose();
   }
 
-  Widget getRefreshIndicatorOrContainer(
-      Widget child, TimelineItemsScreenCubit cubit) {
-    if (widget.activeTimelines.length > 1) {
+  Widget getRefreshIndicatorOrContainer(Widget child,
+      TimelineItemsScreenCubit cubit, List<Timeline> activeTimelines) {
+    if (activeTimelines.length > 1) {
       return Container(
         child: child,
       );
@@ -79,8 +78,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
       return RefreshIndicator(
           onRefresh: () async {
             await Future.delayed(const Duration(seconds: 1));
-            return cubit.getItems(widget.timelineHosts, widget.activeTimelines,
-                refresh: true);
+            widget.onRefresh();
           },
           child: child);
     }
@@ -89,21 +87,25 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final activeTimelines = widget.timelineAll.timelines
+        .where(
+          (element) => element.isActive(),
+        )
+        .toList();
     final repo = RepositoryProvider.of<TimelineRepository>(context);
     return BlocProvider(
-      create: (context) => TimelineItemsScreenCubit(repo)
-        ..getItems(widget.timelineHosts, widget.activeTimelines),
+      create: (context) => TimelineItemsScreenCubit(repo),
       child: BlocBuilder<TimelineItemsScreenCubit, TimelineItemsScreenState>(
         builder: (context, state) {
-          if (state.items.timelineItems.isEmpty) {
+          if (widget.yearAndTimelineItems.timelineItems.isEmpty) {
             return Container();
           }
 
-          imageWidth = widget.settings.imageWidth != null
-              ? (widget.settings.imageWidth!.toDouble())
+          imageWidth = widget.timelineAll.settings.imageWidth != null
+              ? (widget.timelineAll.settings.imageWidth!.toDouble())
               : screenWidth;
           final cubit = BlocProvider.of<TimelineItemsScreenCubit>(context);
-          final realItems = state.filteredItems ?? state.items;
+          final realItems = state.filteredItems ?? widget.yearAndTimelineItems;
           final yearItems =
               realItems.timelineItems.whereType<TimelineYearItem>().toList();
           return Column(
@@ -118,7 +120,10 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                         suffixIcon: state.filter.isNotEmpty
                             ? IconButton(
                                 onPressed: () {
-                                  cubit.filterItems('', state.items);
+                                  cubit.filterItems(
+                                      '',
+                                      widget.yearAndTimelineItems,
+                                      widget.timelineAll.settings);
                                   searchController.clear();
                                 },
                                 icon: const Icon(Icons.close))
@@ -133,7 +138,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                 width: 2),
                             borderRadius: BorderRadius.circular(10))),
                     onChanged: (value) {
-                      cubit.filterItems(value, state.items);
+                      cubit.filterItems(value, widget.yearAndTimelineItems,
+                          widget.timelineAll.settings);
                     },
                   ),
                 ),
@@ -222,14 +228,13 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                   );
                                 } else {
                                   final TimelineItem item = e as TimelineItem;
-                                  final timeline = widget.activeTimelines
-                                      .firstWhere((element) =>
-                                          element.id == e.timelineId);
+                                  final timeline = activeTimelines.firstWhere(
+                                      (element) => element.id == e.timelineId);
                                   final loadImage = item.image != null &&
                                       observerControllerWithLazyLoading
                                           .shouldActivelyLoad(
                                               index, builtIndexes) &&
-                                      (widget.settings.loadImages ||
+                                      (widget.timelineAll.settings.loadImages ||
                                           imageIndexes.contains(index));
                                   final yearText = item.year.toString() +
                                       (item.yearEnd != null
@@ -260,8 +265,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                   crossAxisAlignment:
                                                       CrossAxisAlignment.start,
                                                   children: [
-                                                    if (widget.activeTimelines
-                                                            .length >
+                                                    if (activeTimelines.length >
                                                         1) ...[
                                                       Container(
                                                         decoration: BoxDecoration(
@@ -308,8 +312,10 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                   ],
                                                 ),
                                               ),
-                                              if (!widget.settings.condensed &&
-                                                  !widget.settings.loadImages &&
+                                              if (!widget.timelineAll.settings
+                                                      .condensed &&
+                                                  !widget.timelineAll.settings
+                                                      .loadImages &&
                                                   item.image != null)
                                                 InkWell(
                                                   child: Icon(
@@ -337,7 +343,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                             ],
                                           ),
                                         ),
-                                        if (!widget.settings.condensed &&
+                                        if (!widget.timelineAll.settings
+                                                .condensed &&
                                             item.intro.isNotEmpty)
                                           Padding(
                                             padding: const EdgeInsets.all(8.0),
@@ -349,7 +356,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                           ),
 
                                         // Load image only if we scroll manually (requestedIndex == -1) or when the index is less than 3 away from requestedIndex
-                                        if (!widget.settings.condensed &&
+                                        if (!widget.timelineAll.settings
+                                                .condensed &&
                                             loadImage) ...[
                                           const Padding(
                                             padding: EdgeInsets.only(top: 8.0),
@@ -436,7 +444,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                             ),
                                           )
                                         ],
-                                        if (!widget.settings.condensed &&
+                                        if (!widget.timelineAll.settings
+                                                .condensed &&
                                             item.links.isNotEmpty)
                                           Padding(
                                             padding: const EdgeInsets.all(8.0),
@@ -494,7 +503,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                               }),
                         ),
                       ),
-                      cubit))
+                      cubit,
+                      activeTimelines))
             ],
           );
         },

@@ -37,6 +37,14 @@ class Timeline extends Equatable {
     };
   }
 
+  String yearMinMax() {
+    if (yearMax != null) {
+      return '$yearMin / $yearMax';
+    } else {
+      return yearMin.toString();
+    }
+  }
+
   bool isActive() => active == 1;
 
   Timeline.fromMap(Map<String, dynamic> map, {int? hostId, int? active})
