@@ -40,7 +40,11 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
       TimelineHostsScreenCubit cubit) {
     final timelines = timelineAll.timelines
         .where((element) => element.hostId == host.id)
-        .map((e) => ListTile(title: Text(e.name)))
+        .map(
+          (e) => ListTile(
+              title: Text(e.name),
+              subtitle: e.yearMin != null ? Text(e.yearMinMax()) : null),
+        )
         .toList();
     return Card(
       child: Column(
