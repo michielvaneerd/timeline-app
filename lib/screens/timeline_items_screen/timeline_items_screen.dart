@@ -130,11 +130,11 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                             : null,
                         enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                                color: Theme.of(context).primaryColorLight),
+                                color: Theme.of(context).colorScheme.primary),
                             borderRadius: BorderRadius.circular(10)),
                         focusedBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor,
+                                color: Theme.of(context).colorScheme.primary,
                                 width: 2),
                             borderRadius: BorderRadius.circular(10))),
                     onChanged: (value) {
