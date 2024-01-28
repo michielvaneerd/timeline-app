@@ -9,13 +9,16 @@ import 'package:timeline/utils.dart';
 
 class TimelineHostsScreen extends StatefulWidget {
   final TimelineAll timelineAll;
-  const TimelineHostsScreen({super.key, required this.timelineAll});
+  final bool showAddHostDialog;
+  const TimelineHostsScreen(
+      {super.key, required this.timelineAll, this.showAddHostDialog = false});
 
   @override
   State<TimelineHostsScreen> createState() => _TimelineHostsScreenState();
 }
 
 class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
+  bool hasShowedHostDialogOnStart = false;
   final hostInputDialog = MyHostInputDialog();
   late int timelineAllHash;
   final _loadingOverlay = LoadingOverlay();
@@ -129,7 +132,8 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
   Widget build(BuildContext context) {
     final repo = RepositoryProvider.of<TimelineRepository>(context);
     return BlocProvider(
-      create: (context) => TimelineHostsScreenCubit(repo),
+      create: (context) => TimelineHostsScreenCubit(repo)
+        ..showAddHostOnStart(widget.showAddHostDialog),
       child: BlocConsumer<TimelineHostsScreenCubit, TimelineHostsScreenState>(
         listener: (context, state) {
           if (!state.busy) {
@@ -138,6 +142,10 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
           if (state.error != null) {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(state.error!)));
+          }
+          if (state.showAddHostOnStart) {
+            onAddHost(BlocProvider.of<TimelineHostsScreenCubit>(context),
+                _getTimelineAll(state));
           }
         },
         builder: (context, state) {

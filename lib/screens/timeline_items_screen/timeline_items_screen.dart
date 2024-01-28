@@ -371,6 +371,12 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                 Image.network(
                                                   item.image!,
                                                   width: imageWidth,
+                                                  errorBuilder: (context, error,
+                                                          stackTrace) =>
+                                                      Placeholder(
+                                                    fallbackHeight: imageWidth,
+                                                    fallbackWidth: imageWidth,
+                                                  ),
                                                   cacheWidth:
                                                       (imageWidth * pixelRatio)
                                                           .toInt(),

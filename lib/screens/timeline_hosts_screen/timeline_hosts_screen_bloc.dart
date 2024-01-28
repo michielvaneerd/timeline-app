@@ -9,12 +9,28 @@ class TimelineHostsScreenState extends Equatable {
   final String? error;
   final bool busy;
   final TimelineAll? timelineAll;
+  final bool showAddHostOnStart;
 
   const TimelineHostsScreenState(
-      {this.error, this.busy = false, this.timelineAll});
+      {this.error,
+      this.busy = false,
+      this.timelineAll,
+      this.showAddHostOnStart = false});
+
+  TimelineHostsScreenState copyWith(
+      {bool? showAddHostOnStart,
+      String? error,
+      bool? busy,
+      TimelineAll? timelineAll}) {
+    return TimelineHostsScreenState(
+        showAddHostOnStart: showAddHostOnStart ?? this.showAddHostOnStart,
+        busy: busy ?? this.busy,
+        timelineAll: timelineAll ?? this.timelineAll,
+        error: error ?? this.error);
+  }
 
   @override
-  List<Object?> get props => [error, busy, timelineAll];
+  List<Object?> get props => [error, busy, timelineAll, showAddHostOnStart];
 }
 
 class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
@@ -36,6 +52,13 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
     await MyStore.removeTimelineHosts(hostIds, removeHosts: true);
     final all = await timelineRepository.getAll();
     emit(TimelineHostsScreenState(timelineAll: all));
+  }
+
+  void showAddHostOnStart(bool show) async {
+    if (show) {
+      await Future.delayed(const Duration(milliseconds: 400));
+      emit(const TimelineHostsScreenState(showAddHostOnStart: true));
+    }
   }
 
   void refreshHost(TimelineAll timelineAll, TimelineHost host) async {

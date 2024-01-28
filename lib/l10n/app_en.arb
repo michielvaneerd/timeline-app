@@ -19,5 +19,7 @@
   },
   "condensedView": "Condensed view",
   "loadImagesByDefault": "Load images by default",
-  "imageWidth": "Image width"
+  "imageWidth": "Image width",
+  "selectTimelinesInfoText": "Select one or more timelines to display",
+  "addHostInfoText": "Add one or more hosts that provides timelines"
 }

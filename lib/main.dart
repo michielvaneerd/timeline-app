@@ -43,6 +43,67 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   var showSearch = false;
 
+  Widget infoWidget(MainState state, MainCubit cubit) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (state.timelineAll!.timelines.isNotEmpty)
+          Card(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    myLoc(context).selectTimelinesInfoText,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Builder(builder: (context) {
+                    return FilledButton(
+                        onPressed: () {
+                          Scaffold.of(context).openDrawer();
+                        },
+                        child: Text(myLoc(context).ok));
+                  }),
+                )
+              ],
+            ),
+          ),
+        const Padding(
+          padding: EdgeInsets.only(top: 16),
+        ),
+        Card(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  myLoc(context).addHostInfoText,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: FilledButton(
+                    onPressed: () async {
+                      await Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => TimelineHostsScreen(
+                                showAddHostDialog: true,
+                                timelineAll: state.timelineAll!,
+                              )));
+                    },
+                    child: Text(myLoc(context).addHost)),
+              ),
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<MainCubit, MainState>(
@@ -94,25 +155,7 @@ class _MyAppState extends State<MyApp> {
                             cubit.checkAtStart(withBusy: true, refresh: true);
                           },
                         )
-                      : ElevatedButton(
-                          onPressed: state.timelineAll != null
-                              ? () async {
-                                  final timelineId = await Navigator.of(context)
-                                      .push(MaterialPageRoute(
-                                          builder: (context) =>
-                                              TimelineHostsScreen(
-                                                timelineAll: state.timelineAll!,
-                                              )));
-                                  if (timelineId != null) {
-                                    //cubit.activateTimeline(timelineId);
-                                    // TODO...
-                                  } else {
-                                    // TODO: we can check if timelineAll has changed...
-                                    cubit.checkAtStart(withBusy: false);
-                                  }
-                                }
-                              : null,
-                          child: Text(myLoc(context).addHost))),
+                      : infoWidget(state, cubit)),
             ));
       },
     );
