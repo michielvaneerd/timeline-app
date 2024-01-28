@@ -24,6 +24,7 @@ void main() async {
       create: (context) => MainCubit(repo)..checkAtStart(),
       child: BlocBuilder<MainCubit, MainState>(
         builder: (context, state) {
+          print(state.timelineAll?.settings.getThemeMode());
           return MaterialApp(
               title: 'Timeline',
               localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -99,6 +100,7 @@ class _MyAppState extends State<MyApp> {
                                 showAddHostDialog: true,
                                 timelineAll: state.timelineAll!,
                               )));
+                      cubit.checkAtStart();
                     },
                     child: Text(myLoc(context).addHost)),
               ),

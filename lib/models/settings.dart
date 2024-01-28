@@ -26,7 +26,7 @@ class Settings extends Equatable {
   ThemeMode getThemeMode() {
     switch (themeMode) {
       case MyThemeModes.light:
-        return ThemeMode.system;
+        return ThemeMode.light;
       case MyThemeModes.dark:
         return ThemeMode.dark;
       default:
