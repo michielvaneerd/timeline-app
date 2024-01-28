@@ -10,6 +10,7 @@ class MyStore {
   static const keySettingsLoadImages = 'load_images';
   static const keySettingsCondensed = 'condensed';
   static const keySettingsImageWidth = 'image_width';
+  static const keySettingsThemeMode = 'theme_mode';
 
   static Database? database;
 
@@ -35,6 +36,7 @@ class MyStore {
     bool loadImages = false;
     bool condensed = false;
     int? imageWidth;
+    MyThemeModes themeMode = MyThemeModes.system;
     for (var row in rows) {
       switch (row['key']) {
         case keySettingsLoadImages:
@@ -46,10 +48,18 @@ class MyStore {
         case keySettingsImageWidth:
           imageWidth = int.tryParse(row['value'].toString());
           break;
+        case keySettingsThemeMode:
+          if (row['value'] != null && row['value'].toString().isNotEmpty) {
+            themeMode = MyThemeModes.values.byName(row['value'].toString());
+          }
+          break;
       }
     }
     return Settings(
-        loadImages: loadImages, condensed: condensed, imageWidth: imageWidth);
+        loadImages: loadImages,
+        condensed: condensed,
+        imageWidth: imageWidth,
+        themeMode: themeMode);
   }
 
   static Future putSettings(Settings settings) async {
@@ -66,6 +76,8 @@ class MyStore {
       });
       batch.insert('settings',
           {'key': keySettingsImageWidth, 'value': settings.imageWidth});
+      batch.insert('settings',
+          {'key': keySettingsThemeMode, 'value': settings.themeMode.value});
       await batch.commit(noResult: true);
     });
   }

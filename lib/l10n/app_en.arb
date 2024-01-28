@@ -21,5 +21,6 @@
   "loadImagesByDefault": "Load images by default",
   "imageWidth": "Image width",
   "selectTimelinesInfoText": "Select one or more timelines to display",
-  "addHostInfoText": "Add one or more hosts that provides timelines"
+  "addHostInfoText": "Add one or more hosts that provides timelines",
+  "theme": "Theme"
 }

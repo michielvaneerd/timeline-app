@@ -107,6 +107,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ))
                         ],
                       ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(myLoc(context).theme),
+                          ),
+                          Expanded(
+                            child: DropdownMenu<MyThemeModes>(
+                                initialSelection: settings.themeMode,
+                                onSelected: (value) {
+                                  if (value != null) {
+                                    setState(() {
+                                      settings =
+                                          settings.copyWith(themeMode: value);
+                                    });
+                                  }
+                                },
+                                dropdownMenuEntries: MyThemeModes.values
+                                    .map<DropdownMenuEntry<MyThemeModes>>((e) =>
+                                        DropdownMenuEntry<MyThemeModes>(
+                                            value: e, label: e.label))
+                                    .toList()),
+                          )
+                        ],
+                      ),
                     )
                   ],
                 ],

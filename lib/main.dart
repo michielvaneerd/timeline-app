@@ -20,16 +20,21 @@ void main() async {
   final repo = TimelineRepository(myHttp: MyHttp());
   runApp(RepositoryProvider.value(
     value: repo,
-    child: MaterialApp(
-        title: 'Timeline',
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        theme: lightColorTheme,
-        darkTheme: darkColorTheme,
-        home: BlocProvider(
-          create: (context) => MainCubit(repo)..checkAtStart(),
-          child: const MyApp(),
-        )),
+    child: BlocProvider(
+      create: (context) => MainCubit(repo)..checkAtStart(),
+      child: BlocBuilder<MainCubit, MainState>(
+        builder: (context, state) {
+          return MaterialApp(
+              title: 'Timeline',
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              theme: lightColorTheme,
+              darkTheme: darkColorTheme,
+              themeMode: state.timelineAll?.settings.getThemeMode(),
+              home: const MyApp());
+        },
+      ),
+    ),
   ));
 }
 
