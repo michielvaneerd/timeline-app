@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timeline/main_cubit.dart';
 import 'package:timeline/main_drawer.dart';
+import 'package:timeline/my_crypt.dart';
 import 'package:timeline/my_http.dart';
 import 'package:timeline/my_store.dart';
 import 'package:timeline/color_schemes5.g.dart';
@@ -24,7 +25,6 @@ void main() async {
       create: (context) => MainCubit(repo)..checkAtStart(),
       child: BlocBuilder<MainCubit, MainState>(
         builder: (context, state) {
-          print(state.timelineAll?.settings.getThemeMode());
           return MaterialApp(
               title: 'Timeline',
               localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -69,7 +69,7 @@ class _MyAppState extends State<MyApp> {
                   padding: const EdgeInsets.all(8.0),
                   child: Builder(builder: (context) {
                     return FilledButton(
-                        onPressed: () {
+                        onPressed: () async {
                           Scaffold.of(context).openDrawer();
                         },
                         child: Text(myLoc(context).ok));

@@ -113,6 +113,31 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
                 ),
               ),
             ],
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              OutlinedButton(
+                  onPressed: () async {
+                    // TODO: More general input dialog (useful for both host add and login - 2 textfields and 2 buttons)
+                    if (host.username == null || host.username!.isEmpty) {
+                      final result = await hostInputDialog.show(context);
+                      if (result != null &&
+                          result.host.isNotEmpty &&
+                          result.name.isNotEmpty) {
+                        if (mounted) {
+                          _loadingOverlay.show(context);
+                          cubit.login(
+                              timelineAll, host, result.name, result.host);
+                        }
+                      }
+                    } else {
+                      cubit.logout(timelineAll, host);
+                    }
+                  },
+                  child: Text(host.username != null ? 'Logout' : 'Login'))
+            ],
           )
         ],
       ),

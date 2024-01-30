@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:timeline/models/settings.dart';
 import 'package:timeline/models/timeline.dart';
@@ -10,6 +11,18 @@ class TimelineRepository {
   final MyHttp myHttp;
 
   const TimelineRepository({required this.myHttp});
+
+  // Future<List<TimelineItem>> getDraftTimelineItems(TimelineHost host) async {
+  //   final uri =
+  //         '${host.host}/wp-json/mve-timeline/v1/timelines/${timeline.termId}';
+  // }
+
+  Future login(TimelineHost host, String username, String plainPassword) async {
+    final uri =
+        '${host.host}/wp-json/wp/v2/mve_timeline_item?status=draft&_fields=id,title,meta';
+    await myHttp.get(uri,
+        basicAuthUsername: username, basicAuthPlainPassword: plainPassword);
+  }
 
   Future<YearAndTimelineItems> getTimelineItems(
       List<TimelineHost> timelineHosts, List<Timeline> timelines) async {
@@ -34,6 +47,13 @@ class TimelineRepository {
         .map((e) => timelines.firstWhere((element) => element.id == e))
         .toList();
 
+    // TODO: requests all in one request (like /timelines/1,2,3)
+    // But this must be done per host, dus per host execute query for all timelines at once.
+    // Much more performant.
+    // final timelineToFetchIdToTermIdMap = {
+    //   for (final item in timelinesToFetch) item.id: item.termId
+    // };
+
     final List<Future> fetchFutures = [];
     for (final timeline in timelinesToFetch) {
       final host =
@@ -49,8 +69,8 @@ class TimelineRepository {
           timelineHosts
               .firstWhere((element) => element.id == timelinesToFetch[i].hostId)
               .id,
-          timelinesToFetch[i].id,
-          responses[i]));
+          responses[i],
+          timelineId: timelinesToFetch[i].id));
     }
     await Future.wait(putFutures);
     return await MyStore.getTimelineItems(timelines.map((e) => e.id).toList());

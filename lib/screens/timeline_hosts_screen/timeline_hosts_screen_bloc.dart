@@ -83,7 +83,30 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
     emit(TimelineHostsScreenState(timelineAll: all));
   }
 
-  void addHost(String host, String name, TimelineAll timelineAll) async {
+  void login(TimelineAll timelineAll, TimelineHost host, String username,
+      String plainPassword) async {
+    // Make request to see we can connect and if true, store credentials.
+    emit(TimelineHostsScreenState(busy: true, timelineAll: timelineAll));
+    await Future.delayed(const Duration(seconds: 1));
+    try {
+      await timelineRepository.login(host, username, plainPassword);
+      await MyStore.updateTimelineHost(host.id, username, plainPassword);
+      final all = await timelineRepository.getAll();
+      emit(TimelineHostsScreenState(timelineAll: all));
+    } catch (ex) {
+      emit(TimelineHostsScreenState(
+          error: 'Error loging in', timelineAll: timelineAll));
+    }
+  }
+
+  Future logout(TimelineAll timelineAll, TimelineHost host) async {
+    await MyStore.updateTimelineHost(host.id, null, null);
+    final all = await timelineRepository.getAll();
+    emit(TimelineHostsScreenState(timelineAll: all));
+  }
+
+  void addHost(String host, String name, TimelineAll timelineAll,
+      {String? username, String? plainPassword}) async {
     if (host.isEmpty) {
       emit(const TimelineHostsScreenState(error: 'Invalid host'));
       return;
@@ -100,7 +123,8 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
 
     try {
       final response = await timelineRepository.getTimelinesFromHostname(host);
-      final timelineHost = await MyStore.putTimelineHost(host, name);
+      final timelineHost =
+          await MyStore.putTimelineHost(host, name, username, plainPassword);
       await MyStore.putTimelinesFromResponse(
           (response['items'] as List)
               .map((e) => e as Map<String, dynamic>)
