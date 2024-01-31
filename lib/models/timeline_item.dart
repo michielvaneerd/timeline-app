@@ -13,7 +13,7 @@ class TimelineYearItem extends TimelineAbstractItem {
 }
 
 class TimelineItem extends TimelineAbstractItem {
-  final int id;
+  final int? id;
   final int timelineId;
   final String? image;
   final String intro;
@@ -22,11 +22,16 @@ class TimelineItem extends TimelineAbstractItem {
   final String? imageSource;
   final String? imageInfo;
   final int? yearEnd;
+  final int postId;
 
-  const TimelineItem(this.image, this.intro, this.title,
-      {required this.id,
+  const TimelineItem(
+      {this.id,
+      this.image,
+      required this.intro,
+      required this.title,
       required this.timelineId,
       required super.year,
+      required this.postId,
       this.yearEnd,
       this.imageSource,
       this.imageInfo,
@@ -34,12 +39,37 @@ class TimelineItem extends TimelineAbstractItem {
 
   @override
   List<Object?> get props =>
-      [id, image, intro, year, title, timelineId, yearEnd];
+      [id, image, intro, year, title, timelineId, yearEnd, postId];
+
+  Map<String, dynamic> toDraftMap(int timelineExternalId) {
+    return {
+      'title': title,
+      'meta': {
+        'mve_timeline_year': year,
+        'mve_timeline_year_end': yearEnd?.toString()
+      },
+      'mve_timeline': [timelineExternalId]
+    };
+  }
+
+  TimelineItem copyWith({String? title}) {
+    return TimelineItem(
+        image: image,
+        intro: intro,
+        title: title ?? this.title,
+        timelineId: timelineId,
+        year: year,
+        postId: postId,
+        links: links);
+  }
 
   // Can be called when we get response from server (then we don't have a timelineId)
   // or when getting from DB (in this case we HAVE a timelineId)
   TimelineItem.fromMap(Map<String, dynamic> map, {int? timelineId})
-      : id = int.parse(map['id'].toString()),
+      : id = map.containsKey('id')
+            ? int.parse(map['id'].toString())
+            : null, // When we get result from the backend, we DON'T get an ID
+        postId = int.parse(map['post_id'].toString()),
         timelineId = timelineId ?? map['timeline_id'],
         imageSource = map['image_source'],
         imageInfo = map['image_info'],

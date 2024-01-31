@@ -4,6 +4,7 @@ import 'package:timeline/models/timeline_host.dart';
 import 'package:timeline/my_host_input_dialog.dart';
 import 'package:timeline/my_loading_overlay.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
+import 'package:timeline/screens/draft_items_screen/draft_items_screen.dart';
 import 'package:timeline/screens/timeline_hosts_screen/timeline_hosts_screen_bloc.dart';
 import 'package:timeline/utils.dart';
 
@@ -43,6 +44,8 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
       TimelineHostsScreenCubit cubit) {
     final timelines = timelineAll.timelines
         .where((element) => element.hostId == host.id)
+        .toList();
+    final timelineTiles = timelines
         .map(
           (e) => ListTile(
               title: Text(e.name),
@@ -59,7 +62,7 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
           ListTile(
               title: Text(host.host,
                   style: const TextStyle(fontWeight: FontWeight.bold))),
-          ...timelines,
+          ...timelineTiles,
           Row(
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -136,7 +139,16 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
                       cubit.logout(timelineAll, host);
                     }
                   },
-                  child: Text(host.username != null ? 'Logout' : 'Login'))
+                  child: Text(host.username != null ? 'Logout' : 'Login')),
+              if (host.username != null)
+                OutlinedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => DraftItemsScreen(
+                            timelineHost: host, timelines: timelines),
+                      ));
+                    },
+                    child: Text('Get draft items'))
             ],
           )
         ],

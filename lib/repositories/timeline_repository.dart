@@ -12,16 +12,35 @@ class TimelineRepository {
 
   const TimelineRepository({required this.myHttp});
 
-  // Future<List<TimelineItem>> getDraftTimelineItems(TimelineHost host) async {
-  //   final uri =
-  //         '${host.host}/wp-json/mve-timeline/v1/timelines/${timeline.termId}';
-  // }
+  Future<List<TimelineItem>> getDraftTimelineItems(
+      TimelineHost host, List<Timeline> timelines) async {
+    final uri =
+        '${host.host}/wp-json/mve-timeline/v1/items/draft?order_by=modified';
+    final response = await myHttp.get(uri,
+        basicAuthUsername: host.username,
+        basicAuthPlainPassword: host.password);
+    return (response['items'] as List).map((e) {
+      final timeline = timelines.firstWhere((element) =>
+          element.termId == int.parse(e['term_taxonomy_id'].toString()));
+      return TimelineItem.fromMap(e, timelineId: timeline.id);
+    }).toList();
+  }
+
+  Future updateDraftItem(
+      TimelineHost host, Timeline timeline, TimelineItem item) async {
+    final uri = '${host.host}/wp-json/wp/v2/mve_timeline_item/${item.postId}';
+    await myHttp.post(uri, item.toDraftMap(timeline.termId),
+        basicAuthUsername: host.username,
+        basicAuthPlainPassword: host.password);
+  }
 
   Future login(TimelineHost host, String username, String plainPassword) async {
-    final uri =
-        '${host.host}/wp-json/wp/v2/mve_timeline_item?status=draft&_fields=id,title,meta';
-    await myHttp.get(uri,
+    // final uri =
+    //     '${host.host}/wp-json/wp/v2/mve_timeline_item?status=draft&_fields=id,title,meta';
+    final uri = '${host.host}/wp-json/mve-timeline/v1/items/draft';
+    final response = await myHttp.get(uri,
         basicAuthUsername: username, basicAuthPlainPassword: plainPassword);
+    //print(response['items']);
   }
 
   Future<YearAndTimelineItems> getTimelineItems(
@@ -47,30 +66,35 @@ class TimelineRepository {
         .map((e) => timelines.firstWhere((element) => element.id == e))
         .toList();
 
-    // TODO: requests all in one request (like /timelines/1,2,3)
-    // But this must be done per host, dus per host execute query for all timelines at once.
-    // Much more performant.
-    // final timelineToFetchIdToTermIdMap = {
-    //   for (final item in timelinesToFetch) item.id: item.termId
-    // };
+    final Map<int, Map<int, int>> hostIdTimelineIdsMap =
+        {}; // hostid : {timeline.term_id: timelines.id}
+    for (final item in timelinesToFetch) {
+      final host =
+          timelineHosts.firstWhere((element) => element.id == item.hostId);
+      if (!hostIdTimelineIdsMap.containsKey(host.id)) {
+        hostIdTimelineIdsMap[host.id] = {};
+      }
+      hostIdTimelineIdsMap[host.id]![item.termId] = item.id;
+    }
 
     final List<Future> fetchFutures = [];
-    for (final timeline in timelinesToFetch) {
+
+    for (final entry in hostIdTimelineIdsMap.entries) {
       final host =
-          timelineHosts.firstWhere((element) => element.id == timeline.hostId);
+          timelineHosts.firstWhere((element) => element.id == entry.key);
+      final hostTimelineExternalIds = hostIdTimelineIdsMap[host.id]!.keys;
       final uri =
-          '${host.host}/wp-json/mve-timeline/v1/timelines/${timeline.termId}';
+          '${host.host}/wp-json/mve-timeline/v1/timelines/${hostTimelineExternalIds.join(',')}';
       fetchFutures.add(myHttp.get(uri));
     }
+
     final responses = await Future.wait(fetchFutures);
     final List<Future> putFutures = [];
+    // Per host we get response back for items of all timelines.
     for (var i = 0; i < responses.length; i++) {
+      final hostId = hostIdTimelineIdsMap.keys.elementAt(i);
       putFutures.add(MyStore.putTimelineItems(
-          timelineHosts
-              .firstWhere((element) => element.id == timelinesToFetch[i].hostId)
-              .id,
-          responses[i],
-          timelineId: timelinesToFetch[i].id));
+          responses[i], hostIdTimelineIdsMap[hostId]!));
     }
     await Future.wait(putFutures);
     return await MyStore.getTimelineItems(timelines.map((e) => e.id).toList());

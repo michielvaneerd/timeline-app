@@ -49,7 +49,7 @@ class MyStore {
         await db.execute(
             'CREATE TABLE timelines (id INTEGER PRIMARY KEY, term_id INTEGER, name TEXT, description TEXT, host_id INT, active INT)');
         await db.execute(
-            'CREATE TABLE items (id INTEGER PRIMARY KEY, timeline_id INTEGER, year INTEGER, year_end INTEGER, intro TEXT, title TEXT, image TEXT, links TEXT, image_source TEXT, image_info TEXT)');
+            'CREATE TABLE items (id INTEGER PRIMARY KEY, timeline_id INTEGER, year INTEGER, year_end INTEGER, intro TEXT, title TEXT, image TEXT, links TEXT, image_source TEXT, image_info TEXT, post_id INTEGER)');
       },
     );
   }
@@ -220,30 +220,16 @@ class MyStore {
     return YearAndTimelineItems(timelineItems: items, yearIndexes: years);
   }
 
-  static Future putTimelineItems(int timelineHostId, Map<String, dynamic> map,
-      {int? timelineId}) async {
+  static Future putTimelineItems(
+      Map<String, dynamic> map, Map<int, int> timelineTermId2IdMap) async {
     await _database!.transaction((txn) async {
       final batch = txn.batch();
       final items = (map['items'] as List);
       for (Map<String, Object?> item in items) {
-        // TODO:
-        // We get 'term_taxonomy_id' but we want to have 'timeline_id', the 'timeline_id' is the client ID (not known on the server)
-        // So we have to map the 'term_taxonomy_id' to our internal id here.
-        // NO this is wrong: we need to set our internal timeline id! And not the backend ID (because as we can get mutliple hosts, this is not unique)
-        // if (item.containsKey('term_taxonomy_id')) {
-        //   item['timeline_id'] = item['term_taxonomy_id'];
-        //   item.remove('term_taxonomy_id');
-        // }
-        //else {
-        //
-        //}
-        if (item.containsKey('term_taxonomy_id')) {
-          item.remove(
-              'term_taxonomy_id'); // For now, later we can map this to our internal timeline id.
-        }
-        if (timelineId != null) {
-          item['timeline_id'] = timelineId;
-        }
+        // Note: timeline_id is our internal ID, term_taxonomy_id is the backend id
+        item['timeline_id'] = timelineTermId2IdMap[
+            int.parse(item['term_taxonomy_id'].toString())];
+        item.remove('term_taxonomy_id');
         txn.insert('items', item);
       }
       await batch.commit(noResult: true);
