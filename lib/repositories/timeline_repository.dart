@@ -12,17 +12,24 @@ class TimelineRepository {
 
   const TimelineRepository({required this.myHttp});
 
+// Idee om draft items TimelineItem te laten extenden? Zodat we ook bijv. modified at kunnen gebruiken?
   Future<List<TimelineItem>> getDraftTimelineItems(
       TimelineHost host, List<Timeline> timelines) async {
+    // http://localhost:8000/wp-json/wp/v2/mve_timeline_item?_fields=id,title,mve_timeline,meta&status=draft&mve_timeline=9
+    // Als je mve_timeline=9 weglaat, dan krijg je ze allemaal van de hele host.
+    // http://localhost:8000/wp-json/wp/v2/mve_timeline_item?_fields=id,title,mve_timeline,meta,modified&status=draft&order=desc&orderby=modified
+    // final uri =
+    //     '${host.host}/wp-json/mve-timeline/v1/items/draft?order_by=modified';
     final uri =
-        '${host.host}/wp-json/mve-timeline/v1/items/draft?order_by=modified';
-    final response = await myHttp.get(uri,
+        '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,title,mve_timeline,meta,modified&status=draft&order=desc&orderby=modified';
+    final response = await myHttp.get<List>(uri,
         basicAuthUsername: host.username,
         basicAuthPlainPassword: host.password);
-    return (response['items'] as List).map((e) {
-      final timeline = timelines.firstWhere((element) =>
-          element.termId == int.parse(e['term_taxonomy_id'].toString()));
-      return TimelineItem.fromMap(e, timelineId: timeline.id);
+    return response.map((e) {
+      final timelineArr = e['mve_timeline'] as List;
+      final timeline =
+          timelines.firstWhere((element) => element.termId == timelineArr[0]);
+      return TimelineItem.fromApiMap(e, timeline.id);
     }).toList();
   }
 
@@ -37,10 +44,11 @@ class TimelineRepository {
   Future login(TimelineHost host, String username, String plainPassword) async {
     // final uri =
     //     '${host.host}/wp-json/wp/v2/mve_timeline_item?status=draft&_fields=id,title,meta';
-    final uri = '${host.host}/wp-json/mve-timeline/v1/items/draft';
-    final response = await myHttp.get(uri,
+    //final uri = '${host.host}/wp-json/mve-timeline/v1/items/draft';
+    final uri =
+        '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,title,mve_timeline,meta,modified&status=draft&order=desc&orderby=modified';
+    await myHttp.get(uri,
         basicAuthUsername: username, basicAuthPlainPassword: plainPassword);
-    //print(response['items']);
   }
 
   Future<YearAndTimelineItems> getTimelineItems(
@@ -83,9 +91,12 @@ class TimelineRepository {
       final host =
           timelineHosts.firstWhere((element) => element.id == entry.key);
       final hostTimelineExternalIds = hostIdTimelineIdsMap[host.id]!.keys;
+      // final uri =
+      //     '${host.host}/wp-json/mve-timeline/v1/timelines/${hostTimelineExternalIds.join(',')}';
+      // http://localhost:8000/wp-json/wp/v2/mve_timeline_item?_fields=id,title,mve_timeline,meta&order=desc&orderby=meta.mve_timeline_year&mve_timeline=11,8
       final uri =
-          '${host.host}/wp-json/mve-timeline/v1/timelines/${hostTimelineExternalIds.join(',')}';
-      fetchFutures.add(myHttp.get(uri));
+          '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,title,mve_timeline,meta&mve_timeline=${hostTimelineExternalIds.join(',')}';
+      fetchFutures.add(myHttp.get<List>(uri));
     }
 
     final responses = await Future.wait(fetchFutures);
@@ -100,8 +111,9 @@ class TimelineRepository {
     return await MyStore.getTimelineItems(timelines.map((e) => e.id).toList());
   }
 
-  Future<Map<String, dynamic>> getTimelinesFromHostname(String host) async {
-    return await myHttp.get('$host/wp-json/mve-timeline/v1/timelines');
+  Future<List> getTimelinesFromHostname(String host) async {
+    return await myHttp.get<List>(
+        '$host/wp-json/wp/v2/mve_timeline?_fields=id,description,name');
   }
 
   Future<TimelineAll> getAll() async {

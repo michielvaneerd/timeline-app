@@ -19,15 +19,16 @@ class DraftItemsScreen extends StatelessWidget {
         .map((e) => ListTile(
               title: Text(e.title),
               onTap: () async {
-                final timeline = timelines
-                    .firstWhere((element) => element.id == e.timelineId);
-                await Navigator.of(context).push(MaterialPageRoute(
+                final isChanged =
+                    await Navigator.of(context).push<bool?>(MaterialPageRoute(
                   builder: (context) => DraftItemScreen(
                       timelineItem: e,
-                      timeline: timeline,
+                      timelines: timelines,
                       timelineHost: timelineHost),
                 ));
-                cubit.getItems(timelineHost, timelines);
+                if (isChanged != null && isChanged) {
+                  cubit.getItems(timelineHost, timelines);
+                }
               },
             ))
         .toList();

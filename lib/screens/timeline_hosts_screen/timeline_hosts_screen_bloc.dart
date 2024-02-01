@@ -70,10 +70,7 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
       final response =
           await timelineRepository.getTimelinesFromHostname(host.host);
       await MyStore.putTimelinesFromResponse(
-          (response['items'] as List)
-              .map((e) => e as Map<String, dynamic>)
-              .toList(),
-          host.id);
+          response.map((e) => e as Map<String, dynamic>).toList(), host.id);
     } catch (ex) {
       final all = await timelineRepository.getAll();
       emit(TimelineHostsScreenState(error: ex.toString(), timelineAll: all));
@@ -126,9 +123,7 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
       final timelineHost =
           await MyStore.putTimelineHost(host, name, username, plainPassword);
       await MyStore.putTimelinesFromResponse(
-          (response['items'] as List)
-              .map((e) => e as Map<String, dynamic>)
-              .toList(),
+          response.map((e) => e as Map<String, dynamic>).toList(),
           timelineHost.id);
     } catch (ex) {
       emit(TimelineHostsScreenState(error: ex.toString()));

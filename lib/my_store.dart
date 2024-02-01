@@ -54,6 +54,34 @@ class MyStore {
     );
   }
 
+  // Store timeline items from api response into database
+  static Future putTimelineItems(
+      List items, Map<int, int> timelineTermId2IdMap) async {
+    await _database!.transaction((txn) async {
+      final batch = txn.batch();
+      for (Map<String, Object?> item in items) {
+        final meta = item['meta'] as Map<String, Object?>;
+        final timelineList = item['mve_timeline'] as List;
+        final newItem = {
+          'post_id': item['id'],
+          'title': (item['title'] as Map)['rendered'],
+          'timeline_id': timelineTermId2IdMap[timelineList[0]],
+          'year': meta['mve_timeline_year'],
+          'year_end': meta['mve_timeline_year_end'].toString().isNotEmpty
+              ? meta['mve_timeline_year_end']
+              : null,
+          'intro': meta['mve_timeline_intro'],
+          'image': meta['mve_timeline_image_src'],
+          'links': meta['mve_timeline_image_links'],
+          'image_source': meta['mve_timeline_image_source'],
+          'image_info': meta['mve_timeline_image_info']
+        };
+        txn.insert('items', newItem);
+      }
+      await batch.commit(noResult: true);
+    });
+  }
+
   static Future<Settings> getSettings() async {
     final rows = await _database!.query('settings');
     bool loadImages = false;
@@ -172,7 +200,8 @@ class MyStore {
           where: 'host_id = ?', whereArgs: [timelineHostId]);
       for (final timeline in response) {
         txn.insert('timelines', {
-          'term_id': timeline['term_taxonomy_id'],
+          //'term_id': timeline['term_taxonomy_id'], // from custom API
+          'term_id': timeline['id'], // from std API
           'name': timeline['name'],
           'description': timeline['description'],
           'host_id': timelineHostId,
@@ -208,7 +237,7 @@ class MyStore {
     final Map<int, int> years = {}; // year => index
     var index = 0;
     for (final row in rows) {
-      final item = TimelineItem.fromMap(row);
+      final item = TimelineItem.fromDbMap(row);
       if (!years.containsKey(item.year)) {
         years[item.year] = index;
         items.add(TimelineYearItem(year: item.year));
@@ -218,22 +247,6 @@ class MyStore {
       index += 1;
     }
     return YearAndTimelineItems(timelineItems: items, yearIndexes: years);
-  }
-
-  static Future putTimelineItems(
-      Map<String, dynamic> map, Map<int, int> timelineTermId2IdMap) async {
-    await _database!.transaction((txn) async {
-      final batch = txn.batch();
-      final items = (map['items'] as List);
-      for (Map<String, Object?> item in items) {
-        // Note: timeline_id is our internal ID, term_taxonomy_id is the backend id
-        item['timeline_id'] = timelineTermId2IdMap[
-            int.parse(item['term_taxonomy_id'].toString())];
-        item.remove('term_taxonomy_id');
-        txn.insert('items', item);
-      }
-      await batch.commit(noResult: true);
-    });
   }
 
   static Future removeTimelineItems(List<int> timelineIds,

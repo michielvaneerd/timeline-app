@@ -23,6 +23,7 @@ class TimelineItem extends TimelineAbstractItem {
   final String? imageInfo;
   final int? yearEnd;
   final int postId;
+  final String? modified; // Only for draft items
 
   const TimelineItem(
       {this.id,
@@ -35,60 +36,78 @@ class TimelineItem extends TimelineAbstractItem {
       this.yearEnd,
       this.imageSource,
       this.imageInfo,
+      this.modified,
       required this.links});
 
   @override
   List<Object?> get props =>
-      [id, image, intro, year, title, timelineId, yearEnd, postId];
+      [id, image, intro, year, title, timelineId, yearEnd, postId, modified];
 
   Map<String, dynamic> toDraftMap(int timelineExternalId) {
     return {
       'title': title,
-      'meta': {
-        'mve_timeline_year': year,
-        'mve_timeline_year_end': yearEnd?.toString()
-      },
+      'meta': {'mve_timeline_year': year, 'mve_timeline_year_end': yearEnd},
       'mve_timeline': [timelineExternalId]
     };
   }
 
-  TimelineItem copyWith({String? title}) {
+  TimelineItem copyWith(
+      {String? title, int? timelineId, int? year, int? yearEnd}) {
     return TimelineItem(
         image: image,
         intro: intro,
         title: title ?? this.title,
-        timelineId: timelineId,
-        year: year,
+        timelineId: timelineId ?? this.timelineId,
+        year: year ?? this.year,
+        yearEnd: yearEnd ?? this.yearEnd,
         postId: postId,
         links: links);
   }
 
-  // Can be called when we get response from server (then we don't have a timelineId)
-  // or when getting from DB (in this case we HAVE a timelineId)
-  TimelineItem.fromMap(Map<String, dynamic> map, {int? timelineId})
-      : id = map.containsKey('id')
-            ? int.parse(map['id'].toString())
-            : null, // When we get result from the backend, we DON'T get an ID
-        postId = int.parse(map['post_id'].toString()),
-        timelineId = timelineId ?? map['timeline_id'],
+  static List<TimelineItemLink> _getLinks(String? links) {
+    if (links == null || links.isEmpty) {
+      return [];
+    }
+    return convert.jsonDecode(links).map((e) {
+      return TimelineItemLink.fromMap((e as Map<String, dynamic>)
+          .map<String, String>(
+              (key, value) => MapEntry(key, value.toString())));
+    }).toList();
+  }
+
+  // Only when mapping db rows
+  TimelineItem.fromDbMap(Map<String, dynamic> map)
+      : id = map['id'],
+        postId = map['post_id'],
+        timelineId = map['timeline_id'],
         imageSource = map['image_source'],
         imageInfo = map['image_info'],
-        yearEnd = map['year_end'] != null && map['year_end'] != ''
-            ? int.parse(map['year_end'].toString())
-            : null,
-        links = map.containsKey('links') &&
-                map['links'] != null &&
-                map['links'].toString().isNotEmpty
-            ? (convert.jsonDecode(map['links']) as List).map((e) {
-                return TimelineItemLink.fromMap((e as Map<String, dynamic>)
-                    .map<String, String>(
-                        (key, value) => MapEntry(key, value.toString())));
-              }).toList()
-            : [],
+        modified = null, // Only for draft items that we get from the server
+        yearEnd = map['year_end'],
+        links = _getLinks(map['links']),
         image = map['image'],
         intro = map['intro'],
         title = map['title'],
-        super(year: int.parse(map['year'].toString()));
+        super(year: map['year']);
+
+  // Used when mapping draft items.
+  static TimelineItem fromApiMap(Map<String, dynamic> map, int timelineId) {
+    final meta = map['meta'] as Map;
+    return TimelineItem(
+        intro: meta['mve_timeline_intro'],
+        title: (map['title'] as Map)['rendered'],
+        timelineId: timelineId,
+        modified: map['modified'],
+        image: meta['mve_timeline_image_src'],
+        imageInfo: meta['mve_timeline_image_info'],
+        imageSource: meta['mve_timeline_image_source'],
+        year: int.parse(meta['mve_timeline_year']),
+        yearEnd: meta['mve_timeline_year'].toString().isNotEmpty
+            ? int.parse(meta['mve_timeline_year'])
+            : null,
+        postId: map['id'],
+        links: _getLinks(meta['mve_timeline_links']));
+  }
 }
 
 class TimelineItemLink extends Equatable {

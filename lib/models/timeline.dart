@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:timeline/models/timeline_item.dart';
 
 class Timeline extends Equatable {
   final int id; // auto generated on client
