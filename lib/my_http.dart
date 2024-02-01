@@ -58,6 +58,7 @@ class MyHttp {
     final response = await http.post(Uri.parse(uri),
         headers: headers, body: convert.json.encode(body));
     developer.log(uri);
+    developer.log(convert.json.encode(body));
     return _handleResponse<T>(response);
   }
 }

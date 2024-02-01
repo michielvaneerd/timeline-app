@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_host.dart';
 import 'package:timeline/my_host_input_dialog.dart';
 import 'package:timeline/my_loading_overlay.dart';
@@ -40,6 +41,62 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
     return state?.timelineAll ?? widget.timelineAll;
   }
 
+  Future onDelete(TimelineHost host, TimelineHostsScreenCubit cubit,
+      TimelineAll timelineAll) async {
+    final response = await showDialog<bool?>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Text(myLoc(context).confirmDeleteHost(host.name)),
+          actions: [
+            FilledButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                child: Text(myLoc(context).delete)),
+            TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+                child: Text(myLoc(context).cancel)),
+          ],
+        );
+      },
+    );
+    if (mounted && response != null && response) {
+      _loadingOverlay.show(context);
+      cubit.removeHosts(timelineAll, [host.id]);
+    }
+  }
+
+  Future onLoginLogout(TimelineHost host, TimelineHostsScreenCubit cubit,
+      TimelineAll timelineAll) async {
+    if (host.username == null || host.username!.isEmpty) {
+      final result = await hostInputDialog.show(context);
+      if (result != null && result.host.isNotEmpty && result.name.isNotEmpty) {
+        if (mounted) {
+          _loadingOverlay.show(context);
+          cubit.login(timelineAll, host, result.name, result.host);
+        }
+      }
+    } else {
+      cubit.logout(timelineAll, host);
+    }
+  }
+
+  Future onDraft(TimelineHost host, List<Timeline> timelines) async {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) =>
+          DraftItemsScreen(timelineHost: host, timelines: timelines),
+    ));
+  }
+
+  Future onRefresh(TimelineHost host, TimelineHostsScreenCubit cubit,
+      TimelineAll timelineAll) async {
+    _loadingOverlay.show(context);
+    cubit.refreshHost(timelineAll, host);
+  }
+
   Widget getHostTimelines(TimelineAll timelineAll, TimelineHost host,
       TimelineHostsScreenCubit cubit) {
     final timelines = timelineAll.timelines
@@ -56,101 +113,71 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ListTile(
-              title: Text(host.name,
-                  style: Theme.of(context).textTheme.headlineSmall)),
+          Row(
+            children: [
+              Expanded(
+                child: ListTile(
+                    title: Text(host.name,
+                        style: Theme.of(context).textTheme.headlineSmall)),
+              ),
+              PopupMenuButton(
+                icon: const Icon(Icons.more_vert),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'delete':
+                      onDelete(host, cubit, timelineAll);
+                      break;
+                    case 'login':
+                      onLoginLogout(host, cubit, timelineAll);
+                      break;
+                    case 'logout':
+                      onLoginLogout(host, cubit, timelineAll);
+                      break;
+                    case 'draft':
+                      onDraft(host, timelines);
+                      break;
+                    case 'refresh':
+                      onRefresh(host, cubit, timelineAll);
+                      break;
+                  }
+                },
+                itemBuilder: (context) {
+                  return [
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Text(myLoc(context).delete),
+                    ),
+                    if (host.isLoggedIn())
+                      PopupMenuItem(
+                        value: 'logout',
+                        child: Text(myLoc(context).logout),
+                      ),
+                    if (!host.isLoggedIn())
+                      PopupMenuItem(
+                        value: 'login',
+                        child: Text(myLoc(context).login),
+                      ),
+                    PopupMenuItem(
+                      value: 'refresh',
+                      child: Text(myLoc(context).refresh),
+                    ),
+                  ];
+                },
+              )
+            ],
+          ),
           ListTile(
               title: Text(host.host,
                   style: const TextStyle(fontWeight: FontWeight.bold))),
           ...timelineTiles,
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: FilledButton(
-                      onPressed: () {
-                        _loadingOverlay.show(context);
-                        cubit.refreshHost(timelineAll, host);
-                      },
-                      child: Text(myLoc(context).refresh)),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: FilledButton(
-                      style: ButtonStyle(
-                          backgroundColor: MaterialStatePropertyAll(
-                              Theme.of(context).colorScheme.error)),
-                      onPressed: () async {
-                        final response = await showDialog<bool?>(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              content: Text(
-                                  myLoc(context).confirmDeleteHost(host.name)),
-                              actions: [
-                                FilledButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop(true);
-                                    },
-                                    child: Text(myLoc(context).delete)),
-                                TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop(false);
-                                    },
-                                    child: Text(myLoc(context).cancel)),
-                              ],
-                            );
-                          },
-                        );
-                        if (mounted && response != null && response) {
-                          _loadingOverlay.show(context);
-                          cubit.removeHosts(timelineAll, [host.id]);
-                        }
-                      },
-                      child: Text(myLoc(context).delete)),
-                ),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              OutlinedButton(
-                  onPressed: () async {
-                    // TODO: More general input dialog (useful for both host add and login - 2 textfields and 2 buttons)
-                    if (host.username == null || host.username!.isEmpty) {
-                      final result = await hostInputDialog.show(context);
-                      if (result != null &&
-                          result.host.isNotEmpty &&
-                          result.name.isNotEmpty) {
-                        if (mounted) {
-                          _loadingOverlay.show(context);
-                          cubit.login(
-                              timelineAll, host, result.name, result.host);
-                        }
-                      }
-                    } else {
-                      cubit.logout(timelineAll, host);
-                    }
-                  },
-                  child: Text(host.username != null ? 'Logout' : 'Login')),
-              if (host.username != null)
-                OutlinedButton(
-                    onPressed: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => DraftItemsScreen(
-                            timelineHost: host, timelines: timelines),
-                      ));
-                    },
-                    child: Text('Get draft items'))
-            ],
-          )
+          if (host.isLoggedIn())
+            ListTile(
+              title: Text(myLoc(context).draftItems),
+              onTap: () {
+                onDraft(host, timelines);
+              },
+              trailing: const Icon(Icons.arrow_forward_ios),
+            )
         ],
       ),
     );

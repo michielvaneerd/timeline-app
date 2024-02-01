@@ -15,11 +15,7 @@ class TimelineRepository {
 // Idee om draft items TimelineItem te laten extenden? Zodat we ook bijv. modified at kunnen gebruiken?
   Future<List<TimelineItem>> getDraftTimelineItems(
       TimelineHost host, List<Timeline> timelines) async {
-    // http://localhost:8000/wp-json/wp/v2/mve_timeline_item?_fields=id,title,mve_timeline,meta&status=draft&mve_timeline=9
-    // Als je mve_timeline=9 weglaat, dan krijg je ze allemaal van de hele host.
-    // http://localhost:8000/wp-json/wp/v2/mve_timeline_item?_fields=id,title,mve_timeline,meta,modified&status=draft&order=desc&orderby=modified
-    // final uri =
-    //     '${host.host}/wp-json/mve-timeline/v1/items/draft?order_by=modified';
+    // To get items from only specific timelines, add: &mve_timeline=9,10
     final uri =
         '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,title,mve_timeline,meta,modified&status=draft&order=desc&orderby=modified';
     final response = await myHttp.get<List>(uri,
@@ -42,9 +38,6 @@ class TimelineRepository {
   }
 
   Future login(TimelineHost host, String username, String plainPassword) async {
-    // final uri =
-    //     '${host.host}/wp-json/wp/v2/mve_timeline_item?status=draft&_fields=id,title,meta';
-    //final uri = '${host.host}/wp-json/mve-timeline/v1/items/draft';
     final uri =
         '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,title,mve_timeline,meta,modified&status=draft&order=desc&orderby=modified';
     await myHttp.get(uri,

@@ -105,7 +105,8 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
   void addHost(String host, String name, TimelineAll timelineAll,
       {String? username, String? plainPassword}) async {
     if (host.isEmpty) {
-      emit(const TimelineHostsScreenState(error: 'Invalid host'));
+      emit(TimelineHostsScreenState(
+          error: 'Invalid host', timelineAll: timelineAll));
       return;
     }
     emit(const TimelineHostsScreenState(busy: true));

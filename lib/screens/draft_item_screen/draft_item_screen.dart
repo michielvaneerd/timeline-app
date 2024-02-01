@@ -98,6 +98,7 @@ class _DraftItemScreenState extends State<DraftItemScreen> {
                           : () {
                               final newTimelineItem = timelineItem.copyWith(
                                   year: int.parse(yearController.text),
+                                  useYearEndParam: true,
                                   yearEnd: yearEndController.text.isNotEmpty
                                       ? int.parse(yearEndController.text)
                                       : null);

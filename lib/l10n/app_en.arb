@@ -22,5 +22,8 @@
   "imageWidth": "Image width",
   "selectTimelinesInfoText": "Select one or more timelines to display",
   "addHostInfoText": "Add one or more hosts that provides timelines",
-  "theme": "Theme"
+  "theme": "Theme",
+  "login": "Login",
+  "logout": "Logout",
+  "draftItems": "Draft items"
 }

@@ -46,20 +46,27 @@ class TimelineItem extends TimelineAbstractItem {
   Map<String, dynamic> toDraftMap(int timelineExternalId) {
     return {
       'title': title,
-      'meta': {'mve_timeline_year': year, 'mve_timeline_year_end': yearEnd},
+      'meta': {
+        'mve_timeline_year': year.toString(),
+        'mve_timeline_year_end': yearEnd?.toString()
+      },
       'mve_timeline': [timelineExternalId]
     };
   }
 
   TimelineItem copyWith(
-      {String? title, int? timelineId, int? year, int? yearEnd}) {
+      {String? title,
+      int? timelineId,
+      int? year,
+      int? yearEnd,
+      bool useYearEndParam = false}) {
     return TimelineItem(
         image: image,
         intro: intro,
         title: title ?? this.title,
         timelineId: timelineId ?? this.timelineId,
         year: year ?? this.year,
-        yearEnd: yearEnd ?? this.yearEnd,
+        yearEnd: useYearEndParam ? yearEnd : (yearEnd ?? this.yearEnd),
         postId: postId,
         links: links);
   }
@@ -102,8 +109,8 @@ class TimelineItem extends TimelineAbstractItem {
         imageInfo: meta['mve_timeline_image_info'],
         imageSource: meta['mve_timeline_image_source'],
         year: int.parse(meta['mve_timeline_year']),
-        yearEnd: meta['mve_timeline_year'].toString().isNotEmpty
-            ? int.parse(meta['mve_timeline_year'])
+        yearEnd: meta['mve_timeline_year_end'].toString().isNotEmpty
+            ? int.parse(meta['mve_timeline_year_end'])
             : null,
         postId: map['id'],
         links: _getLinks(meta['mve_timeline_links']));

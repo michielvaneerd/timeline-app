@@ -25,6 +25,13 @@ class TimelineHost extends Equatable {
     };
   }
 
+  bool isLoggedIn() {
+    return username != null &&
+        username!.isNotEmpty &&
+        password != null &&
+        password!.isNotEmpty;
+  }
+
   // Map database row to model
   TimelineHost.fromMap(Map<String, dynamic> map)
       : id = map['id'],
