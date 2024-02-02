@@ -32,7 +32,6 @@ class TimelineItemsWidget extends StatefulWidget {
 }
 
 class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
-  //MyHtmlText? myHtmlText;
   final scrollController = ScrollController();
   final yearScrollController = ScrollController();
   late final ObserverControllerWithLazyLoading
@@ -55,6 +54,13 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
     observerControllerWithLazyLoading = ObserverControllerWithLazyLoading(
         onBuiltEnd: onBuiltEnd, scrollController: scrollController)
       ..init();
+    // widget.yearAndTimelineItems.timelineItems.forEach((element) {
+    //   if (element is TimelineItem) {
+    //     print('${element.title} = ${element.postId}');
+    //   } else {
+    //     print('Year ${element.year}');
+    //   }
+    // });
   }
 
   void onBuiltEnd(List<int> indexes) async {
@@ -68,8 +74,19 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
     scrollController.dispose();
     yearScrollController.dispose();
     searchController.dispose();
-    //myHtmlText?.dispose();
     super.dispose();
+  }
+
+  void _scrollToIndex(int index) async {
+    await observerControllerWithLazyLoading.scrollToIndex(index);
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) async {
+        await Future.delayed(const Duration(
+            milliseconds:
+                300)); // needed because images may still be loading so the list view items may get different height
+        observerControllerWithLazyLoading.scrollToIndex(index);
+      },
+    );
   }
 
   Widget getRefreshIndicatorOrContainer(Widget child,
@@ -91,11 +108,6 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    // We need to dispose the gesture recognizers from the rich texts...
-    // if (myHtmlText != null) {
-    //   myHtmlText!.dispose();
-    // }
-    // myHtmlText = MyHtmlText();
     final activeTimelines = widget.timelineAll.timelines
         .where(
           (element) => element.isActive(),
@@ -109,7 +121,6 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
           if (widget.yearAndTimelineItems.timelineItems.isEmpty) {
             return Container();
           }
-
           imageWidth = widget.timelineAll.settings.imageWidth != null
               ? (widget.timelineAll.settings.imageWidth!.toDouble())
               : screenWidth;
@@ -167,17 +178,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                               borderRadius: BorderRadius.circular(32),
                               onTap: () async {
                                 final index = realItems.yearIndexes[item.year]!;
-                                await observerControllerWithLazyLoading
-                                    .scrollToIndex(index);
-                                WidgetsBinding.instance.addPostFrameCallback(
-                                  (timeStamp) async {
-                                    await Future.delayed(const Duration(
-                                        milliseconds:
-                                            300)); // needed because images may still be loading so the list view items may get different height
-                                    observerControllerWithLazyLoading
-                                        .scrollToIndex(index);
-                                  },
-                                );
+                                _scrollToIndex(index);
                               },
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -227,14 +228,6 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                   );
                                 } else {
                                   final TimelineItem item = e as TimelineItem;
-                                  // final richTexts =
-                                  //     !widget.timelineAll.settings.condensed &&
-                                  //             item.intro.isNotEmpty
-                                  //         ? myHtmlText!.getRichText(item.intro,
-                                  //             textStyle: Theme.of(context)
-                                  //                 .textTheme
-                                  //                 .bodyLarge)
-                                  //         : null;
                                   final timeline = activeTimelines.firstWhere(
                                       (element) => element.id == e.timelineId);
                                   final loadImage = item.image != null &&
@@ -357,6 +350,20 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                             padding: const EdgeInsets.all(8.0),
                                             child: MyHtmlText.getRichText(
                                                 item.intro,
+                                                onLinkClicked: (id) {
+                                              int i = 0;
+                                              for (final item in widget
+                                                  .yearAndTimelineItems
+                                                  .timelineItems) {
+                                                if (item is TimelineItem) {
+                                                  if (item.postId == id) {
+                                                    _scrollToIndex(i);
+                                                    return;
+                                                  }
+                                                }
+                                                i += 1;
+                                              }
+                                            },
                                                 textStyle: Theme.of(context)
                                                     .textTheme
                                                     .bodyLarge),
