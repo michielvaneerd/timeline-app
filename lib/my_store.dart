@@ -64,7 +64,7 @@ class MyStore {
         final timelineList = item['mve_timeline'] as List;
         final newItem = {
           'post_id': item['id'],
-          'title': (item['title'] as Map)['rendered'],
+          'title': item['title_raw'],
           'timeline_id': timelineTermId2IdMap[timelineList[0]],
           'year': meta['mve_timeline_year'],
           'year_end': meta['mve_timeline_year_end'].toString().isNotEmpty

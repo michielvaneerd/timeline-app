@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
@@ -5,6 +6,7 @@ import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_item.dart';
 import 'package:timeline/my_html_text.dart';
 import 'package:timeline/my_store.dart';
+import 'package:timeline/my_widgets.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:timeline/screens/timeline_items_screen/observer_controller_with_lazy_loading.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen_bloc.dart';
@@ -30,6 +32,7 @@ class TimelineItemsWidget extends StatefulWidget {
 }
 
 class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
+  //MyHtmlText? myHtmlText;
   final scrollController = ScrollController();
   final yearScrollController = ScrollController();
   late final ObserverControllerWithLazyLoading
@@ -62,10 +65,11 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
 
   @override
   void dispose() {
-    super.dispose();
     scrollController.dispose();
     yearScrollController.dispose();
     searchController.dispose();
+    //myHtmlText?.dispose();
+    super.dispose();
   }
 
   Widget getRefreshIndicatorOrContainer(Widget child,
@@ -87,6 +91,11 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    // We need to dispose the gesture recognizers from the rich texts...
+    // if (myHtmlText != null) {
+    //   myHtmlText!.dispose();
+    // }
+    // myHtmlText = MyHtmlText();
     final activeTimelines = widget.timelineAll.timelines
         .where(
           (element) => element.isActive(),
@@ -108,35 +117,25 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
           final realItems = state.filteredItems ?? widget.yearAndTimelineItems;
           final yearItems =
               realItems.timelineItems.whereType<TimelineYearItem>().toList();
+          final suffixIcon = state.filter.isNotEmpty
+              ? IconButton(
+                  onPressed: () {
+                    cubit.filterItems('', widget.yearAndTimelineItems,
+                        widget.timelineAll.settings);
+                    searchController.clear();
+                  },
+                  icon: const Icon(Icons.close))
+              : null;
           return Column(
             mainAxisSize: MainAxisSize.max,
             children: [
               if (widget.showSearch)
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: TextField(
+                  child: MyWidgets.textField(
+                    context,
                     controller: searchController,
-                    decoration: InputDecoration(
-                        suffixIcon: state.filter.isNotEmpty
-                            ? IconButton(
-                                onPressed: () {
-                                  cubit.filterItems(
-                                      '',
-                                      widget.yearAndTimelineItems,
-                                      widget.timelineAll.settings);
-                                  searchController.clear();
-                                },
-                                icon: const Icon(Icons.close))
-                            : null,
-                        enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.primary),
-                            borderRadius: BorderRadius.circular(10)),
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).colorScheme.primary,
-                                width: 2),
-                            borderRadius: BorderRadius.circular(10))),
+                    suffixIcon: suffixIcon,
                     onChanged: (value) {
                       cubit.filterItems(value, widget.yearAndTimelineItems,
                           widget.timelineAll.settings);
@@ -228,6 +227,14 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                   );
                                 } else {
                                   final TimelineItem item = e as TimelineItem;
+                                  // final richTexts =
+                                  //     !widget.timelineAll.settings.condensed &&
+                                  //             item.intro.isNotEmpty
+                                  //         ? myHtmlText!.getRichText(item.intro,
+                                  //             textStyle: Theme.of(context)
+                                  //                 .textTheme
+                                  //                 .bodyLarge)
+                                  //         : null;
                                   final timeline = activeTimelines.firstWhere(
                                       (element) => element.id == e.timelineId);
                                   final loadImage = item.image != null &&

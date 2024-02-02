@@ -48,7 +48,8 @@ class TimelineItem extends TimelineAbstractItem {
       'title': title,
       'meta': {
         'mve_timeline_year': year.toString(),
-        'mve_timeline_year_end': yearEnd?.toString()
+        'mve_timeline_year_end': yearEnd?.toString(),
+        'mve_timeline_intro': intro
       },
       'mve_timeline': [timelineExternalId]
     };
@@ -94,7 +95,7 @@ class TimelineItem extends TimelineAbstractItem {
         links = _getLinks(map['links']),
         image = map['image'],
         intro = map['intro'],
-        title = map['title'],
+        title = map['title'] ?? '',
         super(year: map['year']);
 
   // Used when mapping draft items.
@@ -102,7 +103,7 @@ class TimelineItem extends TimelineAbstractItem {
     final meta = map['meta'] as Map;
     return TimelineItem(
         intro: meta['mve_timeline_intro'],
-        title: (map['title'] as Map)['rendered'],
+        title: map['title_raw'],
         timelineId: timelineId,
         modified: map['modified'],
         image: meta['mve_timeline_image_src'],

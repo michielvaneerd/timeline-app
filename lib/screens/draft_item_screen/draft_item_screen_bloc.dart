@@ -27,5 +27,15 @@ class DraftItemScreenCubit extends Cubit<DraftItemScreenState> {
     emit(const DraftItemScreenState(completed: true));
   }
 
-  void create(TimelineItem timelineItem) async {}
+  void create(TimelineHost host, Timeline timeline, TimelineItem item) async {
+    emit(const DraftItemScreenState(busy: true));
+    await timelineRepository.createDraftItem(host, timeline, item);
+    emit(const DraftItemScreenState(completed: true));
+  }
+
+  void delete(TimelineHost host, Timeline timeline, TimelineItem item) async {
+    emit(const DraftItemScreenState(busy: true));
+    await timelineRepository.deleteDraftItem(host, timeline, item);
+    emit(const DraftItemScreenState(completed: true));
+  }
 }

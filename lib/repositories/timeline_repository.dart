@@ -17,7 +17,7 @@ class TimelineRepository {
       TimelineHost host, List<Timeline> timelines) async {
     // To get items from only specific timelines, add: &mve_timeline=9,10
     final uri =
-        '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,title,mve_timeline,meta,modified&status=draft&order=desc&orderby=modified';
+        '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,mve_timeline,meta,modified,title,title_raw&status=draft&order=desc&orderby=modified';
     final response = await myHttp.get<List>(uri,
         basicAuthUsername: host.username,
         basicAuthPlainPassword: host.password);
@@ -37,9 +37,25 @@ class TimelineRepository {
         basicAuthPlainPassword: host.password);
   }
 
+  Future createDraftItem(
+      TimelineHost host, Timeline timeline, TimelineItem item) async {
+    final uri = '${host.host}/wp-json/wp/v2/mve_timeline_item';
+    await myHttp.post<Map>(uri, item.toDraftMap(timeline.termId),
+        basicAuthUsername: host.username,
+        basicAuthPlainPassword: host.password);
+  }
+
+  Future deleteDraftItem(
+      TimelineHost host, Timeline timeline, TimelineItem item) async {
+    final uri = '${host.host}/wp-json/wp/v2/mve_timeline_item/${item.postId}';
+    await myHttp.delete(uri,
+        basicAuthUsername: host.username,
+        basicAuthPlainPassword: host.password);
+  }
+
   Future login(TimelineHost host, String username, String plainPassword) async {
     final uri =
-        '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,title,mve_timeline,meta,modified&status=draft&order=desc&orderby=modified';
+        '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,mve_timeline,meta,modified,title,title_raw&status=draft&order=desc&orderby=modified';
     await myHttp.get(uri,
         basicAuthUsername: username, basicAuthPlainPassword: plainPassword);
   }
@@ -88,7 +104,7 @@ class TimelineRepository {
       //     '${host.host}/wp-json/mve-timeline/v1/timelines/${hostTimelineExternalIds.join(',')}';
       // http://localhost:8000/wp-json/wp/v2/mve_timeline_item?_fields=id,title,mve_timeline,meta&order=desc&orderby=meta.mve_timeline_year&mve_timeline=11,8
       final uri =
-          '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,title,mve_timeline,meta&mve_timeline=${hostTimelineExternalIds.join(',')}';
+          '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,mve_timeline,meta,title,title_raw&mve_timeline=${hostTimelineExternalIds.join(',')}';
       fetchFutures.add(myHttp.get<List>(uri));
     }
 

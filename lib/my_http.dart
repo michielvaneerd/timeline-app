@@ -29,11 +29,24 @@ class MyHttp {
 
   T _handleResponse<T>(Response response) {
     developer.log(response.body);
-    if (response.statusCode == 200) {
+    if (response.statusCode >= 200 && response.statusCode < 300) {
       return convert.jsonDecode(response.body);
     } else {
       throw Exception(response.toString());
     }
+  }
+
+  Future<T> delete<T>(String uri,
+      {String? basicAuthUsername, String? basicAuthPlainPassword}) async {
+    final headers = _getHeaders(
+        basicAuthUsername: basicAuthUsername,
+        basicAuthPlainPassword: basicAuthPlainPassword);
+    final response = await http.delete(Uri.parse(uri), headers: headers);
+    developer.log(uri);
+    if (headers.isNotEmpty) {
+      developer.log(headers.toString());
+    }
+    return _handleResponse<T>(response);
   }
 
   Future<T> get<T>(String uri,

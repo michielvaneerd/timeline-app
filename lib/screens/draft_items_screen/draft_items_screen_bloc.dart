@@ -22,7 +22,7 @@ class DraftItemsScreenCubit extends Cubit<DraftItemsScreenState> {
 
   void getItems(TimelineHost timelineHost, List<Timeline> timelines) async {
     emit(const DraftItemsScreenState(busy: true));
-    await Future.delayed(const Duration(seconds: 1));
+    //await Future.delayed(const Duration(seconds: 1));
     final items =
         await timelineRepository.getDraftTimelineItems(timelineHost, timelines);
     emit(DraftItemsScreenState(items: items));
