@@ -54,13 +54,6 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
     observerControllerWithLazyLoading = ObserverControllerWithLazyLoading(
         onBuiltEnd: onBuiltEnd, scrollController: scrollController)
       ..init();
-    // widget.yearAndTimelineItems.timelineItems.forEach((element) {
-    //   if (element is TimelineItem) {
-    //     print('${element.title} = ${element.postId}');
-    //   } else {
-    //     print('Year ${element.year}');
-    //   }
-    // });
   }
 
   void onBuiltEnd(List<int> indexes) async {
@@ -80,7 +73,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   void _scrollToIndex(int index) async {
     await observerControllerWithLazyLoading.scrollToIndex(index);
     WidgetsBinding.instance.addPostFrameCallback(
-      (timeStamp) async {
+      (_) async {
         await Future.delayed(const Duration(
             milliseconds:
                 300)); // needed because images may still be loading so the list view items may get different height
@@ -352,11 +345,15 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                 item.intro,
                                                 onLinkClicked: (id) {
                                               int i = 0;
-                                              for (final item in widget
+                                              for (final t in widget
                                                   .yearAndTimelineItems
                                                   .timelineItems) {
-                                                if (item is TimelineItem) {
-                                                  if (item.postId == id) {
+                                                if (t is TimelineItem) {
+                                                  // Important to also check for timeline ID, because we can display many different timelines from different hosts
+                                                  // so postId is not unique!
+                                                  if (t.postId == id &&
+                                                      t.timelineId ==
+                                                          item.timelineId) {
                                                     _scrollToIndex(i);
                                                     return;
                                                   }

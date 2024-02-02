@@ -60,6 +60,8 @@ class ObserverControllerWithLazyLoading {
   /// and makes sure that the requested index is displayed.
   void onObserve(ListViewObserveModel model) {
     if (requestedIndex > -1) {
+      final tmp = requestedIndex;
+      requestedIndex = -1;
       final builtIndexes = keys.entries
           .where((entry) => entry.value.currentContext != null)
           .map((e) => e.key)
@@ -69,19 +71,16 @@ class ObserverControllerWithLazyLoading {
       try {
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           //await Future.delayed(Duration(seconds: 1));
-          if (keys[requestedIndex]?.currentContext != null) {
+          if (keys[tmp]?.currentContext != null) {
             try {
-              print('OK try');
-              Scrollable.ensureVisible(keys[requestedIndex]!.currentContext!);
+              Scrollable.ensureVisible(keys[tmp]!.currentContext!);
             } catch (ex) {
               debugPrintStack();
             }
           }
-          requestedIndex = -1;
         });
       } catch (ex) {
         debugPrintStack();
-        requestedIndex = -1;
       }
     }
   }
