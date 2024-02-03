@@ -12,7 +12,6 @@ class TimelineRepository {
 
   const TimelineRepository({required this.myHttp});
 
-// Idee om draft items TimelineItem te laten extenden? Zodat we ook bijv. modified at kunnen gebruiken?
   Future<List<TimelineItem>> getDraftTimelineItems(
       TimelineHost host, List<Timeline> timelines) async {
     // To get items from only specific timelines, add: &mve_timeline=9,10
@@ -23,9 +22,11 @@ class TimelineRepository {
         basicAuthPlainPassword: host.password);
     return response.map((e) {
       final timelineArr = e['mve_timeline'] as List;
-      final timeline =
-          timelines.firstWhere((element) => element.termId == timelineArr[0]);
-      return TimelineItem.fromApiMap(e, timeline.id);
+      final timeline = timelineArr.isNotEmpty
+          ? timelines
+              .firstWhereOrNull((element) => element.termId == timelineArr[0])
+          : null;
+      return TimelineItem.fromApiMap(e, timeline?.id);
     }).toList();
   }
 

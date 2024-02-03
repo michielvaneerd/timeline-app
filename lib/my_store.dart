@@ -49,7 +49,7 @@ class MyStore {
         await db.execute(
             'CREATE TABLE timelines (id INTEGER PRIMARY KEY, term_id INTEGER, name TEXT, description TEXT, host_id INT, active INT)');
         await db.execute(
-            'CREATE TABLE items (id INTEGER PRIMARY KEY, timeline_id INTEGER, year INTEGER, year_end INTEGER, intro TEXT, title TEXT, image TEXT, links TEXT, image_source TEXT, image_info TEXT, post_id INTEGER)');
+            'CREATE TABLE items (id INTEGER PRIMARY KEY, timeline_id INTEGER, year INTEGER, year_end INTEGER, intro TEXT, title TEXT, image TEXT, links TEXT, image_source TEXT, image_info TEXT, post_id INTEGER, has_content INTEGER)');
       },
     );
   }
@@ -65,6 +65,7 @@ class MyStore {
         final newItem = {
           'post_id': item['id'],
           'title': item['title_raw'],
+          'has_content': (meta['mve_timeline_content'] as bool) ? 1 : 0,
           'timeline_id': timelineTermId2IdMap[timelineList[0]],
           'year': meta['mve_timeline_year'],
           'year_end': meta['mve_timeline_year_end'].toString().isNotEmpty

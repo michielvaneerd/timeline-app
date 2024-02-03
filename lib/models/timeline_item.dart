@@ -14,7 +14,7 @@ class TimelineYearItem extends TimelineAbstractItem {
 
 class TimelineItem extends TimelineAbstractItem {
   final int? id;
-  final int timelineId;
+  final int? timelineId;
   final String? image;
   final String intro;
   final List<TimelineItemLink> links;
@@ -23,6 +23,7 @@ class TimelineItem extends TimelineAbstractItem {
   final String? imageInfo;
   final int? yearEnd;
   final int postId;
+  final bool hasContent;
   final String? modified; // Only for draft items
 
   const TimelineItem(
@@ -33,6 +34,7 @@ class TimelineItem extends TimelineAbstractItem {
       required this.timelineId,
       required super.year,
       required this.postId,
+      required this.hasContent,
       this.yearEnd,
       this.imageSource,
       this.imageInfo,
@@ -40,8 +42,18 @@ class TimelineItem extends TimelineAbstractItem {
       required this.links});
 
   @override
-  List<Object?> get props =>
-      [id, image, intro, year, title, timelineId, yearEnd, postId, modified];
+  List<Object?> get props => [
+        id,
+        image,
+        intro,
+        year,
+        title,
+        timelineId,
+        yearEnd,
+        postId,
+        modified,
+        hasContent
+      ];
 
   Map<String, dynamic> toDraftMap(int timelineExternalId) {
     return {
@@ -62,6 +74,7 @@ class TimelineItem extends TimelineAbstractItem {
       int? yearEnd,
       bool useYearEndParam = false}) {
     return TimelineItem(
+        hasContent: hasContent,
         image: image,
         intro: intro,
         title: title ?? this.title,
@@ -89,6 +102,7 @@ class TimelineItem extends TimelineAbstractItem {
         postId = map['post_id'],
         timelineId = map['timeline_id'],
         imageSource = map['image_source'],
+        hasContent = map['has_content'] == 1,
         imageInfo = map['image_info'],
         modified = null, // Only for draft items that we get from the server
         yearEnd = map['year_end'],
@@ -99,17 +113,18 @@ class TimelineItem extends TimelineAbstractItem {
         super(year: map['year']);
 
   // Used when mapping draft items.
-  static TimelineItem fromApiMap(Map<String, dynamic> map, int timelineId) {
+  static TimelineItem fromApiMap(Map<String, dynamic> map, int? timelineId) {
     final meta = map['meta'] as Map;
     return TimelineItem(
         intro: meta['mve_timeline_intro'],
         title: map['title_raw'],
+        hasContent: meta['mve_timeline_content'],
         timelineId: timelineId,
         modified: map['modified'],
         image: meta['mve_timeline_image_src'],
         imageInfo: meta['mve_timeline_image_info'],
         imageSource: meta['mve_timeline_image_source'],
-        year: int.parse(meta['mve_timeline_year']),
+        year: int.tryParse(meta['mve_timeline_year']) ?? 0,
         yearEnd: meta['mve_timeline_year_end'].toString().isNotEmpty
             ? int.parse(meta['mve_timeline_year_end'])
             : null,
