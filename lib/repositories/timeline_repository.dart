@@ -16,7 +16,7 @@ class TimelineRepository {
       TimelineHost host, List<Timeline> timelines) async {
     // To get items from only specific timelines, add: &mve_timeline=9,10
     final uri =
-        '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,mve_timeline,meta,modified,title,title_raw&status=draft&order=desc&orderby=modified';
+        '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,mve_timeline,meta,modified,title,title_raw&status=draft&order=desc&orderby=modified&per_page=100';
     final response = await myHttp.get<List>(uri,
         basicAuthUsername: host.username,
         basicAuthPlainPassword: host.password);
@@ -104,8 +104,10 @@ class TimelineRepository {
       // final uri =
       //     '${host.host}/wp-json/mve-timeline/v1/timelines/${hostTimelineExternalIds.join(',')}';
       // http://localhost:8000/wp-json/wp/v2/mve_timeline_item?_fields=id,title,mve_timeline,meta&order=desc&orderby=meta.mve_timeline_year&mve_timeline=11,8
+      // // TODO!
+      // https://developer.wordpress.org/rest-api/using-the-rest-api/pagination/
       final uri =
-          '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,mve_timeline,meta,title,title_raw&mve_timeline=${hostTimelineExternalIds.join(',')}';
+          '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,mve_timeline,meta,title,title_raw&mve_timeline=${hostTimelineExternalIds.join(',')}&per_page=100';
       fetchFutures.add(myHttp.get<List>(uri));
     }
 
