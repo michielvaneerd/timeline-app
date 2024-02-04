@@ -26,7 +26,7 @@ class _ContentScreenState extends State<ContentScreen> {
     super.initState();
     _controller = WebViewController()
       ..loadRequest(Uri.parse(
-          '${widget.timelineHost.host}/?p=${widget.timelineItem.id}'));
+          '${widget.timelineHost.host}/?p=${widget.timelineItem.postId}'));
   }
 
   @override

@@ -67,27 +67,29 @@ class _MainDrawerState extends State<MainDrawer> {
       ));
       for (final timeline in widget.timelineAll.timelines
           .where((element) => element.hostId == host.id)) {
-        items.add(CheckboxListTile(
-          title: Text(timeline.name),
-          subtitle:
-              timeline.yearMin != null ? Text(timeline.yearMinMax()) : null,
-          value: activeTimelineIds.contains(timeline.id),
-          onChanged: (newValue) {
-            if (newValue != null) {
-              var tmp = List<int>.from(activeTimelineIds);
-              if (newValue) {
-                if (!tmp.contains(timeline.id)) {
-                  tmp.add(timeline.id);
+        if (timeline.count > 0) {
+          items.add(CheckboxListTile(
+            title: Text(timeline.name),
+            subtitle:
+                timeline.yearMin != null ? Text(timeline.yearMinMax()) : null,
+            value: activeTimelineIds.contains(timeline.id),
+            onChanged: (newValue) {
+              if (newValue != null) {
+                var tmp = List<int>.from(activeTimelineIds);
+                if (newValue) {
+                  if (!tmp.contains(timeline.id)) {
+                    tmp.add(timeline.id);
+                  }
+                } else {
+                  tmp.remove(timeline.id);
                 }
-              } else {
-                tmp.remove(timeline.id);
+                setState(() {
+                  activeTimelineIds = tmp;
+                });
               }
-              setState(() {
-                activeTimelineIds = tmp;
-              });
-            }
-          },
-        ));
+            },
+          ));
+        }
       }
     }
     if (widget.timelineAll.timelineHosts.isNotEmpty) {

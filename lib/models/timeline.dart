@@ -9,6 +9,7 @@ class Timeline extends Equatable {
   final int active;
   final int? yearMin;
   final int? yearMax;
+  final int count;
 
   const Timeline(
       {required this.id,
@@ -17,12 +18,13 @@ class Timeline extends Equatable {
       required this.name,
       required this.active,
       required this.description,
+      this.count = 0,
       this.yearMax,
       this.yearMin});
 
   @override
   List<Object?> get props =>
-      [id, name, description, hostId, termId, active, yearMax, yearMax];
+      [id, name, description, hostId, termId, active, yearMax, yearMax, count];
 
   Map<String, dynamic> toMap() {
     return {
@@ -33,7 +35,8 @@ class Timeline extends Equatable {
       'name': name,
       'description': description,
       'year_min': yearMin,
-      'year_max': yearMax
+      'year_max': yearMax,
+      'count': count
     };
   }
 
@@ -50,6 +53,7 @@ class Timeline extends Equatable {
   Timeline.fromMap(Map<String, dynamic> map, {int? hostId, int? active})
       : id = map['id'],
         termId = map['term_id'],
+        count = map['count'],
         active = active ?? map['active'],
         name = map['name'],
         hostId = hostId ??

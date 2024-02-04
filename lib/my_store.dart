@@ -47,7 +47,7 @@ class MyStore {
         await db.execute(
             'CREATE TABLE hosts (id INTEGER PRIMARY KEY, host TEXT, name TEXT, username TEXT, password TEXT)');
         await db.execute(
-            'CREATE TABLE timelines (id INTEGER PRIMARY KEY, term_id INTEGER, name TEXT, description TEXT, host_id INT, active INT)');
+            'CREATE TABLE timelines (id INTEGER PRIMARY KEY, term_id INTEGER, name TEXT, description TEXT, host_id INT, active INT, count INT)');
         await db.execute(
             'CREATE TABLE items (id INTEGER PRIMARY KEY, timeline_id INTEGER, year INTEGER, year_end INTEGER, intro TEXT, title TEXT, image TEXT, links TEXT, image_source TEXT, image_info TEXT, post_id INTEGER, has_content INTEGER)');
       },
@@ -206,6 +206,7 @@ class MyStore {
           'name': timeline['name'],
           'description': timeline['description'],
           'host_id': timelineHostId,
+          'count': timeline['count'],
           'active': 0
         });
       }

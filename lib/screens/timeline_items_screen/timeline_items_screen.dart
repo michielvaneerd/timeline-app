@@ -8,6 +8,7 @@ import 'package:timeline/my_html_text.dart';
 import 'package:timeline/my_store.dart';
 import 'package:timeline/my_widgets.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
+import 'package:timeline/screens/content_screen/content_screen.dart';
 import 'package:timeline/screens/image_screen/image_screen.dart';
 import 'package:timeline/screens/timeline_items_screen/observer_controller_with_lazy_loading.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen_bloc.dart';
@@ -152,7 +153,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                   height: 90,
                   child: Scrollbar(
                     interactive: true,
-                    thickness: 8,
+                    //thickness: 8,
                     scrollbarOrientation: ScrollbarOrientation.top,
                     controller: yearScrollController,
                     child: ListView.builder(
@@ -196,7 +197,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                             .listObserverController,
                         onObserve: observerControllerWithLazyLoading.onObserve,
                         child: Scrollbar(
-                          thickness: 8,
+                          //thickness: 8,
                           interactive: true,
                           controller: scrollController,
                           child: ListView.builder(
@@ -311,34 +312,77 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                   ],
                                                 ),
                                               ),
-                                              if (!widget.timelineAll.settings
-                                                      .condensed &&
-                                                  !widget.timelineAll.settings
-                                                      .loadImages &&
-                                                  itemImage != null)
-                                                InkWell(
-                                                  child: Icon(
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .primary,
-                                                      Icons.image_outlined,
-                                                      size: Theme.of(context)
-                                                          .textTheme
-                                                          .titleLarge
-                                                          ?.fontSize),
-                                                  onTap: () {
-                                                    var tmp = List<int>.from(
-                                                        imageIndexes);
-                                                    if (tmp.contains(index)) {
-                                                      tmp.remove(index);
-                                                    } else {
-                                                      tmp.add(index);
-                                                    }
-                                                    setState(() {
-                                                      imageIndexes = tmp;
-                                                    });
-                                                  },
-                                                )
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.end,
+                                                children: [
+                                                  if (!widget.timelineAll.settings
+                                                          .condensed &&
+                                                      !widget
+                                                          .timelineAll
+                                                          .settings
+                                                          .loadImages &&
+                                                      itemImage != null)
+                                                    InkWell(
+                                                      child: Icon(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .primary,
+                                                          Icons.image_outlined,
+                                                          size:
+                                                              Theme.of(context)
+                                                                  .textTheme
+                                                                  .titleLarge
+                                                                  ?.fontSize),
+                                                      onTap: () {
+                                                        var tmp =
+                                                            List<int>.from(
+                                                                imageIndexes);
+                                                        if (tmp
+                                                            .contains(index)) {
+                                                          tmp.remove(index);
+                                                        } else {
+                                                          tmp.add(index);
+                                                        }
+                                                        setState(() {
+                                                          imageIndexes = tmp;
+                                                        });
+                                                      },
+                                                    ),
+                                                  if (item.hasContent)
+                                                    InkWell(
+                                                      child: Icon(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .primary,
+                                                          Icons.arrow_outward,
+                                                          size:
+                                                              Theme.of(context)
+                                                                  .textTheme
+                                                                  .titleLarge
+                                                                  ?.fontSize),
+                                                      onTap: () => Navigator.of(
+                                                              context)
+                                                          .push(MaterialPageRoute(
+                                                              builder: (context) => ContentScreen(
+                                                                  timelineHost: widget
+                                                                      .timelineAll
+                                                                      .timelineHosts
+                                                                      .firstWhere((element) =>
+                                                                          element
+                                                                              .id ==
+                                                                          timeline
+                                                                              .hostId),
+                                                                  timeline:
+                                                                      timeline,
+                                                                  timelineItem:
+                                                                      item))),
+                                                    )
+                                                ],
+                                              ),
                                             ],
                                           ),
                                         ),

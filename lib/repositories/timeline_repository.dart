@@ -123,7 +123,7 @@ class TimelineRepository {
 
   Future<List> getTimelinesFromHostname(String host) async {
     return await myHttp.get<List>(
-        '$host/wp-json/wp/v2/mve_timeline?_fields=id,description,name');
+        '$host/wp-json/wp/v2/mve_timeline?_fields=id,description,name,count');
   }
 
   Future<TimelineAll> getAll() async {
