@@ -29,6 +29,8 @@ class MyHttp {
 
   T _handleResponse<T>(Response response) {
     developer.log(response.body);
+    //developer.log(response.headers['x-wp-totalpages'] ?? 'x-wp-totalpages');
+    //developer.log(response.headers['x-wp-total'] ?? 'x-wp-total');
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return convert.jsonDecode(response.body);
     } else {
@@ -49,16 +51,53 @@ class MyHttp {
     return _handleResponse<T>(response);
   }
 
-  Future<T> get<T>(String uri,
+  Future<List> getWithPagination(String uri,
       {String? basicAuthUsername, String? basicAuthPlainPassword}) async {
+    List totalResult = [];
+    var currentPage = 0;
+    while (true) {
+      currentPage += 1;
+      final response = await getResponse(uri,
+          basicAuthUsername: basicAuthUsername,
+          basicAuthPlainPassword: basicAuthPlainPassword,
+          page: currentPage);
+      final totalPageCount =
+          int.parse(response.headers['x-wp-totalpages'].toString());
+      final totalItemCount =
+          int.parse(response.headers['x-wp-total'].toString());
+      totalResult.addAll(_handleResponse<List>(response));
+      if (totalResult.length >= totalItemCount ||
+          currentPage >= totalPageCount) {
+        break;
+      }
+    }
+    return totalResult;
+  }
+
+  Future<Response> getResponse(String uri,
+      {String? basicAuthUsername,
+      String? basicAuthPlainPassword,
+      int? page}) async {
     final headers = _getHeaders(
         basicAuthUsername: basicAuthUsername,
         basicAuthPlainPassword: basicAuthPlainPassword);
-    final response = await http.get(Uri.parse(uri), headers: headers);
-    developer.log(uri);
     if (headers.isNotEmpty) {
       developer.log(headers.toString());
     }
+    // TODO: use Uri.https etc. instead of Strings
+    if (page != null) {
+      uri = ('$uri&page=$page');
+    }
+    developer.log(uri);
+    final response = await http.get(Uri.parse(uri), headers: headers);
+    return response;
+  }
+
+  Future<T> get<T>(String uri,
+      {String? basicAuthUsername, String? basicAuthPlainPassword}) async {
+    final response = await getResponse(uri,
+        basicAuthUsername: basicAuthUsername,
+        basicAuthPlainPassword: basicAuthPlainPassword);
     return _handleResponse<T>(response);
   }
 
@@ -68,10 +107,10 @@ class MyHttp {
         json: true,
         basicAuthUsername: basicAuthUsername,
         basicAuthPlainPassword: basicAuthPlainPassword);
-    final response = await http.post(Uri.parse(uri),
-        headers: headers, body: convert.json.encode(body));
     developer.log(uri);
     developer.log(convert.json.encode(body));
+    final response = await http.post(Uri.parse(uri),
+        headers: headers, body: convert.json.encode(body));
     return _handleResponse<T>(response);
   }
 }
