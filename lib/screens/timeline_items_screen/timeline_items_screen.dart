@@ -8,6 +8,7 @@ import 'package:timeline/my_html_text.dart';
 import 'package:timeline/my_store.dart';
 import 'package:timeline/my_widgets.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
+import 'package:timeline/screens/image_screen/image_screen.dart';
 import 'package:timeline/screens/timeline_items_screen/observer_controller_with_lazy_loading.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -223,7 +224,12 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                   final TimelineItem item = e as TimelineItem;
                                   final timeline = activeTimelines.firstWhere(
                                       (element) => element.id == e.timelineId);
-                                  final loadImage = item.image != null &&
+                                  final itemImage = item.getImage(
+                                      TimelineItemImageSizes.medium,
+                                      key2: TimelineItemImageSizes.thumbnail);
+                                  final fullScreenImage = item
+                                      .getImage(TimelineItemImageSizes.full);
+                                  final loadImage = itemImage != null &&
                                       observerControllerWithLazyLoading
                                           .shouldActivelyLoad(
                                               index, builtIndexes) &&
@@ -309,7 +315,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                       .condensed &&
                                                   !widget.timelineAll.settings
                                                       .loadImages &&
-                                                  item.image != null)
+                                                  itemImage != null)
                                                 InkWell(
                                                   child: Icon(
                                                       color: Theme.of(context)
@@ -379,18 +385,37 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                               // crossAxisAlignment:
                                               //     CrossAxisAlignment.stretch,
                                               children: [
-                                                Image.network(
-                                                  item.image!,
-                                                  width: imageWidth,
-                                                  errorBuilder: (context, error,
-                                                          stackTrace) =>
-                                                      Placeholder(
-                                                    fallbackHeight: imageWidth,
-                                                    fallbackWidth: imageWidth,
+                                                InkWell(
+                                                  onTap: fullScreenImage != null
+                                                      ? () =>
+                                                          Navigator.of(context)
+                                                              .push(
+                                                                  MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                ImageScreen(
+                                                                    url: fullScreenImage
+                                                                        .url),
+                                                          ))
+                                                      : null,
+                                                  child: Image.network(
+                                                    itemImage.url,
+                                                    width: imageWidth >
+                                                            itemImage.width
+                                                        ? itemImage.width
+                                                            .toDouble()
+                                                        : imageWidth,
+                                                    errorBuilder: (context,
+                                                            error,
+                                                            stackTrace) =>
+                                                        Placeholder(
+                                                      fallbackHeight:
+                                                          imageWidth,
+                                                      fallbackWidth: imageWidth,
+                                                    ),
+                                                    cacheWidth: (imageWidth *
+                                                            pixelRatio)
+                                                        .toInt(),
                                                   ),
-                                                  cacheWidth:
-                                                      (imageWidth * pixelRatio)
-                                                          .toInt(),
                                                 ),
                                                 if ((item.imageInfo != null &&
                                                         item.imageInfo!

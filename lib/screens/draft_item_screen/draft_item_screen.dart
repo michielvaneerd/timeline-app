@@ -145,6 +145,7 @@ class _DraftItemScreenState extends State<DraftItemScreen> {
                             ? null
                             : () {
                                 final newTimelineItem = TimelineItem(
+                                    image: widget.timelineItem?.image ?? {},
                                     hasContent:
                                         widget.timelineItem?.hasContent ??
                                             false,

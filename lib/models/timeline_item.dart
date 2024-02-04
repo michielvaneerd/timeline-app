@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'dart:convert' as convert;
 
@@ -15,7 +16,8 @@ class TimelineYearItem extends TimelineAbstractItem {
 class TimelineItem extends TimelineAbstractItem {
   final int? id;
   final int? timelineId;
-  final String? image;
+  final Map<TimelineItemImageSizes, TimelineItemImage>
+      image; // for example: large: {}, medium: {}
   final String intro;
   final List<TimelineItemLink> links;
   final String title;
@@ -28,7 +30,7 @@ class TimelineItem extends TimelineAbstractItem {
 
   const TimelineItem(
       {this.id,
-      this.image,
+      required this.image,
       required this.intro,
       required this.title,
       required this.timelineId,
@@ -96,6 +98,16 @@ class TimelineItem extends TimelineAbstractItem {
     }).toList();
   }
 
+  static Map<TimelineItemImageSizes, TimelineItemImage> _getImage(
+      String? image) {
+    if (image == null || image.isEmpty) {
+      return {};
+    }
+    return (convert.jsonDecode(image) as Map).map((key, value) => MapEntry(
+        TimelineItemImageSizesExtension.byNameOrUnknown(key),
+        TimelineItemImage.fromMap(value as Map<String, dynamic>)));
+  }
+
   // Only when mapping db rows
   TimelineItem.fromDbMap(Map<String, dynamic> map)
       : id = map['id'],
@@ -107,7 +119,7 @@ class TimelineItem extends TimelineAbstractItem {
         modified = null, // Only for draft items that we get from the server
         yearEnd = map['year_end'],
         links = _getLinks(map['links']),
-        image = map['image'],
+        image = _getImage(map['image']),
         intro = map['intro'],
         title = map['title'] ?? '',
         super(year: map['year']);
@@ -121,7 +133,7 @@ class TimelineItem extends TimelineAbstractItem {
         hasContent: meta['mve_timeline_content'],
         timelineId: timelineId,
         modified: map['modified'],
-        image: meta['mve_timeline_image_src'],
+        image: _getImage(meta['mve_timeline_image_src']),
         imageInfo: meta['mve_timeline_image_info'],
         imageSource: meta['mve_timeline_image_source'],
         year: int.tryParse(meta['mve_timeline_year']) ?? 0,
@@ -130,6 +142,19 @@ class TimelineItem extends TimelineAbstractItem {
             : null,
         postId: map['id'],
         links: _getLinks(meta['mve_timeline_links']));
+  }
+
+  TimelineItemImage? getImage(TimelineItemImageSizes key1,
+      {TimelineItemImageSizes? key2, TimelineItemImageSizes? key3}) {
+    if (image.containsKey(key1)) {
+      return image[key1];
+    } else if (key2 != null && image.containsKey(key2)) {
+      return image[key2];
+    } else if (key3 != null && image.containsKey(key3)) {
+      return image[key3];
+    } else {
+      return null;
+    }
   }
 }
 
@@ -144,4 +169,46 @@ class TimelineItemLink extends Equatable {
   TimelineItemLink.fromMap(Map<String, String> map)
       : name = map['name']!,
         url = map['url']!;
+}
+
+enum TimelineItemImageSizes {
+  thumbnail('Thumbnail', 'thumbnail'),
+  medium('Medium', 'medium'),
+  large('Large', 'large'),
+  full('Full', 'full'),
+  unknown('Unknown', 'unknown');
+
+  const TimelineItemImageSizes(this.label, this.value);
+  final String label;
+  final String value;
+}
+
+extension TimelineItemImageSizesExtension on TimelineItemImageSizes {
+  static TimelineItemImageSizes byNameOrUnknown(String name) {
+    return TimelineItemImageSizes.values
+            .firstWhereOrNull((element) => element.name == name) ??
+        TimelineItemImageSizes.unknown;
+  }
+}
+
+class TimelineItemImage extends Equatable {
+  final String url;
+  final int height;
+  final int width;
+  final String orientation;
+
+  const TimelineItemImage(
+      {required this.url,
+      required this.height,
+      required this.width,
+      required this.orientation});
+
+  @override
+  List<Object?> get props => [url, height, width, orientation];
+
+  TimelineItemImage.fromMap(Map<String, dynamic> map)
+      : url = map['url'],
+        height = map['height'],
+        width = map['width'],
+        orientation = map['orientation'];
 }
