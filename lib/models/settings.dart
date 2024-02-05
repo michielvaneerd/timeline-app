@@ -2,17 +2,25 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 enum MyThemeModes {
-  light('Light', 'light'),
-  dark('Dark', 'dark'),
-  system('System', 'system');
+  light('light'),
+  dark('dark'),
+  system('system');
 
-  const MyThemeModes(this.label, this.value);
-  final String label;
+  const MyThemeModes(this.value);
+  final String value;
+}
+
+enum LoadImages {
+  always('always'),
+  wifi('wifi'),
+  never('never');
+
+  const LoadImages(this.value);
   final String value;
 }
 
 class Settings extends Equatable {
-  final bool loadImages;
+  final LoadImages loadImages;
   final bool condensed;
   final int? imageWidth;
   final MyThemeModes themeMode;
@@ -35,7 +43,7 @@ class Settings extends Equatable {
   }
 
   Settings copyWith(
-      {bool? loadImages,
+      {LoadImages? loadImages,
       bool? condensed,
       int? imageWidth,
       MyThemeModes? themeMode,

@@ -54,6 +54,10 @@ class MyStore {
     );
   }
 
+  static Future<String> decrypt(String value) async {
+    return await _myCrypt.decrypt(value, _secretKey);
+  }
+
   // Store timeline items from api response into database
   static Future putTimelineItems(
       List items, Map<int, int> timelineTermId2IdMap) async {
@@ -85,14 +89,16 @@ class MyStore {
 
   static Future<Settings> getSettings() async {
     final rows = await _database!.query('settings');
-    bool loadImages = false;
+    LoadImages loadImages = LoadImages.never;
     bool condensed = false;
     int? imageWidth;
     MyThemeModes themeMode = MyThemeModes.system;
     for (var row in rows) {
       switch (row['key']) {
         case keySettingsLoadImages:
-          loadImages = row['value'].toString() == '1';
+          if (row['value'] != null && row['value'].toString().isNotEmpty) {
+            loadImages = LoadImages.values.byName(row['value'].toString());
+          }
           break;
         case keySettingsCondensed:
           condensed = row['value'].toString() == '1';
@@ -118,10 +124,8 @@ class MyStore {
     await _database!.transaction((txn) async {
       final batch = txn.batch();
       batch.delete('settings');
-      batch.insert('settings', {
-        'key': keySettingsLoadImages,
-        'value': settings.loadImages ? '1' : '0'
-      });
+      batch.insert('settings',
+          {'key': keySettingsLoadImages, 'value': settings.loadImages.value});
       batch.insert('settings', {
         'key': keySettingsCondensed,
         'value': settings.condensed ? '1' : '0'
@@ -152,21 +156,24 @@ class MyStore {
 
   static Future updateTimelineHost(
       int id, String? username, String? plainPassword) async {
+    final encryptedPassword = plainPassword != null
+        ? (await _myCrypt.encrypt(plainPassword, _secretKey))
+        : null;
     await _database!.update(
-        'hosts', {'username': username, 'password': plainPassword},
+        'hosts', {'username': username, 'password': encryptedPassword},
         where: 'id = ?', whereArgs: [id]);
   }
 
   static Future<TimelineHost> putTimelineHost(
       String host, String name, String? username, String? plainPassword) async {
-    // final password = plainPassword != null
-    //     ? (await _myCrypt.encrypt(plainPassword, _secretKey))
-    //     : null;
+    final encryptedPassword = plainPassword != null
+        ? (await _myCrypt.encrypt(plainPassword, _secretKey))
+        : null;
     final id = await _database!.insert('hosts', {
       'host': host,
       'name': name,
       'username': username,
-      'password': plainPassword
+      'password': encryptedPassword
     });
     return TimelineHost(id: id, host: host, name: name);
   }

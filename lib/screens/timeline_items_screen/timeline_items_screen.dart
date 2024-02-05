@@ -2,9 +2,11 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
+import 'package:timeline/models/settings.dart';
 import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_item.dart';
 import 'package:timeline/my_html_text.dart';
+import 'package:timeline/my_image_with_cache.dart';
 import 'package:timeline/my_store.dart';
 import 'package:timeline/my_widgets.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
@@ -21,10 +23,12 @@ class TimelineItemsWidget extends StatefulWidget {
   final TimelineAll timelineAll;
   final YearAndTimelineItems yearAndTimelineItems;
   final bool showSearch;
+  final bool loadImages;
   final void Function() onRefresh;
   const TimelineItemsWidget(
       {super.key,
       required this.timelineAll,
+      required this.loadImages,
       required this.yearAndTimelineItems,
       required this.onRefresh,
       required this.showSearch});
@@ -119,6 +123,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
           imageWidth = widget.timelineAll.settings.imageWidth != null
               ? (widget.timelineAll.settings.imageWidth!.toDouble())
               : screenWidth;
+
           final cubit = BlocProvider.of<TimelineItemsScreenCubit>(context);
           final realItems = state.filteredItems ?? widget.yearAndTimelineItems;
           final yearItems =
@@ -234,12 +239,21 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                       observerControllerWithLazyLoading
                                           .shouldActivelyLoad(
                                               index, builtIndexes) &&
-                                      (widget.timelineAll.settings.loadImages ||
+                                      (widget.loadImages ||
                                           imageIndexes.contains(index));
                                   final yearText = item.year.toString() +
                                       (item.yearEnd != null
                                           ? (' / ${item.yearEnd}')
                                           : '');
+                                  final realImageWidth = itemImage != null
+                                      ? (imageWidth > itemImage.width
+                                          ? itemImage.width.toDouble()
+                                          : imageWidth)
+                                      : imageWidth;
+                                  final realImageHeight = itemImage != null
+                                      ? (itemImage.height *
+                                          (realImageWidth / itemImage.width))
+                                      : 100.0;
                                   return Card(
                                     // color:
                                     //     Theme.of(context).colorScheme.surface,
@@ -317,12 +331,9 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                 mainAxisAlignment:
                                                     MainAxisAlignment.end,
                                                 children: [
-                                                  if (!widget.timelineAll.settings
-                                                          .condensed &&
-                                                      !widget
-                                                          .timelineAll
-                                                          .settings
-                                                          .loadImages &&
+                                                  if (!widget.timelineAll
+                                                          .settings.condensed &&
+                                                      !widget.loadImages &&
                                                       itemImage != null)
                                                     InkWell(
                                                       child: Icon(
@@ -429,6 +440,30 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                               // crossAxisAlignment:
                                               //     CrossAxisAlignment.stretch,
                                               children: [
+                                                // InkWell(child: Image.network(
+                                                //     itemImage.url,
+                                                //     width: realImageWidth,
+                                                //     height: realImageHeight,
+                                                //     errorBuilder: (context,
+                                                //             error,
+                                                //             stackTrace) =>
+                                                //         Placeholder(
+                                                //       fallbackHeight:
+                                                //           realImageHeight,
+                                                //       fallbackWidth:
+                                                //           realImageWidth,
+                                                //     ),
+                                                //     cacheWidth:
+                                                //         (realImageWidth *
+                                                //                 pixelRatio)
+                                                //             .toInt(),
+                                                //     cacheHeight:
+                                                //         (realImageHeight *
+                                                //                 pixelRatio)
+                                                //             .toInt(),
+                                                //   ), onTap: () {
+
+                                                //   },),
                                                 InkWell(
                                                   onTap: fullScreenImage != null
                                                       ? () =>
@@ -441,24 +476,11 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                                         .url),
                                                           ))
                                                       : null,
-                                                  child: Image.network(
-                                                    itemImage.url,
-                                                    width: imageWidth >
-                                                            itemImage.width
-                                                        ? itemImage.width
-                                                            .toDouble()
-                                                        : imageWidth,
-                                                    errorBuilder: (context,
-                                                            error,
-                                                            stackTrace) =>
-                                                        Placeholder(
-                                                      fallbackHeight:
-                                                          imageWidth,
-                                                      fallbackWidth: imageWidth,
-                                                    ),
-                                                    cacheWidth: (imageWidth *
-                                                            pixelRatio)
-                                                        .toInt(),
+                                                  child: MyImageWithCache(
+                                                    uri: itemImage.url,
+                                                    width: realImageWidth,
+                                                    height: realImageHeight,
+                                                    pixelRatio: pixelRatio,
                                                   ),
                                                 ),
                                                 if ((item.imageInfo != null &&

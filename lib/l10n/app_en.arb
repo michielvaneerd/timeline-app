@@ -18,12 +18,21 @@
     }
   },
   "condensedView": "Condensed view",
-  "loadImagesByDefault": "Load images by default",
+  "loadImages": "Load images",
+  "always": "Always",
+  "onlyWhenOnWifi": "Only when on WIFI",
+  "never": "Never",
   "imageWidth": "Image width",
   "selectTimelinesInfoText": "Select one or more timelines to display",
   "addHostInfoText": "Add one or more hosts that provides timelines",
   "theme": "Theme",
   "login": "Login",
   "logout": "Logout",
-  "draftItems": "Draft items"
+  "draftItems": "Draft items",
+  "system": "System",
+  "light": "Light",
+  "dark": "Dark",
+  "retry": "Retry",
+  "username": "Username",
+  "password": "Password"
 }

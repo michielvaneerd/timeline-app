@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_host.dart';
-import 'package:timeline/my_host_input_dialog.dart';
+import 'package:timeline/my_two_fields_dialog.dart';
 import 'package:timeline/my_loading_overlay.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:timeline/screens/draft_items_screen/draft_items_screen.dart';
@@ -21,13 +21,13 @@ class TimelineHostsScreen extends StatefulWidget {
 
 class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
   bool hasShowedHostDialogOnStart = false;
-  final hostInputDialog = MyHostInputDialog();
+  late final MyTwoFieldsDialog myTwoFieldsDialog = MyTwoFieldsDialog();
   late int timelineAllHash;
   final _loadingOverlay = LoadingOverlay();
   @override
   void dispose() {
     _loadingOverlay.hide();
-    hostInputDialog.dispose();
+    myTwoFieldsDialog.dispose();
     super.dispose();
   }
 
@@ -72,11 +72,17 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
   Future onLoginLogout(TimelineHost host, TimelineHostsScreenCubit cubit,
       TimelineAll timelineAll) async {
     if (host.username == null || host.username!.isEmpty) {
-      final result = await hostInputDialog.show(context);
-      if (result != null && result.host.isNotEmpty && result.name.isNotEmpty) {
+      myTwoFieldsDialog.clear();
+      final result = await myTwoFieldsDialog.show(context,
+          field1Text: myLoc(context).username,
+          field2Text: myLoc(context).password,
+          title: myLoc(context).login);
+      if (result != null &&
+          result.field1.isNotEmpty &&
+          result.field2.isNotEmpty) {
         if (mounted) {
           _loadingOverlay.show(context);
-          cubit.login(timelineAll, host, result.name, result.host);
+          cubit.login(timelineAll, host, result.field1, result.field2);
         }
       }
     } else {
@@ -185,10 +191,13 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
 
   void onAddHost(
       TimelineHostsScreenCubit cubit, TimelineAll timelineAll) async {
-    hostInputDialog.clear();
-    final response = await hostInputDialog.show(context);
+    myTwoFieldsDialog.clear();
+    final response = await myTwoFieldsDialog.show(context,
+        field1Text: myLoc(context).name,
+        field2Text: myLoc(context).host,
+        title: myLoc(context).addHost);
     if (response != null) {
-      cubit.addHost(response.host, response.name, timelineAll);
+      cubit.addHost(response.field1, response.field2, timelineAll);
     }
   }
 

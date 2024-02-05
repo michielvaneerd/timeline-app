@@ -17,9 +17,9 @@ class TimelineRepository {
     // To get items from only specific timelines, add: &mve_timeline=9,10
     final uri =
         '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,mve_timeline,meta,modified,title,title_raw&status=draft&order=desc&orderby=modified&per_page=100';
+    final password = await _decrypt(host.password);
     final response = await myHttp.get<List>(uri,
-        basicAuthUsername: host.username,
-        basicAuthPlainPassword: host.password);
+        basicAuthUsername: host.username, basicAuthPlainPassword: password);
     return response.map((e) {
       final timelineArr = e['mve_timeline'] as List;
       final timeline = timelineArr.isNotEmpty
@@ -30,28 +30,32 @@ class TimelineRepository {
     }).toList();
   }
 
+  Future<String?> _decrypt(String? value) async {
+    return value != null ? await MyStore.decrypt(value!) : null;
+  }
+
   Future updateDraftItem(
       TimelineHost host, Timeline timeline, TimelineItem item) async {
     final uri = '${host.host}/wp-json/wp/v2/mve_timeline_item/${item.postId}';
+    final password = await _decrypt(host.password);
     await myHttp.post(uri, item.toDraftMap(timeline.termId),
-        basicAuthUsername: host.username,
-        basicAuthPlainPassword: host.password);
+        basicAuthUsername: host.username, basicAuthPlainPassword: password);
   }
 
   Future createDraftItem(
       TimelineHost host, Timeline timeline, TimelineItem item) async {
     final uri = '${host.host}/wp-json/wp/v2/mve_timeline_item';
+    final password = await _decrypt(host.password);
     await myHttp.post<Map>(uri, item.toDraftMap(timeline.termId),
-        basicAuthUsername: host.username,
-        basicAuthPlainPassword: host.password);
+        basicAuthUsername: host.username, basicAuthPlainPassword: password);
   }
 
   Future deleteDraftItem(
       TimelineHost host, Timeline timeline, TimelineItem item) async {
     final uri = '${host.host}/wp-json/wp/v2/mve_timeline_item/${item.postId}';
+    final password = await _decrypt(host.password);
     await myHttp.delete(uri,
-        basicAuthUsername: host.username,
-        basicAuthPlainPassword: host.password);
+        basicAuthUsername: host.username, basicAuthPlainPassword: password);
   }
 
   Future login(TimelineHost host, String username, String plainPassword) async {

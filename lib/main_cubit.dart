@@ -1,5 +1,9 @@
+import 'dart:io';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:timeline/models/settings.dart';
 import 'package:timeline/my_store.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 
@@ -8,11 +12,16 @@ class MainState extends Equatable {
   final String? error;
   final bool busy;
   final YearAndTimelineItems? items;
+  final bool? loadImages;
 
   const MainState(
-      {this.timelineAll, this.items, this.error, this.busy = false});
+      {this.timelineAll,
+      this.items,
+      this.error,
+      this.busy = false,
+      this.loadImages});
   @override
-  List<Object?> get props => [error, busy, timelineAll, items];
+  List<Object?> get props => [error, busy, timelineAll, items, loadImages];
 }
 
 class MainCubit extends Cubit<MainState> {
@@ -23,7 +32,21 @@ class MainCubit extends Cubit<MainState> {
     if (withBusy) {
       emit(const MainState(busy: true));
     }
+
     TimelineAll timelineAll = await timelineRepository.getAll();
+    var loadImages = false;
+    switch (timelineAll.settings.loadImages) {
+      case LoadImages.always:
+        loadImages = true;
+        break;
+      case LoadImages.never:
+        loadImages = false;
+        break;
+      case LoadImages.wifi:
+        final connectivity = await Connectivity().checkConnectivity();
+        loadImages = connectivity == ConnectivityResult.wifi;
+        break;
+    }
     final activeTimelines = timelineAll.timelines
         .where(
           (element) => element.isActive(),
@@ -35,15 +58,32 @@ class MainCubit extends Cubit<MainState> {
         await MyStore.removeTimelineItems(
             activeTimelines.map((e) => e.id).toList());
       }
-      items = await timelineRepository.getTimelineItems(
-          timelineAll.timelineHosts, activeTimelines);
+      try {
+        items = await timelineRepository.getTimelineItems(
+            timelineAll.timelineHosts, activeTimelines);
+      } on SocketException catch (ex) {
+        // No internet connection, or host does not exist
+        emit(MainState(
+            error: ex.message,
+            timelineAll: timelineAll,
+            loadImages: loadImages));
+        return;
+      } catch (ex) {
+        emit(MainState(
+            error: ex.toString(),
+            timelineAll: timelineAll,
+            loadImages: loadImages));
+        return;
+      }
+
       final updatedTimelines = await MyStore.getTimelines();
       timelineAll = TimelineAll(
           settings: timelineAll.settings,
           timelineHosts: timelineAll.timelineHosts,
           timelines: updatedTimelines);
     }
-    emit(MainState(timelineAll: timelineAll, items: items));
+    emit(MainState(
+        timelineAll: timelineAll, items: items, loadImages: loadImages));
   }
 
   void activateTimelines(List<int> timelineIds) async {

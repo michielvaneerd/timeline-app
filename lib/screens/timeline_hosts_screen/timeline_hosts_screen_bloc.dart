@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timeline/models/timeline_host.dart';
@@ -71,6 +73,10 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
           await timelineRepository.getTimelinesFromHostname(host.host);
       await MyStore.putTimelinesFromResponse(
           response.map((e) => e as Map<String, dynamic>).toList(), host.id);
+    } on SocketException catch (ex) {
+      final all = await timelineRepository.getAll();
+      emit(TimelineHostsScreenState(error: ex.message, timelineAll: all));
+      return;
     } catch (ex) {
       final all = await timelineRepository.getAll();
       emit(TimelineHostsScreenState(error: ex.toString(), timelineAll: all));
@@ -102,7 +108,7 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
     emit(TimelineHostsScreenState(timelineAll: all));
   }
 
-  void addHost(String host, String name, TimelineAll timelineAll,
+  void addHost(String name, String host, TimelineAll timelineAll,
       {String? username, String? plainPassword}) async {
     if (host.isEmpty) {
       emit(TimelineHostsScreenState(

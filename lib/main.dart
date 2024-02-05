@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timeline/main_cubit.dart';
 import 'package:timeline/main_drawer.dart';
+import 'package:timeline/models/timeline.dart';
 import 'package:timeline/my_http.dart';
 import 'package:timeline/my_store.dart';
 import 'package:timeline/color_schemes5.g.dart';
@@ -110,6 +111,53 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
+  Widget _getBody(
+      MainCubit cubit, MainState state, List<Timeline>? activeTimelines) {
+    if (state.error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                state.error!,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge!
+                    .copyWith(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: FilledButton(
+                  onPressed: () {
+                    cubit.checkAtStart();
+                  },
+                  child: Text(myLoc(context).retry)),
+            )
+          ],
+        ),
+      );
+    } else if (state.busy) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    } else if (activeTimelines != null && activeTimelines.isNotEmpty) {
+      return TimelineItemsWidget(
+        loadImages: state.loadImages!,
+        showSearch: showSearch,
+        timelineAll: state.timelineAll!,
+        yearAndTimelineItems: state.items!,
+        onRefresh: () {
+          cubit.checkAtStart(withBusy: true, refresh: true);
+        },
+      );
+    } else {
+      return infoWidget(state, cubit);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<MainCubit, MainState>(
@@ -122,9 +170,11 @@ class _MyAppState extends State<MyApp> {
       },
       builder: (context, state) {
         final cubit = BlocProvider.of<MainCubit>(context);
-        final activeTimelines = state.timelineAll?.timelines.where(
-          (element) => element.isActive(),
-        );
+        final activeTimelines = state.timelineAll?.timelines
+            .where(
+              (element) => element.isActive(),
+            )
+            .toList();
         return Scaffold(
             appBar: AppBar(
               //backgroundColor: Theme.of(context).secondaryHeaderColor,
@@ -149,20 +199,7 @@ class _MyAppState extends State<MyApp> {
                     mainCubit: cubit,
                   )
                 : null,
-            body: Center(
-              child: state.busy
-                  ? const CircularProgressIndicator()
-                  : (activeTimelines != null && activeTimelines.isNotEmpty
-                      ? TimelineItemsWidget(
-                          showSearch: showSearch,
-                          timelineAll: state.timelineAll!,
-                          yearAndTimelineItems: state.items!,
-                          onRefresh: () {
-                            cubit.checkAtStart(withBusy: true, refresh: true);
-                          },
-                        )
-                      : infoWidget(state, cubit)),
-            ));
+            body: _getBody(cubit, state, activeTimelines));
       },
     );
   }
