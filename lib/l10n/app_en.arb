@@ -34,5 +34,6 @@
   "dark": "Dark",
   "retry": "Retry",
   "username": "Username",
-  "password": "Password"
+  "password": "Password",
+  "cachedImages": "Cached images"
 }

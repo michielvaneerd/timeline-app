@@ -74,6 +74,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           });
                         }
                       }),
+                  CheckboxListTile(
+                      title: Text(myLoc(context).cachedImages),
+                      value: settings.cachedImages,
+                      onChanged: (newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            settings =
+                                settings.copyWith(cachedImages: newValue);
+                          });
+                        }
+                      }),
                   if (!settings.condensed) ...[
                     Padding(
                       padding: const EdgeInsets.all(16.0),

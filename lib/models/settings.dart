@@ -24,11 +24,13 @@ class Settings extends Equatable {
   final bool condensed;
   final int? imageWidth;
   final MyThemeModes themeMode;
+  final bool cachedImages;
 
   const Settings(
       {required this.loadImages,
       required this.condensed,
       required this.imageWidth,
+      required this.cachedImages,
       required this.themeMode});
 
   ThemeMode getThemeMode() {
@@ -47,8 +49,10 @@ class Settings extends Equatable {
       bool? condensed,
       int? imageWidth,
       MyThemeModes? themeMode,
+      bool? cachedImages,
       bool useImageWidthParameter = false}) {
     return Settings(
+        cachedImages: cachedImages ?? this.cachedImages,
         themeMode: themeMode ?? this.themeMode,
         loadImages: loadImages ?? this.loadImages,
         condensed: condensed ?? this.condensed,
@@ -58,5 +62,6 @@ class Settings extends Equatable {
   }
 
   @override
-  List<Object?> get props => [loadImages, condensed, imageWidth, themeMode];
+  List<Object?> get props =>
+      [loadImages, condensed, imageWidth, themeMode, cachedImages];
 }

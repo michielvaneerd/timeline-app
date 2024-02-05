@@ -13,6 +13,7 @@ class MyStore {
   static const keySettingsCondensed = 'condensed';
   static const keySettingsImageWidth = 'image_width';
   static const keySettingsThemeMode = 'theme_mode';
+  static const keySettingsCachedImages = 'cached_images';
 
   static const keySecureStorageKey = 'key';
 
@@ -92,6 +93,7 @@ class MyStore {
     LoadImages loadImages = LoadImages.never;
     bool condensed = false;
     int? imageWidth;
+    bool cachedImages = false;
     MyThemeModes themeMode = MyThemeModes.system;
     for (var row in rows) {
       switch (row['key']) {
@@ -111,10 +113,14 @@ class MyStore {
             themeMode = MyThemeModes.values.byName(row['value'].toString());
           }
           break;
+        case keySettingsCachedImages:
+          cachedImages = row['value'].toString() == '1';
+          break;
       }
     }
     return Settings(
         loadImages: loadImages,
+        cachedImages: cachedImages,
         condensed: condensed,
         imageWidth: imageWidth,
         themeMode: themeMode);
@@ -129,6 +135,10 @@ class MyStore {
       batch.insert('settings', {
         'key': keySettingsCondensed,
         'value': settings.condensed ? '1' : '0'
+      });
+      batch.insert('settings', {
+        'key': keySettingsCachedImages,
+        'value': settings.cachedImages ? '1' : '0'
       });
       batch.insert('settings',
           {'key': keySettingsImageWidth, 'value': settings.imageWidth});

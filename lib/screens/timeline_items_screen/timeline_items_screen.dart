@@ -440,49 +440,55 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                               // crossAxisAlignment:
                                               //     CrossAxisAlignment.stretch,
                                               children: [
-                                                // InkWell(child: Image.network(
-                                                //     itemImage.url,
-                                                //     width: realImageWidth,
-                                                //     height: realImageHeight,
-                                                //     errorBuilder: (context,
-                                                //             error,
-                                                //             stackTrace) =>
-                                                //         Placeholder(
-                                                //       fallbackHeight:
-                                                //           realImageHeight,
-                                                //       fallbackWidth:
-                                                //           realImageWidth,
-                                                //     ),
-                                                //     cacheWidth:
-                                                //         (realImageWidth *
-                                                //                 pixelRatio)
-                                                //             .toInt(),
-                                                //     cacheHeight:
-                                                //         (realImageHeight *
-                                                //                 pixelRatio)
-                                                //             .toInt(),
-                                                //   ), onTap: () {
-
-                                                //   },),
-                                                InkWell(
-                                                  onTap: fullScreenImage != null
-                                                      ? () =>
-                                                          Navigator.of(context)
-                                                              .push(
-                                                                  MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                ImageScreen(
-                                                                    url: fullScreenImage
-                                                                        .url),
-                                                          ))
-                                                      : null,
-                                                  child: MyImageWithCache(
-                                                    uri: itemImage.url,
-                                                    width: realImageWidth,
-                                                    height: realImageHeight,
-                                                    pixelRatio: pixelRatio,
+                                                if (!widget.timelineAll.settings
+                                                    .cachedImages)
+                                                  InkWell(
+                                                    child: Image.network(
+                                                      itemImage.url,
+                                                      width: realImageWidth,
+                                                      height: realImageHeight,
+                                                      errorBuilder: (context,
+                                                              error,
+                                                              stackTrace) =>
+                                                          Placeholder(
+                                                        fallbackHeight:
+                                                            realImageHeight,
+                                                        fallbackWidth:
+                                                            realImageWidth,
+                                                      ),
+                                                      cacheWidth:
+                                                          (realImageWidth *
+                                                                  pixelRatio)
+                                                              .toInt(),
+                                                      cacheHeight:
+                                                          (realImageHeight *
+                                                                  pixelRatio)
+                                                              .toInt(),
+                                                    ),
+                                                    onTap: () {},
                                                   ),
-                                                ),
+                                                if (widget.timelineAll.settings
+                                                    .cachedImages)
+                                                  InkWell(
+                                                    onTap: fullScreenImage !=
+                                                            null
+                                                        ? () => Navigator.of(
+                                                                    context)
+                                                                .push(
+                                                                    MaterialPageRoute(
+                                                              builder: (context) =>
+                                                                  ImageScreen(
+                                                                      url: fullScreenImage
+                                                                          .url),
+                                                            ))
+                                                        : null,
+                                                    child: MyImageWithCache(
+                                                      uri: itemImage.url,
+                                                      width: realImageWidth,
+                                                      height: realImageHeight,
+                                                      pixelRatio: pixelRatio,
+                                                    ),
+                                                  ),
                                                 if ((item.imageInfo != null &&
                                                         item.imageInfo!
                                                             .isNotEmpty) ||
