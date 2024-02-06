@@ -190,7 +190,7 @@ class _DraftItemScreenState extends State<DraftItemScreen> {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: FilledButton(
-                          onPressed: state.busy
+                          onPressed: state.busy || timelineId == null
                               ? null
                               : () {
                                   final newTimelineItem = TimelineItem(

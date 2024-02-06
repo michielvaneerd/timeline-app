@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:timeline/models/settings.dart';
 import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_host.dart';
 import 'package:timeline/models/timeline_item.dart';
@@ -8,10 +10,12 @@ class ContentScreen extends StatefulWidget {
   final Timeline timeline;
   final TimelineHost timelineHost;
   final TimelineItem timelineItem;
+  final Settings settings;
   const ContentScreen(
       {super.key,
       required this.timelineHost,
       required this.timeline,
+      required this.settings,
       required this.timelineItem});
 
   @override
@@ -24,9 +28,16 @@ class _ContentScreenState extends State<ContentScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = WebViewController()
-      ..loadRequest(Uri.parse(
-          '${widget.timelineHost.host}/?p=${widget.timelineItem.postId}'));
+    if (kDebugMode) {
+      _controller = WebViewController()
+        ..clearCache()
+        ..loadRequest(Uri.parse(
+            '${widget.timelineHost.host}/?p=${widget.timelineItem.postId}&theme=${widget.settings.themeMode.value}'));
+    } else {
+      _controller = WebViewController()
+        ..loadRequest(Uri.parse(
+            '${widget.timelineHost.host}/?p=${widget.timelineItem.postId}&theme=${widget.settings.themeMode.value}'));
+    }
   }
 
   @override

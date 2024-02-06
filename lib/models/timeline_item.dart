@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'dart:convert' as convert;
+import 'package:intl/intl.dart' as intl;
 
 abstract class TimelineAbstractItem extends Equatable {
   final int year;
@@ -26,7 +27,9 @@ class TimelineItem extends TimelineAbstractItem {
   final int? yearEnd;
   final int postId;
   final bool hasContent;
-  final String? modified; // Only for draft items
+  final DateTime? modified; // Only for draft items
+
+  static final dateFormat = intl.DateFormat('y-MM-ddTHH:mm:ss');
 
   const TimelineItem(
       {this.id,
@@ -56,6 +59,13 @@ class TimelineItem extends TimelineAbstractItem {
         modified,
         hasContent
       ];
+
+  String years() {
+    if (yearEnd == null) {
+      return year.toString();
+    }
+    return '$year / $yearEnd';
+  }
 
   Map<String, dynamic> toDraftMap(int timelineExternalId) {
     return {
@@ -139,7 +149,7 @@ class TimelineItem extends TimelineAbstractItem {
         title: map['title_raw'],
         hasContent: meta['mve_timeline_content'],
         timelineId: timelineId,
-        modified: map['modified'],
+        modified: dateFormat.parse(map['modified']),
         image: _getImage(meta['mve_timeline_image_src']),
         imageInfo: meta['mve_timeline_image_info'],
         imageSource: meta['mve_timeline_image_source'],

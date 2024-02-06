@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_host.dart';
 import 'package:timeline/models/timeline_item.dart';
@@ -44,20 +46,38 @@ class _DraftItemsScreenState extends State<DraftItemsScreen> {
   List<Widget> _listViewItems(List<TimelineItem> items, BuildContext context,
       DraftItemsScreenCubit cubit) {
     return items
-        .map((e) => ListTile(
-              title: Text(e.title),
-              onTap: () async {
-                final isChanged =
-                    await Navigator.of(context).push<bool?>(MaterialPageRoute(
-                  builder: (context) => DraftItemScreen(
-                      timelineItem: e,
-                      timelines: widget.timelines,
-                      timelineHost: widget.timelineHost),
-                ));
-                if (isChanged != null && isChanged) {
-                  cubit.getItems(widget.timelineHost, widget.timelines);
-                }
-              },
+        .map((e) => Card(
+              child: ListTile(
+                title: Text(e.title),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.timelines
+                            .firstWhereOrNull(
+                                (element) => element.id == e.timelineId)
+                            ?.name ??
+                        '-'),
+                    Text(e.years()),
+                    Text(DateFormat.yMd().add_jm().format(e.modified!))
+                  ],
+                ),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () async {
+                  final isChanged =
+                      await Navigator.of(context).push<bool?>(MaterialPageRoute(
+                    builder: (context) => DraftItemScreen(
+                        timelineItem: e,
+                        timelines: widget.timelines,
+                        timelineHost: widget.timelineHost),
+                  ));
+                  if (isChanged != null && isChanged) {
+                    if (mounted) {
+                      //_loadingOverlay.show(context);
+                      cubit.getItems(widget.timelineHost, widget.timelines);
+                    }
+                  }
+                },
+              ),
             ))
         .toList();
   }
@@ -93,7 +113,6 @@ class _DraftItemsScreenState extends State<DraftItemsScreen> {
                               timelineHost: widget.timelineHost),
                         ));
                         if (hasChanged != null && hasChanged) {
-                          print('OKEE');
                           cubit.getItems(widget.timelineHost, widget.timelines);
                         }
                       },

@@ -255,10 +255,6 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                               index, builtIndexes) &&
                                       (widget.loadImages ||
                                           imageIndexes.contains(index));
-                                  final yearText = item.year.toString() +
-                                      (item.yearEnd != null
-                                          ? (' / ${item.yearEnd}')
-                                          : '');
                                   final realImageWidth = itemImage != null
                                       ? (imageWidth > itemImage.width
                                           ? itemImage.width.toDouble()
@@ -333,7 +329,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                           .textTheme
                                                           .titleLarge,
                                                     ),
-                                                    Text(yearText,
+                                                    Text(item.years(),
                                                         style: Theme.of(context)
                                                             .textTheme
                                                             .bodySmall),
@@ -391,20 +387,21 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                                   ?.fontSize),
                                                       onTap: () => Navigator.of(
                                                               context)
-                                                          .push(MaterialPageRoute(
-                                                              builder: (context) => ContentScreen(
-                                                                  timelineHost: widget
-                                                                      .timelineAll
-                                                                      .timelineHosts
-                                                                      .firstWhere((element) =>
-                                                                          element
-                                                                              .id ==
-                                                                          timeline
-                                                                              .hostId),
-                                                                  timeline:
-                                                                      timeline,
-                                                                  timelineItem:
-                                                                      item))),
+                                                          .push(
+                                                              MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          ContentScreen(
+                                                                            timelineHost: widget.timelineAll.timelineHosts.firstWhere((element) =>
+                                                                                element.id ==
+                                                                                timeline.hostId),
+                                                                            timeline:
+                                                                                timeline,
+                                                                            timelineItem:
+                                                                                item,
+                                                                            settings:
+                                                                                widget.timelineAll.settings,
+                                                                          ))),
                                                     )
                                                 ],
                                               ),

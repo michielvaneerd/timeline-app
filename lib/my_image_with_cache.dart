@@ -75,9 +75,12 @@ class _MyImageWithCacheState extends State<MyImageWithCache> {
         if (snapshot.connectionState == ConnectionState.done) {
           return snapshot.data!;
         } else {
-          return Placeholder(
-            fallbackWidth: widget.width,
-            fallbackHeight: widget.height,
+          return Opacity(
+            opacity: 0,
+            child: Placeholder(
+              fallbackWidth: widget.width,
+              fallbackHeight: widget.height,
+            ),
           );
         }
       },
