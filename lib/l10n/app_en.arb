@@ -35,5 +35,7 @@
   "retry": "Retry",
   "username": "Username",
   "password": "Password",
-  "cachedImages": "Cached images"
+  "cachedImages": "Cached images",
+  "url": "URL",
+  "addLink": "Add link"
 }

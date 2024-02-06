@@ -63,7 +63,8 @@ class TimelineItem extends TimelineAbstractItem {
       'meta': {
         'mve_timeline_year': year.toString(),
         'mve_timeline_year_end': yearEnd?.toString(),
-        'mve_timeline_intro': intro
+        'mve_timeline_intro': intro,
+        'mve_timeline_links': convert.json.encode(links)
       },
       'mve_timeline': [timelineExternalId]
     };
@@ -91,11 +92,17 @@ class TimelineItem extends TimelineAbstractItem {
     if (links == null || links.isEmpty) {
       return [];
     }
-    return convert.jsonDecode(links).map((e) {
-      return TimelineItemLink.fromMap((e as Map<String, dynamic>)
-          .map<String, String>(
-              (key, value) => MapEntry(key, value.toString())));
-    }).toList();
+    final items = convert.jsonDecode(links) as List;
+    final newLinks = items
+        .map((e) => TimelineItemLink.fromJson(e as Map<String, dynamic>))
+        .toList();
+    return newLinks;
+    //final items = convert.jsonDecode(links).map((e) {
+    //  return TimelineItemLink.fromJson((e as Map<String, dynamic>));
+    // return TimelineItemLink.fromJson((e as Map<String, dynamic>)
+    //     .map<String, String>(
+    //         (key, value) => MapEntry(key, value.toString())));
+    //});
   }
 
   static Map<TimelineItemImageSizes, TimelineItemImage> _getImage(
@@ -166,9 +173,20 @@ class TimelineItemLink extends Equatable {
   @override
   List<Object?> get props => [name, url];
 
-  TimelineItemLink.fromMap(Map<String, String> map)
-      : name = map['name']!,
-        url = map['url']!;
+  Map<String, dynamic> toJson() {
+    return {'name': name, 'url': url};
+  }
+
+  TimelineItemLink.fromJson(Map<String, dynamic> map)
+      : name = map['name'] as String,
+        url = map['url'] as String;
+}
+
+// Used when editing so we can set the deleted flag.
+class DraftTimelineItemLink extends TimelineItemLink {
+  final bool deleted;
+  const DraftTimelineItemLink(
+      {required super.name, required super.url, required this.deleted});
 }
 
 enum TimelineItemImageSizes {
