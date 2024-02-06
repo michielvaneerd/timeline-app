@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart' as path_provider;
 
 // https://medium.com/@pnkajvirat/streambuilder-in-flutter-85359f9469df
 // https://dev.to/iiits-iota/using-stream-builder-in-flutter-3hkc
@@ -14,11 +13,13 @@ class MyImageWithCache extends StatefulWidget {
       required this.uri,
       required this.width,
       required this.height,
+      required this.dirPath,
       required this.pixelRatio});
   final String uri;
   final double width;
   final double height;
   final double pixelRatio;
+  final String dirPath;
 
   @override
   State<MyImageWithCache> createState() => _MyImageWithCacheState();
@@ -30,11 +31,9 @@ class _MyImageWithCacheState extends State<MyImageWithCache> {
   Future<Widget> _getImage() async {
     // Dus identieke URLs genereren identieke md5s en dat is goed.
     final hash = crypto.md5.convert(convert.utf8.encode(widget.uri)).toString();
-    final dir = await path_provider.getTemporaryDirectory();
-    final path = '${dir.path}/img-$hash';
+    final path = '${widget.dirPath}/img-$hash';
     final file = File(path);
     if (await file.exists()) {
-      print('Image ${widget.uri} exists!');
       return Image.file(
         file,
         cacheWidth: (widget.width * widget.pixelRatio).toInt(),

@@ -5,10 +5,11 @@ import 'package:timeline/my_store.dart';
 
 class SettingsScreenState extends Equatable {
   final Settings settings;
+  final bool busy;
 
-  const SettingsScreenState({required this.settings});
+  const SettingsScreenState({required this.settings, this.busy = false});
   @override
-  List<Object?> get props => [settings];
+  List<Object?> get props => [settings, busy];
 }
 
 class SettingsScreenCubit extends Cubit<SettingsScreenState> {
@@ -17,6 +18,12 @@ class SettingsScreenCubit extends Cubit<SettingsScreenState> {
 
   Future updateSettings(Settings settings) async {
     await MyStore.putSettings(settings);
-    //emit(SettingsScreenState(settings: settings));
+  }
+
+  void clearCache(Settings settings) async {
+    emit(SettingsScreenState(settings: settings, busy: true));
+    await MyStore.clearImageCache();
+    await Future.delayed(const Duration(seconds: 1));
+    emit(SettingsScreenState(settings: settings));
   }
 }

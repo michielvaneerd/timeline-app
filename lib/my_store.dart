@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:sqflite/sqflite.dart';
@@ -7,6 +9,7 @@ import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_host.dart';
 import 'package:timeline/models/timeline_item.dart';
 import 'package:timeline/my_crypt.dart';
+import 'package:path_provider/path_provider.dart' as path_provider;
 
 class MyStore {
   static const keySettingsLoadImages = 'load_images';
@@ -18,6 +21,7 @@ class MyStore {
   static const keySecureStorageKey = 'key';
 
   static late final String _secretKey;
+  static late final String _imageCachePath;
 
   static Database? _database;
   static const FlutterSecureStorage _flutterSecureStorage =
@@ -53,6 +57,27 @@ class MyStore {
             'CREATE TABLE items (id INTEGER PRIMARY KEY, timeline_id INTEGER, year INTEGER, year_end INTEGER, intro TEXT, title TEXT, image TEXT, links TEXT, image_source TEXT, image_info TEXT, post_id INTEGER, has_content INTEGER)');
       },
     );
+    // 3) Store image cache dir
+    await _initImageCache();
+  }
+
+  static String getImageCachePath() {
+    return _imageCachePath;
+  }
+
+  static Future _initImageCache() async {
+    final cacheDir = await path_provider.getApplicationCacheDirectory();
+    final dir = Directory('${cacheDir.path}/image-cache');
+    if (!await dir.exists()) {
+      await dir.create();
+    }
+    _imageCachePath = dir.path;
+  }
+
+  static Future clearImageCache() async {
+    final dir = Directory(_imageCachePath);
+    await dir.delete(recursive: true);
+    await dir.create(recursive: true);
   }
 
   static Future<String> decrypt(String value) async {

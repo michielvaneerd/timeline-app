@@ -41,7 +41,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => SettingsScreenCubit(widget.initialSettings),
-      child: BlocBuilder<SettingsScreenCubit, SettingsScreenState>(
+      child: BlocConsumer<SettingsScreenCubit, SettingsScreenState>(
+        listener: (context, state) {
+          if (!state.busy) {
+            _loadingOverlay.hide();
+          }
+        },
         builder: (context, state) {
           final cubit = BlocProvider.of<SettingsScreenCubit>(context);
           return PopScope(
@@ -85,6 +90,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           });
                         }
                       }),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: OutlinedButton(
+                        onPressed: state.busy
+                            ? null
+                            : () {
+                                _loadingOverlay.show(context);
+                                cubit.clearCache(settings);
+                              },
+                        child: Text('Clear cache')),
+                  ),
                   if (!settings.condensed) ...[
                     Padding(
                       padding: const EdgeInsets.all(16.0),

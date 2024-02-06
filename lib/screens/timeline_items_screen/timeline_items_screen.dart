@@ -1,12 +1,11 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
-import 'package:timeline/models/settings.dart';
 import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_item.dart';
 import 'package:timeline/my_html_text.dart';
 import 'package:timeline/my_image_with_cache.dart';
+import 'package:timeline/my_loading_overlay.dart';
 import 'package:timeline/my_store.dart';
 import 'package:timeline/my_widgets.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
@@ -15,6 +14,7 @@ import 'package:timeline/screens/image_screen/image_screen.dart';
 import 'package:timeline/screens/timeline_items_screen/observer_controller_with_lazy_loading.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
 
 // https://github.com/fluttercandies/flutter_scrollview_observer/blob/main/lib/src/common/observer_controller.dart#L334
 // https://pub.dev/packages/scroll_to_index
@@ -48,6 +48,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   late final double screenWidth;
   late double imageWidth;
   late final double pixelRatio;
+  final _loadingOverlay = LoadingOverlay();
 
   @override
   void initState() {
@@ -73,6 +74,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
     scrollController.dispose();
     yearScrollController.dispose();
     searchController.dispose();
+    _loadingOverlay.hide();
     super.dispose();
   }
 
@@ -102,6 +104,18 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
           },
           child: child);
     }
+  }
+
+  Future<Image> _loadImage(TimelineItemImage image) async {
+    final response = await http.get(Uri.parse(image.url));
+    final bytes = response.bodyBytes;
+    return Image.memory(
+      bytes,
+      cacheWidth: (image.width * pixelRatio).toInt(),
+      cacheHeight: (image.height * pixelRatio).toInt(),
+      width: image.width.toDouble(),
+      height: image.height.toDouble(),
+    );
   }
 
   // This widget is the root of your application.
@@ -440,55 +454,75 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                               // crossAxisAlignment:
                                               //     CrossAxisAlignment.stretch,
                                               children: [
-                                                if (!widget.timelineAll.settings
-                                                    .cachedImages)
-                                                  InkWell(
-                                                    child: Image.network(
-                                                      itemImage.url,
-                                                      width: realImageWidth,
-                                                      height: realImageHeight,
-                                                      errorBuilder: (context,
-                                                              error,
-                                                              stackTrace) =>
-                                                          Placeholder(
-                                                        fallbackHeight:
-                                                            realImageHeight,
-                                                        fallbackWidth:
-                                                            realImageWidth,
-                                                      ),
-                                                      cacheWidth:
-                                                          (realImageWidth *
-                                                                  pixelRatio)
-                                                              .toInt(),
-                                                      cacheHeight:
-                                                          (realImageHeight *
-                                                                  pixelRatio)
-                                                              .toInt(),
-                                                    ),
-                                                    onTap: () {},
-                                                  ),
-                                                if (widget.timelineAll.settings
-                                                    .cachedImages)
-                                                  InkWell(
-                                                    onTap: fullScreenImage !=
-                                                            null
-                                                        ? () => Navigator.of(
+                                                InkWell(
+                                                  onTap: fullScreenImage != null
+                                                      ? () async {
+                                                          // Preload full image, so hero animation goes smooth
+                                                          // _loadingOverlay
+                                                          //     .show(context);
+                                                          final image =
+                                                              await _loadImage(
+                                                                  fullScreenImage);
+                                                          // _loadingOverlay
+                                                          //     .hide();
+                                                          if (mounted) {
+                                                            Navigator.of(
                                                                     context)
                                                                 .push(
                                                                     MaterialPageRoute(
                                                               builder: (context) =>
                                                                   ImageScreen(
-                                                                      url: fullScreenImage
-                                                                          .url),
-                                                            ))
-                                                        : null,
-                                                    child: MyImageWithCache(
-                                                      uri: itemImage.url,
-                                                      width: realImageWidth,
-                                                      height: realImageHeight,
-                                                      pixelRatio: pixelRatio,
-                                                    ),
-                                                  ),
+                                                                      tag:
+                                                                          'image-${item.id}',
+                                                                      image:
+                                                                          image),
+                                                            ));
+                                                          }
+                                                        }
+                                                      : null,
+                                                  child: Hero(
+                                                      tag: 'image-${item.id}',
+                                                      child: widget
+                                                              .timelineAll
+                                                              .settings
+                                                              .cachedImages
+                                                          ? MyImageWithCache(
+                                                              dirPath: MyStore
+                                                                  .getImageCachePath(),
+                                                              uri:
+                                                                  itemImage.url,
+                                                              width:
+                                                                  realImageWidth,
+                                                              height:
+                                                                  realImageHeight,
+                                                              pixelRatio:
+                                                                  pixelRatio,
+                                                            )
+                                                          : Image.network(
+                                                              itemImage.url,
+                                                              width:
+                                                                  realImageWidth,
+                                                              height:
+                                                                  realImageHeight,
+                                                              errorBuilder: (context,
+                                                                      error,
+                                                                      stackTrace) =>
+                                                                  Placeholder(
+                                                                fallbackHeight:
+                                                                    realImageHeight,
+                                                                fallbackWidth:
+                                                                    realImageWidth,
+                                                              ),
+                                                              cacheWidth:
+                                                                  (realImageWidth *
+                                                                          pixelRatio)
+                                                                      .toInt(),
+                                                              cacheHeight:
+                                                                  (realImageHeight *
+                                                                          pixelRatio)
+                                                                      .toInt(),
+                                                            )),
+                                                ),
                                                 if ((item.imageInfo != null &&
                                                         item.imageInfo!
                                                             .isNotEmpty) ||

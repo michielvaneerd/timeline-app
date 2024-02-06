@@ -58,9 +58,8 @@ class _MainDrawerState extends State<MainDrawer> {
       },
     ));
 
-    items.add(const Divider());
-
     for (final host in widget.timelineAll.timelineHosts) {
+      items.add(const Divider());
       items.add(ListTile(
         title: Text(host.name),
         titleTextStyle: Theme.of(context).textTheme.titleLarge,
@@ -93,6 +92,7 @@ class _MainDrawerState extends State<MainDrawer> {
       }
     }
     if (widget.timelineAll.timelineHosts.isNotEmpty) {
+      items.add(const Divider());
       items.add(ListTile(
           title: FilledButton(
         child: Text(myLoc(context).ok),
