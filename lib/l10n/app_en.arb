@@ -35,7 +35,13 @@
   "retry": "Retry",
   "username": "Username",
   "password": "Password",
-  "cachedImages": "Cached images",
+  "cachedImages": "Cache images",
   "url": "URL",
-  "addLink": "Add link"
+  "addLink": "Add link",
+  "cachedWhenNotOnWifi": "Cached when not on WIFI",
+  "clearCache": "Clear cache",
+  "links": "Links",
+  "year": "Year",
+  "yearEnd": "Year end",
+  "title": "Title"
 }

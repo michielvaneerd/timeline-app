@@ -14,12 +14,14 @@ class MyImageWithCache extends StatefulWidget {
       required this.width,
       required this.height,
       required this.dirPath,
+      required this.cacheOnly,
       required this.pixelRatio});
   final String uri;
   final double width;
   final double height;
   final double pixelRatio;
   final String dirPath;
+  final bool cacheOnly;
 
   @override
   State<MyImageWithCache> createState() => _MyImageWithCacheState();
@@ -42,21 +44,28 @@ class _MyImageWithCacheState extends State<MyImageWithCache> {
         height: widget.height,
       );
     } else {
-      try {
-        final response = await http.get(Uri.parse(widget.uri));
-        final bytes = response.bodyBytes;
-        await file.writeAsBytes(bytes);
-        return Image.memory(
-          bytes,
-          cacheWidth: (widget.width * widget.pixelRatio).toInt(),
-          cacheHeight: (widget.height * widget.pixelRatio).toInt(),
-          width: widget.width,
-          height: widget.height,
-        );
-      } catch (ex) {
+      if (widget.cacheOnly) {
         return Placeholder(
-          child: Text(ex.toString()),
+          fallbackWidth: widget.width,
+          fallbackHeight: widget.height,
         );
+      } else {
+        try {
+          final response = await http.get(Uri.parse(widget.uri));
+          final bytes = response.bodyBytes;
+          await file.writeAsBytes(bytes);
+          return Image.memory(
+            bytes,
+            cacheWidth: (widget.width * widget.pixelRatio).toInt(),
+            cacheHeight: (widget.height * widget.pixelRatio).toInt(),
+            width: widget.width,
+            height: widget.height,
+          );
+        } catch (ex) {
+          return Placeholder(
+            child: Text(ex.toString()),
+          );
+        }
       }
     }
   }

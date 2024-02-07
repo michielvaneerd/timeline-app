@@ -180,7 +180,7 @@ class _DraftItemScreenState extends State<DraftItemScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: MyWidgets.textField(
                             context,
-                            labelText: 'Title',
+                            labelText: myLoc(context).title,
                             onChanged: (p0) {
                               setState(() {
                                 currentTitle = p0;
@@ -229,7 +229,7 @@ class _DraftItemScreenState extends State<DraftItemScreen> {
                                   });
                                 },
                                     controller: yearController,
-                                    labelText: 'Year'),
+                                    labelText: myLoc(context).year),
                               ),
                               const Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 8.0),
@@ -237,7 +237,7 @@ class _DraftItemScreenState extends State<DraftItemScreen> {
                               Expanded(
                                 child: MyWidgets.textField(context,
                                     controller: yearEndController,
-                                    labelText: 'Year end'),
+                                    labelText: myLoc(context).yearEnd),
                               )
                             ],
                           ),
@@ -249,10 +249,6 @@ class _DraftItemScreenState extends State<DraftItemScreen> {
                               labelText: 'Intro',
                               maxLines: 4),
                         ),
-                        // const Padding(
-                        //   padding: EdgeInsets.symmetric(vertical: 8.0),
-                        //   child: Text('Links'),
-                        // ),
                         ...links.map((link) => ListTile(
                               trailing: const Icon(Icons.arrow_forward_ios),
                               onTap: () {

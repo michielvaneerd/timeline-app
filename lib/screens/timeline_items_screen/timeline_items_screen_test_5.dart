@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:scrollview_observer/scrollview_observer.dart';
 
 // https://github.com/fluttercandies/flutter_scrollview_observer/blob/main/lib/src/common/observer_controller.dart#L334
 // https://pub.dev/packages/scroll_to_index
@@ -74,8 +73,6 @@ class _MyTestItemsScreen5State extends State<MyTestItemsScreen5> {
                     onTap: () async {
                       // Todo: cur
                       final index = curItems.indexOf(e);
-                      print(keys[index]);
-                      print(index);
                       Scrollable.ensureVisible(keys[index]!.currentContext!);
                     },
                     child: Padding(
@@ -93,7 +90,6 @@ class _MyTestItemsScreen5State extends State<MyTestItemsScreen5> {
                 keys[index] = GlobalKey();
               }
               final key = keys[index];
-              print(index);
               index += 1;
               return Card(
                 key: key,

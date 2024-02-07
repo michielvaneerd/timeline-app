@@ -1,8 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timeline/models/settings.dart';
-import 'package:timeline/models/timeline.dart';
-import 'package:timeline/models/timeline_host.dart';
 import 'package:timeline/models/timeline_item.dart';
 import 'package:timeline/my_store.dart';
 import 'package:timeline/repositories/timeline_repository.dart';

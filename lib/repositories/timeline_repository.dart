@@ -31,7 +31,7 @@ class TimelineRepository {
   }
 
   Future<String?> _decrypt(String? value) async {
-    return value != null ? await MyStore.decrypt(value!) : null;
+    return value != null ? await MyStore.decrypt(value) : null;
   }
 
   Future updateDraftItem(

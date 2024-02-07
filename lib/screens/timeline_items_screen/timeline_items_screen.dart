@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
+import 'package:timeline/models/settings.dart';
 import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_item.dart';
 import 'package:timeline/my_html_text.dart';
@@ -13,6 +14,7 @@ import 'package:timeline/screens/content_screen/content_screen.dart';
 import 'package:timeline/screens/image_screen/image_screen.dart';
 import 'package:timeline/screens/timeline_items_screen/observer_controller_with_lazy_loading.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen_bloc.dart';
+import 'package:timeline/utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 
@@ -490,6 +492,12 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                               .settings
                                                               .cachedImages
                                                           ? MyImageWithCache(
+                                                              cacheOnly: widget
+                                                                      .timelineAll
+                                                                      .settings
+                                                                      .loadImages ==
+                                                                  LoadImages
+                                                                      .cachedWhenNotOnWifi,
                                                               dirPath: MyStore
                                                                   .getImageCachePath(),
                                                               uri:
@@ -605,7 +613,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                Text('Links',
+                                                Text(myLoc(context).links,
                                                     style: Theme.of(context)
                                                         .textTheme
                                                         .titleSmall),

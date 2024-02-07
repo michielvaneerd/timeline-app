@@ -13,7 +13,8 @@ enum MyThemeModes {
 enum LoadImages {
   always('always'),
   wifi('wifi'),
-  never('never');
+  never('never'),
+  cachedWhenNotOnWifi('cached_when_not_on_wifi');
 
   const LoadImages(this.value);
   final String value;

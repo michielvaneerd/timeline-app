@@ -46,6 +46,11 @@ class MainCubit extends Cubit<MainState> {
         final connectivity = await Connectivity().checkConnectivity();
         loadImages = connectivity == ConnectivityResult.wifi;
         break;
+      case LoadImages.cachedWhenNotOnWifi:
+        final connectivity = await Connectivity().checkConnectivity();
+        loadImages = timelineAll.settings.cachedImages ||
+            connectivity == ConnectivityResult.wifi;
+        break;
     }
     final activeTimelines = timelineAll.timelines
         .where(

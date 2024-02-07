@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:sqflite/sqflite.dart';
@@ -124,7 +125,8 @@ class MyStore {
       switch (row['key']) {
         case keySettingsLoadImages:
           if (row['value'] != null && row['value'].toString().isNotEmpty) {
-            loadImages = LoadImages.values.byName(row['value'].toString());
+            loadImages = LoadImages.values
+                .firstWhereOrNull((element) => element.value == row['value'])!;
           }
           break;
         case keySettingsCondensed:

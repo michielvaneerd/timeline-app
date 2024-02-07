@@ -99,7 +99,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 _loadingOverlay.show(context);
                                 cubit.clearCache(settings);
                               },
-                        child: Text('Clear cache')),
+                        child: Text(myLoc(context).clearCache)),
                   ),
                   if (!settings.condensed) ...[
                     Padding(

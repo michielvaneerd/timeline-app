@@ -11,6 +11,8 @@ class TranslationHelper {
         return myLoc(context).onlyWhenOnWifi;
       case LoadImages.never:
         return myLoc(context).never;
+      case LoadImages.cachedWhenNotOnWifi:
+        return myLoc(context).cachedWhenNotOnWifi;
     }
   }
 

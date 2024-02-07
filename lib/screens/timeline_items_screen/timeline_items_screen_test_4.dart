@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
-import 'package:timeline/screens/timeline_items_screen/observer_controller_with_lazy_loading.dart';
 
 // https://github.com/fluttercandies/flutter_scrollview_observer/blob/main/lib/src/common/observer_controller.dart#L334
 // https://pub.dev/packages/scroll_to_index
@@ -120,7 +119,7 @@ class _MyTestItemsScreen4State extends State<MyTestItemsScreen4> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Text('$index: ' + e['key'].toString()),
+                          child: Text('$index: ${e['key']}'),
                         ),
                         Padding(
                           padding: const EdgeInsets.all(8.0),
