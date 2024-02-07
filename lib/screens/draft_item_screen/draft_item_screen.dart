@@ -29,15 +29,18 @@ class _DraftItemScreenState extends State<DraftItemScreen> {
   late final TextEditingController yearController;
   late final TextEditingController yearEndController;
   late final TextEditingController introController;
-  List<TimelineItemLink> links = [];
-
+  String? currentTitle;
+  int? currentYear;
   int? timelineId;
+  List<TimelineItemLink> links = [];
 
   @override
   void initState() {
     super.initState();
     if (widget.timelineItem != null) {
       timelineId = widget.timelineItem!.timelineId;
+      currentYear = widget.timelineItem!.year;
+      currentTitle = widget.timelineItem!.title;
       links.addAll(widget.timelineItem!.links);
     }
     titleController = TextEditingController(text: widget.timelineItem?.title);
@@ -102,128 +105,172 @@ class _DraftItemScreenState extends State<DraftItemScreen> {
           final cubit = BlocProvider.of<DraftItemScreenCubit>(context);
           return Scaffold(
               appBar: AppBar(
-                title: Text(
-                    widget.timelineItem?.title ?? myLoc(context).draftItems),
-                actions: widget.timelineItem != null
-                    ? [
-                        IconButton(
-                            onPressed: () {
-                              cubit.delete(
-                                  widget.timelineHost,
-                                  widget.timelines.firstWhere(
-                                      (element) => element.id == timelineId),
-                                  widget.timelineItem!);
+                title: Text(currentTitle ?? myLoc(context).draftItems),
+                actions: [
+                  IconButton(
+                      onPressed: state.busy ||
+                              timelineId == null ||
+                              currentTitle == null ||
+                              currentTitle!.isEmpty ||
+                              currentYear == null
+                          ? null
+                          : () {
+                              final newTimelineItem = TimelineItem(
+                                  image: widget.timelineItem?.image ?? {},
+                                  hasContent:
+                                      widget.timelineItem?.hasContent ?? false,
+                                  intro: introController.text,
+                                  title: titleController.text,
+                                  timelineId: timelineId!,
+                                  year: int.parse(yearController.text),
+                                  postId: widget.timelineItem?.postId ?? 0,
+                                  yearEnd: yearEndController.text.isNotEmpty
+                                      ? int.parse(yearEndController.text)
+                                      : null,
+                                  links: links);
+                              if (widget.timelineItem != null) {
+                                cubit.update(
+                                    widget.timelineHost,
+                                    widget.timelines.firstWhere(
+                                        (element) => element.id == timelineId),
+                                    newTimelineItem);
+                              } else {
+                                cubit.create(
+                                    widget.timelineHost,
+                                    widget.timelines.firstWhere(
+                                        (element) => element.id == timelineId),
+                                    newTimelineItem);
+                              }
                             },
-                            icon: const Icon(Icons.delete))
-                      ]
-                    : null,
-              ),
-              body: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: MyWidgets.textField(
-                        context,
-                        labelText: 'Title',
-                        controller: titleController,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: DropdownMenu<Timeline>(
-                          inputDecorationTheme: InputDecorationTheme(
-                              enabledBorder:
-                                  MyWidgets.getOutlineInputBorderEnabled(
-                                      context),
-                              focusedBorder:
-                                  MyWidgets.getOutlineInputBorderFocused(
-                                      context)),
-                          initialSelection: widget.timelineItem != null
-                              ? widget.timelines.firstWhereOrNull((element) =>
-                                  element.id == widget.timelineItem!.timelineId)
-                              : null,
-                          onSelected: (value) {
-                            if (value != null) {
-                              setState(() {
-                                timelineId = value.id;
-                              });
-                            }
-                          },
-                          dropdownMenuEntries: widget.timelines
-                              .map((e) => DropdownMenuEntry<Timeline>(
-                                  value: e, label: e.name))
-                              .toList()),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: MyWidgets.textField(context,
-                          controller: yearController, labelText: 'Year'),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: MyWidgets.textField(context,
-                          controller: yearEndController, labelText: 'Year end'),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: MyWidgets.textField(context,
-                          controller: introController,
-                          labelText: 'Intro',
-                          maxLines: 6),
-                    ),
-                    ...links.map((link) => ListTile(
-                          onTap: () {
-                            onLinkTap(link);
-                          },
-                          title: Text(link.name),
-                          subtitle: Text(link.url),
-                        )),
-                    ListTile(
-                      title: Text(myLoc(context).addLink),
-                      onTap: () async {
-                        onLinkTap(null);
+                      icon: const Icon(Icons.save)),
+                  if (widget.timelineItem != null)
+                    PopupMenuButton(
+                      icon: const Icon(Icons.more_vert),
+                      onSelected: (value) {
+                        switch (value) {
+                          case 'delete':
+                            cubit.delete(
+                                widget.timelineHost,
+                                widget.timelines.firstWhere(
+                                    (element) => element.id == timelineId),
+                                widget.timelineItem!);
+                            break;
+                        }
                       },
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: FilledButton(
-                          onPressed: state.busy || timelineId == null
-                              ? null
-                              : () {
-                                  final newTimelineItem = TimelineItem(
-                                      image: widget.timelineItem?.image ?? {},
-                                      hasContent:
-                                          widget.timelineItem?.hasContent ??
-                                              false,
-                                      intro: introController.text,
-                                      title: titleController.text,
-                                      timelineId: timelineId!,
-                                      year: int.parse(yearController.text),
-                                      postId: widget.timelineItem?.postId ?? 0,
-                                      yearEnd: yearEndController.text.isNotEmpty
-                                          ? int.parse(yearEndController.text)
-                                          : null,
-                                      links: links);
-                                  if (widget.timelineItem != null) {
-                                    cubit.update(
-                                        widget.timelineHost,
-                                        widget.timelines.firstWhere((element) =>
-                                            element.id == timelineId),
-                                        newTimelineItem);
-                                  } else {
-                                    cubit.create(
-                                        widget.timelineHost,
-                                        widget.timelines.firstWhere((element) =>
-                                            element.id == timelineId),
-                                        newTimelineItem);
-                                  }
+                      itemBuilder: (context) {
+                        return [
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Text(myLoc(context).delete),
+                          )
+                        ];
+                      },
+                    )
+                ],
+              ),
+              body: SafeArea(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: MyWidgets.textField(
+                            context,
+                            labelText: 'Title',
+                            onChanged: (p0) {
+                              setState(() {
+                                currentTitle = p0;
+                              });
+                            },
+                            controller: titleController,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: DropdownMenu<Timeline>(
+                              inputDecorationTheme: InputDecorationTheme(
+                                  enabledBorder:
+                                      MyWidgets.getOutlineInputBorderEnabled(
+                                          context),
+                                  focusedBorder:
+                                      MyWidgets.getOutlineInputBorderFocused(
+                                          context)),
+                              initialSelection: widget.timelineItem != null
+                                  ? widget.timelines.firstWhereOrNull(
+                                      (element) =>
+                                          element.id ==
+                                          widget.timelineItem!.timelineId)
+                                  : null,
+                              onSelected: (value) {
+                                if (value != null) {
+                                  setState(() {
+                                    timelineId = value.id;
+                                  });
+                                }
+                              },
+                              dropdownMenuEntries: widget.timelines
+                                  .map((e) => DropdownMenuEntry<Timeline>(
+                                      value: e, label: e.name))
+                                  .toList()),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: MyWidgets.textField(context,
+                                    onChanged: (p0) {
+                                  setState(() {
+                                    currentYear = int.tryParse(p0);
+                                  });
                                 },
-                          child: Text(myLoc(context).ok)),
+                                    controller: yearController,
+                                    labelText: 'Year'),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                              ),
+                              Expanded(
+                                child: MyWidgets.textField(context,
+                                    controller: yearEndController,
+                                    labelText: 'Year end'),
+                              )
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: MyWidgets.textField(context,
+                              controller: introController,
+                              labelText: 'Intro',
+                              maxLines: 4),
+                        ),
+                        // const Padding(
+                        //   padding: EdgeInsets.symmetric(vertical: 8.0),
+                        //   child: Text('Links'),
+                        // ),
+                        ...links.map((link) => ListTile(
+                              trailing: const Icon(Icons.arrow_forward_ios),
+                              onTap: () {
+                                onLinkTap(link);
+                              },
+                              title: Text(link.name),
+                              subtitle: Text(link.url),
+                            )),
+                        ListTile(
+                          title: Text(myLoc(context).addLink),
+                          trailing: const Icon(Icons.add),
+                          onTap: () async {
+                            onLinkTap(null);
+                          },
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ));
         },

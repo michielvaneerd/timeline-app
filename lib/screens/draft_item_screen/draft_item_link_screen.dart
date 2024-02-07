@@ -15,16 +15,18 @@ class _DraftItemLinkSreenState extends State<DraftItemLinkSreen> {
   late final TextEditingController nameController;
   late final TextEditingController urlController;
   late DraftTimelineItemLink link;
+  late String currentName;
+  late String currentUrl;
 
   @override
   void initState() {
     super.initState();
+    currentName = widget.link?.name ?? '';
+    currentUrl = widget.link?.url ?? '';
     link = DraftTimelineItemLink(
-        name: widget.link?.name ?? '',
-        url: widget.link?.url ?? '',
-        deleted: false);
-    nameController = TextEditingController(text: widget.link?.name);
-    urlController = TextEditingController(text: widget.link?.url);
+        name: currentName, url: currentUrl, deleted: false);
+    nameController = TextEditingController(text: currentName);
+    urlController = TextEditingController(text: currentUrl);
   }
 
   @override
@@ -37,44 +39,72 @@ class _DraftItemLinkSreenState extends State<DraftItemLinkSreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          actions: widget.link != null
-              ? [
-                  IconButton(
-                      onPressed: () {
-                        Navigator.of(context).pop<DraftTimelineItemLink>(
-                            DraftTimelineItemLink(
-                                name: nameController.text,
-                                url: urlController.text,
-                                deleted: true));
-                      },
-                      icon: const Icon(Icons.delete))
-                ]
-              : null,
-        ),
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: MyWidgets.textField(context,
-                  controller: nameController, labelText: myLoc(context).name),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: MyWidgets.textField(context,
-                  controller: urlController, labelText: myLoc(context).url),
-            ),
-            FilledButton(
-                onPressed: () {
-                  // TODO: validate
-                  Navigator.of(context).pop<DraftTimelineItemLink>(
-                      DraftTimelineItemLink(
-                          name: nameController.text,
-                          url: urlController.text,
-                          deleted: false));
-                },
-                child: Text(myLoc(context).ok))
-          ],
+        appBar: AppBar(actions: [
+          IconButton(
+              onPressed: currentName.isNotEmpty && currentUrl.isNotEmpty
+                  ? () {
+                      Navigator.of(context).pop<DraftTimelineItemLink>(
+                          DraftTimelineItemLink(
+                              name: nameController.text,
+                              url: urlController.text,
+                              deleted: false));
+                    }
+                  : null,
+              icon: const Icon(Icons.save)),
+          if (widget.link != null)
+            PopupMenuButton(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (value) {
+                switch (value) {
+                  case 'delete':
+                    Navigator.of(context).pop<DraftTimelineItemLink>(
+                        DraftTimelineItemLink(
+                            name: nameController.text,
+                            url: urlController.text,
+                            deleted: true));
+                    break;
+                }
+              },
+              itemBuilder: (context) {
+                return [
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Text(myLoc(context).delete),
+                  )
+                ];
+              },
+            )
+        ]),
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: MyWidgets.textField(
+                  context,
+                  controller: nameController,
+                  labelText: myLoc(context).name,
+                  onChanged: (p0) {
+                    setState(() {
+                      currentName = p0;
+                    });
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: MyWidgets.textField(context,
+                    controller: urlController,
+                    labelText: myLoc(context).url, onChanged: (p0) {
+                  setState(() {
+                    currentUrl = p0;
+                  });
+                }),
+              )
+            ],
+          ),
         ));
   }
 }

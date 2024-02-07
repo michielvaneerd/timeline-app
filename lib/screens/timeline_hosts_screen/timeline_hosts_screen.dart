@@ -49,16 +49,19 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
         return AlertDialog(
           content: Text(myLoc(context).confirmDeleteHost(host.name)),
           actions: [
-            FilledButton(
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-                child: Text(myLoc(context).delete)),
             TextButton(
                 onPressed: () {
                   Navigator.of(context).pop(false);
                 },
                 child: Text(myLoc(context).cancel)),
+            FilledButton(
+                style: ButtonStyle(
+                    backgroundColor: MaterialStatePropertyAll(
+                        Theme.of(context).colorScheme.error)),
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                child: Text(myLoc(context).delete)),
           ],
         );
       },

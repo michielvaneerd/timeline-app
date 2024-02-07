@@ -50,16 +50,16 @@ class MyTwoFieldsDialog {
             actions: [
               TextButton(
                   onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(myLoc(context).cancel)),
+              FilledButton(
+                  onPressed: () {
                     Navigator.of(context).pop(MyTwoFieldsDialogResult(
                         field1: field1Controller.text,
                         field2: field2Controller.text));
                   },
                   child: Text(myLoc(context).ok)),
-              TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(myLoc(context).cancel))
             ],
           );
         });
