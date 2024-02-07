@@ -392,6 +392,10 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                                   builder:
                                                                       (context) =>
                                                                           ContentScreen(
+                                                                            onSurfaceColor:
+                                                                                Theme.of(context).colorScheme.onSurface,
+                                                                            surfaceColor:
+                                                                                Theme.of(context).colorScheme.surface,
                                                                             timelineHost: widget.timelineAll.timelineHosts.firstWhere((element) =>
                                                                                 element.id ==
                                                                                 timeline.hostId),
