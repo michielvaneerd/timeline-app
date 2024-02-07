@@ -60,6 +60,10 @@ class ObserverControllerWithLazyLoading {
   /// and makes sure that the requested index is displayed.
   void onObserve(ListViewObserveModel model) {
     if (requestedIndex > -1) {
+      if (!isScrollingToIndex) {
+        requestedIndex = -1;
+        return;
+      }
       final tmp = requestedIndex;
       requestedIndex = -1;
       final builtIndexes = keys.entries

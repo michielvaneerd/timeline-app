@@ -5,7 +5,7 @@ import 'package:timeline/main_drawer.dart';
 import 'package:timeline/models/timeline.dart';
 import 'package:timeline/my_http.dart';
 import 'package:timeline/my_store.dart';
-import 'package:timeline/color_schemes5.g.dart';
+import 'package:timeline/color_schemes.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:timeline/screens/timeline_hosts_screen/timeline_hosts_screen.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen.dart';

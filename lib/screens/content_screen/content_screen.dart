@@ -14,6 +14,7 @@ class ContentScreen extends StatefulWidget {
   final Settings settings;
   final Color onSurfaceColor;
   final Color surfaceColor;
+  final Color linkColor;
   const ContentScreen(
       {super.key,
       required this.timelineHost,
@@ -21,6 +22,7 @@ class ContentScreen extends StatefulWidget {
       required this.settings,
       required this.onSurfaceColor,
       required this.surfaceColor,
+      required this.linkColor,
       required this.timelineItem});
 
   @override
@@ -36,15 +38,16 @@ class _ContentScreenState extends State<ContentScreen> {
 
     final fgColor = Utils.getHex(widget.onSurfaceColor);
     final bgColor = Utils.getHex(widget.surfaceColor);
+    final aColor = Utils.getHex(widget.linkColor);
     if (kDebugMode) {
       _controller = WebViewController()
         ..clearCache()
         ..loadRequest(Uri.parse(
-            '${widget.timelineHost.host}/?p=${widget.timelineItem.postId}&theme=${widget.settings.themeMode.value}&fg=$fgColor&bg=$bgColor'));
+            '${widget.timelineHost.host}/?p=${widget.timelineItem.postId}&theme=${widget.settings.themeMode.value}&fg=$fgColor&bg=$bgColor&ac=$aColor'));
     } else {
       _controller = WebViewController()
         ..loadRequest(Uri.parse(
-            '${widget.timelineHost.host}/?p=${widget.timelineItem.postId}&theme=${widget.settings.themeMode.value}&fg=$fgColor&bg=$bgColor'));
+            '${widget.timelineHost.host}/?p=${widget.timelineItem.postId}&theme=${widget.settings.themeMode.value}&fg=$fgColor&bg=$bgColor&ac=$aColor'));
     }
   }
 
