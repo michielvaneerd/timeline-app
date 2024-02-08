@@ -146,6 +146,7 @@ class _MyAppState extends State<MyApp> {
     } else if (activeTimelines != null && activeTimelines.isNotEmpty) {
       return TimelineItemsWidget(
         loadImages: state.loadImages!,
+        connectivityResult: state.connectivityResult,
         showSearch: showSearch,
         timelineAll: state.timelineAll!,
         yearAndTimelineItems: state.items!,

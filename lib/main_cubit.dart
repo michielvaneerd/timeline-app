@@ -13,12 +13,14 @@ class MainState extends Equatable {
   final bool busy;
   final YearAndTimelineItems? items;
   final bool? loadImages;
+  final ConnectivityResult? connectivityResult;
 
   const MainState(
       {this.timelineAll,
       this.items,
       this.error,
       this.busy = false,
+      this.connectivityResult,
       this.loadImages});
   @override
   List<Object?> get props => [error, busy, timelineAll, items, loadImages];
@@ -35,6 +37,7 @@ class MainCubit extends Cubit<MainState> {
 
     TimelineAll timelineAll = await timelineRepository.getAll();
     var loadImages = false;
+    ConnectivityResult? connectivityResult;
     switch (timelineAll.settings.loadImages) {
       case LoadImages.always:
         loadImages = true;
@@ -43,13 +46,13 @@ class MainCubit extends Cubit<MainState> {
         loadImages = false;
         break;
       case LoadImages.wifi:
-        final connectivity = await Connectivity().checkConnectivity();
-        loadImages = connectivity == ConnectivityResult.wifi;
+        connectivityResult = await Connectivity().checkConnectivity();
+        loadImages = connectivityResult == ConnectivityResult.wifi;
         break;
       case LoadImages.cachedWhenNotOnWifi:
-        final connectivity = await Connectivity().checkConnectivity();
+        connectivityResult = await Connectivity().checkConnectivity();
         loadImages = timelineAll.settings.cachedImages ||
-            connectivity == ConnectivityResult.wifi;
+            connectivityResult == ConnectivityResult.wifi;
         break;
     }
     final activeTimelines = timelineAll.timelines
@@ -88,7 +91,10 @@ class MainCubit extends Cubit<MainState> {
           timelines: updatedTimelines);
     }
     emit(MainState(
-        timelineAll: timelineAll, items: items, loadImages: loadImages));
+        timelineAll: timelineAll,
+        items: items,
+        loadImages: loadImages,
+        connectivityResult: connectivityResult));
   }
 
   void activateTimelines(List<int> timelineIds) async {

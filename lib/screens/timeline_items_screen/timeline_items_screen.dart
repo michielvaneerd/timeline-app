@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
@@ -27,10 +28,12 @@ class TimelineItemsWidget extends StatefulWidget {
   final bool showSearch;
   final bool loadImages;
   final void Function() onRefresh;
+  final ConnectivityResult? connectivityResult;
   const TimelineItemsWidget(
       {super.key,
       required this.timelineAll,
       required this.loadImages,
+      this.connectivityResult,
       required this.yearAndTimelineItems,
       required this.onRefresh,
       required this.showSearch});
@@ -118,6 +121,15 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
       width: image.width.toDouble(),
       height: image.height.toDouble(),
     );
+  }
+
+  void _launchUrl(String url) async {
+    if (!await launchUrl(Uri.parse(url))) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Cannot open link $url')));
+      }
+    }
   }
 
   // This widget is the root of your application.
@@ -423,22 +435,26 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                             padding: const EdgeInsets.all(8.0),
                                             child: MyHtmlText.getRichText(
                                                 item.intro,
-                                                onLinkClicked: (id) {
-                                              int i = 0;
-                                              for (final t in widget
-                                                  .yearAndTimelineItems
-                                                  .timelineItems) {
-                                                if (t is TimelineItem) {
-                                                  // Important to also check for timeline ID, because we can display many different timelines from different hosts
-                                                  // so postId is not unique!
-                                                  if (t.postId == id &&
-                                                      t.timelineId ==
-                                                          item.timelineId) {
-                                                    _scrollToIndex(i);
-                                                    return;
+                                                onLinkClicked: ({id, url}) {
+                                              if (id != null) {
+                                                int i = 0;
+                                                for (final t in widget
+                                                    .yearAndTimelineItems
+                                                    .timelineItems) {
+                                                  if (t is TimelineItem) {
+                                                    // Important to also check for timeline ID, because we can display many different timelines from different hosts
+                                                    // so postId is not unique!
+                                                    if (t.postId == id &&
+                                                        t.timelineId ==
+                                                            item.timelineId) {
+                                                      _scrollToIndex(i);
+                                                      return;
+                                                    }
                                                   }
+                                                  i += 1;
                                                 }
-                                                i += 1;
+                                              } else if (url != null) {
+                                                _launchUrl(url);
                                               }
                                             },
                                                 textStyle: Theme.of(context)
@@ -493,11 +509,16 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                               .cachedImages
                                                           ? MyImageWithCache(
                                                               cacheOnly: widget
-                                                                      .timelineAll
-                                                                      .settings
-                                                                      .loadImages ==
-                                                                  LoadImages
-                                                                      .cachedWhenNotOnWifi,
+                                                                          .timelineAll
+                                                                          .settings
+                                                                          .loadImages ==
+                                                                      LoadImages
+                                                                          .cachedWhenNotOnWifi &&
+                                                                  (widget.connectivityResult ==
+                                                                          null ||
+                                                                      widget.connectivityResult !=
+                                                                          ConnectivityResult
+                                                                              .wifi),
                                                               dirPath: MyStore
                                                                   .getImageCachePath(),
                                                               uri:
@@ -635,17 +656,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                                             TextDecoration.underline)),
                                                           ),
                                                           onTap: () async {
-                                                            if (!await launchUrl(
-                                                                Uri.parse(
-                                                                    e.url))) {
-                                                              if (mounted) {
-                                                                ScaffoldMessenger.of(
-                                                                        context)
-                                                                    .showSnackBar(SnackBar(
-                                                                        content:
-                                                                            Text('Cannot open link ${e.name} and ${e.url}')));
-                                                              }
-                                                            }
+                                                            _launchUrl(e.url);
                                                           },
                                                         ))
                                               ],

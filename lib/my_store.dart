@@ -104,7 +104,7 @@ class MyStore {
               : null,
           'intro': meta['mve_timeline_intro'],
           'image': meta['mve_timeline_image_src'],
-          'links': meta['mve_timeline_image_links'],
+          'links': meta['mve_timeline_links'],
           'image_source': meta['mve_timeline_image_source'],
           'image_info': meta['mve_timeline_image_info']
         };

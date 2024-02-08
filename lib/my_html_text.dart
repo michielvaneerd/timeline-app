@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class MyHtmlText {
   static List<TextSpan> _getRichTexts(html_dom.Node node,
-      {Function(int id)? onLinkClicked}) {
+      {Function({int? id, String? url})? onLinkClicked}) {
     var newList = <TextSpan>[];
     for (var node in node.nodes) {
       if (node.nodeType == html_dom.Node.TEXT_NODE) {
@@ -25,8 +25,13 @@ class MyHtmlText {
                       fontWeight: nodeName == 'strong' ? FontWeight.bold : null,
                       fontStyle: nodeName == 'em' ? FontStyle.italic : null))),
               onTap: () {
-                onLinkClicked(
-                    int.parse(node.attributes['data-internal-id'].toString()));
+                final id = node.attributes.containsKey('data-internal-id')
+                    ? int.parse(node.attributes['data-internal-id'].toString())
+                    : null;
+                final url = node.attributes.containsKey('href')
+                    ? node.attributes['href']
+                    : null;
+                onLinkClicked(id: id, url: url);
               },
             ))
           ]));
@@ -47,7 +52,7 @@ class MyHtmlText {
       {double? fontSize,
       TextAlign? textAlign,
       TextStyle? textStyle,
-      Function(int id)? onLinkClicked}) {
+      Function({int? id, String? url})? onLinkClicked}) {
     final fragment = html_parser.parseFragment(text);
     return Text.rich(
       TextSpan(children: _getRichTexts(fragment, onLinkClicked: onLinkClicked)),
