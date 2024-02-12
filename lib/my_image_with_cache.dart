@@ -77,6 +77,16 @@ class _MyImageWithCacheState extends State<MyImageWithCache> {
   }
 
   @override
+  void didUpdateWidget(MyImageWithCache oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.uri != widget.uri) {
+      setState(() {
+        _data = _getImage();
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder(
       future: _data,
