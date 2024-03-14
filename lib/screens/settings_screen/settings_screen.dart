@@ -17,6 +17,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController imageWidthController;
+  late final TextEditingController yearWidthController;
   late Settings settings;
   final _loadingOverlay = LoadingOverlay();
   late final int initialSettingsHash;
@@ -28,11 +29,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     initialSettingsHash = settings.hashCode;
     imageWidthController = TextEditingController(
         text: widget.initialSettings.imageWidth?.toString());
+    yearWidthController = TextEditingController(
+        text: widget.initialSettings.yearWidth?.toString());
   }
 
   @override
   void dispose() {
     imageWidthController.dispose();
+    yearWidthController.dispose();
     _loadingOverlay.hide();
     super.dispose();
   }
@@ -60,7 +64,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _loadingOverlay.show(context);
                 await cubit.updateSettings(settings);
               }
-              if (mounted) {
+              if (context.mounted) {
                 Navigator.of(context).pop<bool>(hasChanged);
               }
             },
@@ -138,11 +142,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         onChanged: (value) {
                           final valueInt =
                               value.isNotEmpty ? int.tryParse(value) : null;
-                          setState(() {
-                            settings = settings.copyWith(
-                                imageWidth: valueInt,
-                                useImageWidthParameter: true);
-                          });
+                          if (valueInt == null) {
+                            setState(() {
+                              settings =
+                                  settings.copyWith(removeImageWidth: true);
+                            });
+                          } else {
+                            setState(() {
+                              settings =
+                                  settings.copyWith(imageWidth: valueInt);
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: MyWidgets.textField(
+                        context,
+                        controller: yearWidthController,
+                        labelText: myLoc(context).yearWidth,
+                        onChanged: (value) {
+                          final valueInt =
+                              value.isNotEmpty ? int.tryParse(value) : null;
+                          if (valueInt == null) {
+                            setState(() {
+                              settings =
+                                  settings.copyWith(removeYearWidth: true);
+                            });
+                          } else {
+                            setState(() {
+                              settings = settings.copyWith(yearWidth: valueInt);
+                            });
+                          }
                         },
                       ),
                     ),

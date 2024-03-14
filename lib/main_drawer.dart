@@ -69,8 +69,11 @@ class _MainDrawerState extends State<MainDrawer> {
         if (timeline.count > 0) {
           items.add(CheckboxListTile(
             title: Text(timeline.name),
-            subtitle:
-                timeline.yearMin != null ? Text(timeline.yearMinMax()) : null,
+            // subtitle:
+            //     timeline.yearMin != null ? Text(timeline.yearMinMax()) : null,
+            // subtitle: timeline.description.isNotEmpty
+            //     ? Text(timeline.description)
+            //     : null,
             value: activeTimelineIds.contains(timeline.id),
             onChanged: (newValue) {
               if (newValue != null) {

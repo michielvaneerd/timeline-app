@@ -26,11 +26,13 @@ class Settings extends Equatable {
   final int? imageWidth;
   final MyThemeModes themeMode;
   final bool cachedImages;
+  final int? yearWidth;
 
   const Settings(
       {required this.loadImages,
       required this.condensed,
       required this.imageWidth,
+      required this.yearWidth,
       required this.cachedImages,
       required this.themeMode});
 
@@ -49,20 +51,21 @@ class Settings extends Equatable {
       {LoadImages? loadImages,
       bool? condensed,
       int? imageWidth,
+      int? yearWidth,
       MyThemeModes? themeMode,
       bool? cachedImages,
-      bool useImageWidthParameter = false}) {
+      bool removeImageWidth = false,
+      bool removeYearWidth = false}) {
     return Settings(
         cachedImages: cachedImages ?? this.cachedImages,
         themeMode: themeMode ?? this.themeMode,
         loadImages: loadImages ?? this.loadImages,
         condensed: condensed ?? this.condensed,
-        imageWidth: useImageWidthParameter
-            ? imageWidth
-            : (imageWidth ?? this.imageWidth));
+        yearWidth: removeYearWidth ? null : (yearWidth ?? this.yearWidth),
+        imageWidth: removeImageWidth ? null : (imageWidth ?? this.imageWidth));
   }
 
   @override
   List<Object?> get props =>
-      [loadImages, condensed, imageWidth, themeMode, cachedImages];
+      [loadImages, condensed, imageWidth, themeMode, cachedImages, yearWidth];
 }

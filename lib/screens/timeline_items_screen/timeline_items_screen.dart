@@ -152,6 +152,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
               ? (widget.timelineAll.settings.imageWidth!.toDouble())
               : screenWidth;
 
+          final yearWidth = widget.timelineAll.settings.yearWidth?.toDouble();
+
           final cubit = BlocProvider.of<TimelineItemsScreenCubit>(context);
           final realItems = state.filteredItems ?? widget.yearAndTimelineItems;
           final yearItems =
@@ -196,8 +198,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                       itemBuilder: (context, index) {
                         final item = yearItems[index];
                         return Container(
-                          width: 100,
-                          //height: 70,
+                          width: yearWidth,
                           padding: const EdgeInsets.all(12.0),
                           child: Material(
                             color: Theme.of(context).colorScheme.inversePrimary,
@@ -213,7 +214,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                     horizontal: 16.0),
                                 child: Center(
                                     child: Text(
-                                  item.year.toString(),
+                                  item.getYear(),
                                   style: Theme.of(context).textTheme.bodyLarge,
                                 )),
                               ),
@@ -247,7 +248,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Text(
-                                        e.year.toString(),
+                                        e.getYear(),
                                         style: Theme.of(context)
                                             .textTheme
                                             .headlineLarge,

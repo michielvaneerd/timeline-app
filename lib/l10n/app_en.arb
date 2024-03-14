@@ -43,5 +43,8 @@
   "links": "Links",
   "year": "Year",
   "yearEnd": "Year end",
-  "title": "Title"
+  "title": "Title",
+  "yearWidth": "Year width",
+  "yearName": "Year name",
+  "yearEndName": "Year end name"
 }

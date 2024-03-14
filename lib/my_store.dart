@@ -16,6 +16,7 @@ class MyStore {
   static const keySettingsLoadImages = 'load_images';
   static const keySettingsCondensed = 'condensed';
   static const keySettingsImageWidth = 'image_width';
+  static const keySettingsYearWidth = 'year_width';
   static const keySettingsThemeMode = 'theme_mode';
   static const keySettingsCachedImages = 'cached_images';
 
@@ -55,7 +56,7 @@ class MyStore {
         await db.execute(
             'CREATE TABLE timelines (id INTEGER PRIMARY KEY, term_id INTEGER, name TEXT, description TEXT, host_id INT, active INT, count INT)');
         await db.execute(
-            'CREATE TABLE items (id INTEGER PRIMARY KEY, timeline_id INTEGER, year INTEGER, year_end INTEGER, intro TEXT, title TEXT, image TEXT, links TEXT, image_source TEXT, image_info TEXT, post_id INTEGER, has_content INTEGER)');
+            'CREATE TABLE items (id INTEGER PRIMARY KEY, timeline_id INTEGER, year INTEGER, year_end INTEGER, year_name TEXT, year_end_name TEXT, intro TEXT, title TEXT, image TEXT, links TEXT, image_source TEXT, image_info TEXT, post_id INTEGER, has_content INTEGER)');
       },
     );
     // 3) Store image cache dir
@@ -99,6 +100,8 @@ class MyStore {
           'has_content': (meta['mve_timeline_content'] as bool) ? 1 : 0,
           'timeline_id': timelineTermId2IdMap[timelineList[0]],
           'year': meta['mve_timeline_year'],
+          'year_name': meta['mve_timeline_year_name'],
+          'year_end_name': meta['mve_timeline_year_end_name'],
           'year_end': meta['mve_timeline_year_end'].toString().isNotEmpty
               ? meta['mve_timeline_year_end']
               : null,
@@ -119,6 +122,7 @@ class MyStore {
     LoadImages loadImages = LoadImages.never;
     bool condensed = false;
     int? imageWidth;
+    int? yearWidth;
     bool cachedImages = false;
     MyThemeModes themeMode = MyThemeModes.system;
     for (var row in rows) {
@@ -135,6 +139,9 @@ class MyStore {
         case keySettingsImageWidth:
           imageWidth = int.tryParse(row['value'].toString());
           break;
+        case keySettingsYearWidth:
+          yearWidth = int.tryParse(row['value'].toString());
+          break;
         case keySettingsThemeMode:
           if (row['value'] != null && row['value'].toString().isNotEmpty) {
             themeMode = MyThemeModes.values.byName(row['value'].toString());
@@ -147,6 +154,7 @@ class MyStore {
     }
     return Settings(
         loadImages: loadImages,
+        yearWidth: yearWidth,
         cachedImages: cachedImages,
         condensed: condensed,
         imageWidth: imageWidth,
@@ -169,6 +177,8 @@ class MyStore {
       });
       batch.insert('settings',
           {'key': keySettingsImageWidth, 'value': settings.imageWidth});
+      batch.insert('settings',
+          {'key': keySettingsYearWidth, 'value': settings.yearWidth});
       batch.insert('settings',
           {'key': keySettingsThemeMode, 'value': settings.themeMode.value});
       await batch.commit(noResult: true);
@@ -286,7 +296,7 @@ class MyStore {
       final item = TimelineItem.fromDbMap(row);
       if (!years.containsKey(item.year)) {
         years[item.year] = index;
-        items.add(TimelineYearItem(year: item.year));
+        items.add(TimelineYearItem(year: item.year, yearName: item.yearName));
         index += 1;
       }
       items.add(item);

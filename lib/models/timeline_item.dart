@@ -5,13 +5,20 @@ import 'package:intl/intl.dart' as intl;
 
 abstract class TimelineAbstractItem extends Equatable {
   final int year;
-  const TimelineAbstractItem({required this.year});
+  final String? yearName;
+  const TimelineAbstractItem({required this.year, this.yearName});
+  String getYear() {
+    return yearName != null && yearName!.isNotEmpty
+        ? yearName!
+        : year.toString();
+  }
+
   @override
-  List<Object?> get props => [year];
+  List<Object?> get props => [year, yearName];
 }
 
 class TimelineYearItem extends TimelineAbstractItem {
-  const TimelineYearItem({required super.year});
+  const TimelineYearItem({required super.year, super.yearName});
 }
 
 class TimelineItem extends TimelineAbstractItem {
@@ -25,6 +32,7 @@ class TimelineItem extends TimelineAbstractItem {
   final String? imageSource;
   final String? imageInfo;
   final int? yearEnd;
+  final String? yearEndName;
   final int postId;
   final bool hasContent;
   final DateTime? modified; // Only for draft items
@@ -38,6 +46,8 @@ class TimelineItem extends TimelineAbstractItem {
       required this.title,
       required this.timelineId,
       required super.year,
+      super.yearName,
+      this.yearEndName,
       required this.postId,
       required this.hasContent,
       this.yearEnd,
@@ -52,9 +62,11 @@ class TimelineItem extends TimelineAbstractItem {
         image,
         intro,
         year,
+        yearName,
         title,
         timelineId,
         yearEnd,
+        yearEndName,
         postId,
         modified,
         hasContent
@@ -73,6 +85,8 @@ class TimelineItem extends TimelineAbstractItem {
       'meta': {
         'mve_timeline_year': year.toString(),
         'mve_timeline_year_end': yearEnd?.toString(),
+        'mve_timeline_year_name': yearName?.toString(),
+        'mve_timeline_year_end_name': yearEndName?.toString(),
         'mve_timeline_intro': intro,
         'mve_timeline_links': convert.json.encode(links)
       },
@@ -84,8 +98,12 @@ class TimelineItem extends TimelineAbstractItem {
       {String? title,
       int? timelineId,
       int? year,
+      String? yearName,
+      bool removeYearName = false,
+      String? yearEndName,
+      bool removeYearEndName = false,
       int? yearEnd,
-      bool useYearEndParam = false}) {
+      bool removeYearEnd = false}) {
     return TimelineItem(
         hasContent: hasContent,
         image: image,
@@ -93,7 +111,10 @@ class TimelineItem extends TimelineAbstractItem {
         title: title ?? this.title,
         timelineId: timelineId ?? this.timelineId,
         year: year ?? this.year,
-        yearEnd: useYearEndParam ? yearEnd : (yearEnd ?? this.yearEnd),
+        yearName: removeYearName ? null : (yearName ?? this.yearName),
+        yearEndName:
+            removeYearEndName ? null : (yearEndName ?? this.yearEndName),
+        yearEnd: removeYearEnd ? null : (yearEnd ?? this.yearEnd),
         postId: postId,
         links: links);
   }
@@ -135,11 +156,12 @@ class TimelineItem extends TimelineAbstractItem {
         imageInfo = map['image_info'],
         modified = null, // Only for draft items that we get from the server
         yearEnd = map['year_end'],
+        yearEndName = map['year_end_name'],
         links = _getLinks(map['links']),
         image = _getImage(map['image']),
         intro = map['intro'],
         title = map['title'] ?? '',
-        super(year: map['year']);
+        super(year: map['year'], yearName: map['year_name']);
 
   // Used when mapping draft items.
   static TimelineItem fromApiMap(Map<String, dynamic> map, int? timelineId) {
@@ -157,6 +179,8 @@ class TimelineItem extends TimelineAbstractItem {
         yearEnd: meta['mve_timeline_year_end'].toString().isNotEmpty
             ? int.parse(meta['mve_timeline_year_end'])
             : null,
+        yearName: meta['mve_timeline_year_name'],
+        yearEndName: meta['mve_timeline_year_end_name'],
         postId: map['id'],
         links: _getLinks(meta['mve_timeline_links']));
   }
