@@ -35,8 +35,17 @@ class MyStore {
 
   static Future init() async {
     // 1) Get or create secret key
-    final secretKey =
-        await _flutterSecureStorage.read(key: keySecureStorageKey);
+    String? secretKey;
+    try {
+      secretKey = await _flutterSecureStorage.read(key: keySecureStorageKey);
+    } catch (ex) {
+      try {
+        await _flutterSecureStorage.deleteAll();
+      } catch (ex) {
+        // TODO: this is fatal...
+      }
+    }
+
     if (secretKey == null) {
       _secretKey = await _myCrypt.generateSecretKey();
       await _flutterSecureStorage.write(
@@ -44,6 +53,7 @@ class MyStore {
     } else {
       _secretKey = secretKey;
     }
+
     // 2) Get or create database
     _database ??= await openDatabase(
       path.join(await getDatabasesPath(), 'timeline.sqlite'),

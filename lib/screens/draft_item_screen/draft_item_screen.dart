@@ -27,10 +27,13 @@ class DraftItemScreen extends StatefulWidget {
 class _DraftItemScreenState extends State<DraftItemScreen> {
   late final TextEditingController titleController;
   late final TextEditingController yearController;
+  late final TextEditingController yearNameController;
   late final TextEditingController yearEndController;
+  late final TextEditingController yearEndNameController;
   late final TextEditingController introController;
   String? currentTitle;
   int? currentYear;
+  int? currentYearEnd;
   int? timelineId;
   List<TimelineItemLink> links = [];
 
@@ -40,14 +43,17 @@ class _DraftItemScreenState extends State<DraftItemScreen> {
     if (widget.timelineItem != null) {
       timelineId = widget.timelineItem!.timelineId;
       currentYear = widget.timelineItem!.year;
+      currentYearEnd = widget.timelineItem!.yearEnd;
       currentTitle = widget.timelineItem!.title;
       links.addAll(widget.timelineItem!.links);
     }
-    titleController = TextEditingController(text: widget.timelineItem?.title);
-    yearController =
-        TextEditingController(text: widget.timelineItem?.year.toString());
-    yearEndController =
-        TextEditingController(text: widget.timelineItem?.yearEnd?.toString());
+    titleController = TextEditingController(text: currentTitle);
+    yearController = TextEditingController(text: currentYear?.toString());
+    yearEndController = TextEditingController(text: currentYearEnd?.toString());
+    yearNameController =
+        TextEditingController(text: widget.timelineItem?.yearName);
+    yearEndNameController =
+        TextEditingController(text: widget.timelineItem?.yearEndName);
     introController = TextEditingController(text: widget.timelineItem?.intro);
   }
 
@@ -56,6 +62,8 @@ class _DraftItemScreenState extends State<DraftItemScreen> {
     titleController.dispose();
     yearController.dispose();
     yearEndController.dispose();
+    yearNameController.dispose();
+    yearEndNameController.dispose();
     introController.dispose();
     super.dispose();
   }
@@ -123,6 +131,8 @@ class _DraftItemScreenState extends State<DraftItemScreen> {
                                   title: titleController.text,
                                   timelineId: timelineId!,
                                   year: int.parse(yearController.text),
+                                  yearEndName: yearEndNameController.text,
+                                  yearName: yearNameController.text,
                                   postId: widget.timelineItem?.postId ?? 0,
                                   yearEnd: yearEndController.text.isNotEmpty
                                       ? int.parse(yearEndController.text)
@@ -238,6 +248,26 @@ class _DraftItemScreenState extends State<DraftItemScreen> {
                                 child: MyWidgets.textField(context,
                                     controller: yearEndController,
                                     labelText: myLoc(context).yearEnd),
+                              )
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: MyWidgets.textField(context,
+                                    controller: yearNameController,
+                                    labelText: myLoc(context).yearName),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                              ),
+                              Expanded(
+                                child: MyWidgets.textField(context,
+                                    controller: yearEndNameController,
+                                    labelText: myLoc(context).yearEndName),
                               )
                             ],
                           ),

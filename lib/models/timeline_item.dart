@@ -56,6 +56,12 @@ class TimelineItem extends TimelineAbstractItem {
       this.modified,
       required this.links});
 
+  String? getYearEnd() {
+    return yearEndName != null && yearEndName!.isNotEmpty
+        ? yearEndName!
+        : yearEnd?.toString();
+  }
+
   @override
   List<Object?> get props => [
         id,
@@ -73,10 +79,10 @@ class TimelineItem extends TimelineAbstractItem {
       ];
 
   String years() {
-    if (yearEnd == null) {
-      return year.toString();
+    if (getYearEnd() == null) {
+      return getYear();
     }
-    return '$year / $yearEnd';
+    return '${getYear()} / ${getYearEnd()}';
   }
 
   Map<String, dynamic> toDraftMap(int timelineExternalId) {

@@ -13,7 +13,7 @@ class MainState extends Equatable {
   final bool busy;
   final YearAndTimelineItems? items;
   final bool? loadImages;
-  final ConnectivityResult? connectivityResult;
+  final List<ConnectivityResult>? connectivityResult;
 
   const MainState(
       {this.timelineAll,
@@ -37,7 +37,7 @@ class MainCubit extends Cubit<MainState> {
 
     TimelineAll timelineAll = await timelineRepository.getAll();
     var loadImages = false;
-    ConnectivityResult? connectivityResult;
+    List<ConnectivityResult>? connectivityResult;
     switch (timelineAll.settings.loadImages) {
       case LoadImages.always:
         loadImages = true;
@@ -47,12 +47,12 @@ class MainCubit extends Cubit<MainState> {
         break;
       case LoadImages.wifi:
         connectivityResult = await Connectivity().checkConnectivity();
-        loadImages = connectivityResult == ConnectivityResult.wifi;
+        loadImages = connectivityResult.contains(ConnectivityResult.wifi);
         break;
       case LoadImages.cachedWhenNotOnWifi:
         connectivityResult = await Connectivity().checkConnectivity();
         loadImages = timelineAll.settings.cachedImages ||
-            connectivityResult == ConnectivityResult.wifi;
+            connectivityResult.contains(ConnectivityResult.wifi);
         break;
     }
     final activeTimelines = timelineAll.timelines

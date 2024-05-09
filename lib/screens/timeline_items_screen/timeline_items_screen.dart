@@ -28,7 +28,7 @@ class TimelineItemsWidget extends StatefulWidget {
   final bool showSearch;
   final bool loadImages;
   final void Function() onRefresh;
-  final ConnectivityResult? connectivityResult;
+  final List<ConnectivityResult>? connectivityResult;
   const TimelineItemsWidget(
       {super.key,
       required this.timelineAll,
@@ -66,6 +66,13 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
     observerControllerWithLazyLoading = ObserverControllerWithLazyLoading(
         onBuiltEnd: onBuiltEnd, scrollController: scrollController)
       ..init();
+  }
+
+  bool hasWifiInternet() {
+    return widget.connectivityResult != null &&
+        !widget.connectivityResult!.contains(ConnectivityResult.none) &&
+        (widget.connectivityResult!.contains(ConnectivityResult.wifi) ||
+            widget.connectivityResult!.contains(ConnectivityResult.ethernet));
   }
 
   void onBuiltEnd(List<int> indexes) async {
@@ -480,14 +487,14 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                   onTap: fullScreenImage != null
                                                       ? () async {
                                                           // Preload full image, so hero animation goes smooth
-                                                          // _loadingOverlay
-                                                          //     .show(context);
+                                                          _loadingOverlay
+                                                              .show(context);
                                                           final image =
                                                               await _loadImage(
                                                                   fullScreenImage);
-                                                          // _loadingOverlay
-                                                          //     .hide();
-                                                          if (mounted) {
+                                                          _loadingOverlay
+                                                              .hide();
+                                                          if (context.mounted) {
                                                             Navigator.of(
                                                                     context)
                                                                 .push(
@@ -515,11 +522,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                                           .loadImages ==
                                                                       LoadImages
                                                                           .cachedWhenNotOnWifi &&
-                                                                  (widget.connectivityResult ==
-                                                                          null ||
-                                                                      widget.connectivityResult !=
-                                                                          ConnectivityResult
-                                                                              .wifi),
+                                                                  !hasWifiInternet(),
                                                               dirPath: MyStore
                                                                   .getImageCachePath(),
                                                               uri:
