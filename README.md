@@ -1,16 +1,19 @@
-# timeline
+# Timeline
 
-A new Flutter project.
+A Flutter app that displays timelines that can be created by an accompanying [Wordpress plugin](https://github.com/michielvaneerd/timeline-wp-plugin).
 
-## Getting Started
+The idea is that you create timelines in the Wordpress plugin and display them in the app. You can add multiple hosts that provide timelines and you merge multiple timelines from different hosts to display in the app.
 
-This project is a starting point for a Flutter application.
+## Screens
 
-A few resources to get you started if this is your first Flutter project:
+### Timeline items
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+![Timeline items screen](./screenshots_framed/timeline-items_framed.png)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Timeline settings
+
+![Timeline settings screen](./screenshots_framed/timeline-settings_framed.png)
+
+### Timeline hosts
+
+![Timeline hosts screen](./screenshots_framed/timeline-hosts_framed.png)
