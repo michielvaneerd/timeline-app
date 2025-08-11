@@ -1,0 +1,50 @@
+{
+  "ok": "OK",
+  "cancel": "Cancel",
+  "timeline": "Timeline",
+  "addHost": "Add host",
+  "hosts": "Hosts",
+  "settings": "Settings",
+  "host": "Host",
+  "name": "Name",
+  "refresh": "Refresh",
+  "delete": "Delete",
+  "confirmDeleteHost": "Are you sure you want to delete the host {host}?",
+  "@confirmDeleteHost": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "condensedView": "Condensed view",
+  "loadImages": "Load images",
+  "always": "Always",
+  "onlyWhenOnWifi": "Only when on WIFI",
+  "never": "Never",
+  "imageWidth": "Image width",
+  "selectTimelinesInfoText": "Select one or more timelines to display",
+  "addHostInfoText": "Add one or more hosts that provides timelines",
+  "theme": "Theme",
+  "login": "Login",
+  "logout": "Logout",
+  "draftItems": "Draft items",
+  "system": "System",
+  "light": "Light",
+  "dark": "Dark",
+  "retry": "Retry",
+  "username": "Username",
+  "password": "Password",
+  "cachedImages": "Cache images",
+  "url": "URL",
+  "addLink": "Add link",
+  "cachedWhenNotOnWifi": "Cached when not on WIFI",
+  "clearCache": "Clear cache",
+  "links": "Links",
+  "year": "Year",
+  "yearEnd": "Year end",
+  "title": "Title",
+  "yearWidth": "Year width",
+  "yearName": "Year name",
+  "yearEndName": "Year end name"
+}
