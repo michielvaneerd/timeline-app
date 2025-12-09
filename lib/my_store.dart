@@ -40,7 +40,7 @@ class MyStore {
       secretKey = await _flutterSecureStorage.read(key: keySecureStorageKey);
     } catch (ex) {
       try {
-        await _flutterSecureStorage.deleteAll();
+        //await _flutterSecureStorage.deleteAll();
       } catch (ex) {
         // TODO: this is fatal...
       }

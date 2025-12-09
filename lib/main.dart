@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:timeline/l10n/app_localizations.dart';
 import 'package:timeline/main_cubit.dart';
 import 'package:timeline/main_drawer.dart';
 import 'package:timeline/models/timeline.dart';
@@ -9,7 +10,6 @@ import 'package:timeline/color_schemes.2.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:timeline/screens/timeline_hosts_screen/timeline_hosts_screen.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:timeline/utils.dart';
 
 // https://github.com/fluttercandies/flutter_scrollview_observer/blob/main/lib/src/common/observer_controller.dart#L334
