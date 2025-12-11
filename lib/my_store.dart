@@ -12,6 +12,7 @@ import 'package:timeline/models/timeline_item.dart';
 import 'package:timeline/my_crypt.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 
+/// Class that handles the local storage.
 class MyStore {
   static const keySettingsLoadImages = 'load_images';
   static const keySettingsCondensed = 'condensed';
@@ -21,6 +22,7 @@ class MyStore {
   static const keySettingsCachedImages = 'cached_images';
 
   static const keySecureStorageKey = 'key';
+  static const _dbVersion = 1;
 
   static late final String _secretKey;
   static late final String _imageCachePath;
@@ -28,48 +30,76 @@ class MyStore {
   static Database? _database;
   static const FlutterSecureStorage _flutterSecureStorage =
       FlutterSecureStorage(
-          aOptions: AndroidOptions(encryptedSharedPreferences: true),
-          iOptions:
-              IOSOptions(accessibility: KeychainAccessibility.first_unlock));
+        aOptions: AndroidOptions(encryptedSharedPreferences: true),
+        iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+      );
   static final MyCrypt _myCrypt = MyCrypt();
 
   static Future init() async {
-    // 1) Get or create secret key
     String? secretKey;
     try {
       secretKey = await _flutterSecureStorage.read(key: keySecureStorageKey);
     } catch (ex) {
-      try {
-        //await _flutterSecureStorage.deleteAll();
-      } catch (ex) {
-        // TODO: this is fatal...
-      }
+      await Future.delayed(Duration(seconds: 1));
+      secretKey = await _flutterSecureStorage.read(key: keySecureStorageKey);
     }
 
     if (secretKey == null) {
       _secretKey = await _myCrypt.generateSecretKey();
       await _flutterSecureStorage.write(
-          key: keySecureStorageKey, value: _secretKey);
+        key: keySecureStorageKey,
+        value: _secretKey,
+      );
     } else {
       _secretKey = secretKey;
     }
 
-    // 2) Get or create database
     _database ??= await openDatabase(
       path.join(await getDatabasesPath(), 'timeline.sqlite'),
-      version: 1,
+      version: _dbVersion,
       onCreate: (db, version) async {
-        await db.execute(
-            'CREATE TABLE settings (id INTEGER PRIMARY KEY, key TEXT, value TEXT)');
-        await db.execute(
-            'CREATE TABLE hosts (id INTEGER PRIMARY KEY, host TEXT, name TEXT, username TEXT, password TEXT)');
-        await db.execute(
-            'CREATE TABLE timelines (id INTEGER PRIMARY KEY, term_id INTEGER, name TEXT, description TEXT, host_id INT, active INT, count INT)');
-        await db.execute(
-            'CREATE TABLE items (id INTEGER PRIMARY KEY, timeline_id INTEGER, year INTEGER, year_end INTEGER, year_name TEXT, year_end_name TEXT, intro TEXT, title TEXT, image TEXT, links TEXT, image_source TEXT, image_info TEXT, post_id INTEGER, has_content INTEGER)');
+        await db.execute('''CREATE TABLE settings (
+            id INTEGER PRIMARY KEY,
+            key TEXT, value TEXT
+          )''');
+        await db.execute('''CREATE TABLE hosts (
+            id INTEGER PRIMARY KEY,
+            host TEXT,
+            name TEXT,
+            username TEXT,
+            password TEXT
+          )''');
+        await db.execute('''CREATE TABLE timelines (
+            id INTEGER PRIMARY KEY,
+            term_id INTEGER,
+            name TEXT,
+            description TEXT,
+            host_id INT,
+            active INT,
+            count INT,
+            color INT,
+            FOREIGN KEY(host_id) REFERENCES hosts(id)
+          )''');
+        await db.execute('''CREATE TABLE items (
+            id INTEGER PRIMARY KEY,
+            timeline_id INTEGER,
+            year INTEGER,
+            year_end INTEGER,
+            year_name TEXT,
+            year_end_name TEXT,
+            intro TEXT,
+            title TEXT,
+            image TEXT,
+            links TEXT,
+            image_source TEXT,
+            image_info TEXT,
+            post_id INTEGER,
+            has_content INTEGER,
+            FOREIGN KEY(timeline_id) REFERENCES timelines(id)
+          )''');
       },
     );
-    // 3) Store image cache dir
+
     await _initImageCache();
   }
 
@@ -98,7 +128,9 @@ class MyStore {
 
   // Store timeline items from api response into database
   static Future putTimelineItems(
-      List items, Map<int, int> timelineTermId2IdMap) async {
+    List items,
+    Map<int, int> timelineTermId2IdMap,
+  ) async {
     await _database!.transaction((txn) async {
       final batch = txn.batch();
       for (Map<String, Object?> item in items) {
@@ -119,7 +151,7 @@ class MyStore {
           'image': meta['mve_timeline_image_src'],
           'links': meta['mve_timeline_links'],
           'image_source': meta['mve_timeline_image_source'],
-          'image_info': meta['mve_timeline_image_info']
+          'image_info': meta['mve_timeline_image_info'],
         };
         txn.insert('items', newItem);
       }
@@ -139,8 +171,9 @@ class MyStore {
       switch (row['key']) {
         case keySettingsLoadImages:
           if (row['value'] != null && row['value'].toString().isNotEmpty) {
-            loadImages = LoadImages.values
-                .firstWhereOrNull((element) => element.value == row['value'])!;
+            loadImages = LoadImages.values.firstWhereOrNull(
+              (element) => element.value == row['value'],
+            )!;
           }
           break;
         case keySettingsCondensed:
@@ -163,34 +196,43 @@ class MyStore {
       }
     }
     return Settings(
-        loadImages: loadImages,
-        yearWidth: yearWidth,
-        cachedImages: cachedImages,
-        condensed: condensed,
-        imageWidth: imageWidth,
-        themeMode: themeMode);
+      loadImages: loadImages,
+      yearWidth: yearWidth,
+      cachedImages: cachedImages,
+      condensed: condensed,
+      imageWidth: imageWidth,
+      themeMode: themeMode,
+    );
   }
 
   static Future putSettings(Settings settings) async {
     await _database!.transaction((txn) async {
       final batch = txn.batch();
       batch.delete('settings');
-      batch.insert('settings',
-          {'key': keySettingsLoadImages, 'value': settings.loadImages.value});
+      batch.insert('settings', {
+        'key': keySettingsLoadImages,
+        'value': settings.loadImages.value,
+      });
       batch.insert('settings', {
         'key': keySettingsCondensed,
-        'value': settings.condensed ? '1' : '0'
+        'value': settings.condensed ? '1' : '0',
       });
       batch.insert('settings', {
         'key': keySettingsCachedImages,
-        'value': settings.cachedImages ? '1' : '0'
+        'value': settings.cachedImages ? '1' : '0',
       });
-      batch.insert('settings',
-          {'key': keySettingsImageWidth, 'value': settings.imageWidth});
-      batch.insert('settings',
-          {'key': keySettingsYearWidth, 'value': settings.yearWidth});
-      batch.insert('settings',
-          {'key': keySettingsThemeMode, 'value': settings.themeMode.value});
+      batch.insert('settings', {
+        'key': keySettingsImageWidth,
+        'value': settings.imageWidth,
+      });
+      batch.insert('settings', {
+        'key': keySettingsYearWidth,
+        'value': settings.yearWidth,
+      });
+      batch.insert('settings', {
+        'key': keySettingsThemeMode,
+        'value': settings.themeMode.value,
+      });
       await batch.commit(noResult: true);
     });
   }
@@ -199,9 +241,12 @@ class MyStore {
     await _database!.transaction((txn) async {
       await txn.update('timelines', {'active': 0});
       if (timelineIds.isNotEmpty) {
-        await txn.update('timelines', {'active': 1},
-            where: 'id in (${_paramQuestions(timelineIds)})',
-            whereArgs: timelineIds);
+        await txn.update(
+          'timelines',
+          {'active': 1},
+          where: 'id in (${_paramQuestions(timelineIds)})',
+          whereArgs: timelineIds,
+        );
       }
     });
   }
@@ -212,17 +257,27 @@ class MyStore {
   }
 
   static Future updateTimelineHost(
-      int id, String? username, String? plainPassword) async {
+    int id,
+    String? username,
+    String? plainPassword,
+  ) async {
     final encryptedPassword = plainPassword != null
         ? (await _myCrypt.encrypt(plainPassword, _secretKey))
         : null;
     await _database!.update(
-        'hosts', {'username': username, 'password': encryptedPassword},
-        where: 'id = ?', whereArgs: [id]);
+      'hosts',
+      {'username': username, 'password': encryptedPassword},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 
   static Future<TimelineHost> putTimelineHost(
-      String host, String name, String? username, String? plainPassword) async {
+    String host,
+    String name,
+    String? username,
+    String? plainPassword,
+  ) async {
     final encryptedPassword = plainPassword != null
         ? (await _myCrypt.encrypt(plainPassword, _secretKey))
         : null;
@@ -230,7 +285,7 @@ class MyStore {
       'host': host,
       'name': name,
       'username': username,
-      'password': encryptedPassword
+      'password': encryptedPassword,
     });
     return TimelineHost(id: id, host: host, name: name);
   }
@@ -258,11 +313,16 @@ class MyStore {
   }
 
   static Future putTimelinesFromResponse(
-      List<Map<String, dynamic>> response, int timelineHostId) async {
+    List<Map<String, dynamic>> response,
+    int timelineHostId,
+  ) async {
     await _database!.transaction((txn) async {
       final batch = txn.batch();
-      txn.delete('timelines',
-          where: 'host_id = ?', whereArgs: [timelineHostId]);
+      txn.delete(
+        'timelines',
+        where: 'host_id = ?',
+        whereArgs: [timelineHostId],
+      );
       for (final timeline in response) {
         txn.insert('timelines', {
           //'term_id': timeline['term_taxonomy_id'], // from custom API
@@ -271,34 +331,45 @@ class MyStore {
           'description': timeline['description'],
           'host_id': timelineHostId,
           'count': timeline['count'],
-          'active': 0
+          'active': 0,
+          // Note: no 'color' because we set this only in the app.
         });
       }
       await batch.commit(noResult: true);
     });
   }
 
-  static Future removeTimelineHosts(List<int> hostIds,
-      {bool removeHosts = true}) async {
+  static Future removeTimelineHosts(
+    List<int> hostIds, {
+    bool removeHosts = true,
+  }) async {
     final timelines = await getTimelines(hostIds: hostIds);
     await _database!.transaction((txn) async {
       await removeTimelineItems(timelines.map((e) => e.id).toList(), txn: txn);
-      await txn.delete('timelines',
-          where: 'host_id IN (${_paramQuestions(hostIds)})',
-          whereArgs: hostIds);
+      await txn.delete(
+        'timelines',
+        where: 'host_id IN (${_paramQuestions(hostIds)})',
+        whereArgs: hostIds,
+      );
       if (removeHosts) {
-        await txn.delete('hosts',
-            where: 'id IN (${_paramQuestions(hostIds)})', whereArgs: hostIds);
+        await txn.delete(
+          'hosts',
+          where: 'id IN (${_paramQuestions(hostIds)})',
+          whereArgs: hostIds,
+        );
       }
     });
   }
 
   static Future<YearAndTimelineItems> getTimelineItems(
-      List<int> timelineIds) async {
-    final rows = await _database!.query('items',
-        where: 'timeline_id IN (${_paramQuestions(timelineIds)})',
-        whereArgs: timelineIds,
-        orderBy: 'year ASC');
+    List<int> timelineIds,
+  ) async {
+    final rows = await _database!.query(
+      'items',
+      where: 'timeline_id IN (${_paramQuestions(timelineIds)})',
+      whereArgs: timelineIds,
+      orderBy: 'year ASC',
+    );
     final List<TimelineAbstractItem> items = [];
     final Map<int, int> years = {}; // year => index
     var index = 0;
@@ -315,11 +386,15 @@ class MyStore {
     return YearAndTimelineItems(timelineItems: items, yearIndexes: years);
   }
 
-  static Future removeTimelineItems(List<int> timelineIds,
-      {Transaction? txn}) async {
-    await (txn ?? _database!).delete('items',
-        where: 'timeline_id IN (${_paramQuestions(timelineIds)})',
-        whereArgs: timelineIds);
+  static Future removeTimelineItems(
+    List<int> timelineIds, {
+    Transaction? txn,
+  }) async {
+    await (txn ?? _database!).delete(
+      'items',
+      where: 'timeline_id IN (${_paramQuestions(timelineIds)})',
+      whereArgs: timelineIds,
+    );
   }
 }
 
@@ -327,8 +402,10 @@ class YearAndTimelineItems extends Equatable {
   final List<TimelineAbstractItem> timelineItems;
   final Map<int, int> yearIndexes;
 
-  const YearAndTimelineItems(
-      {required this.timelineItems, required this.yearIndexes});
+  const YearAndTimelineItems({
+    required this.timelineItems,
+    required this.yearIndexes,
+  });
   @override
   List<Object?> get props => [timelineItems, yearIndexes];
 }

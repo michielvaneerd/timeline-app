@@ -39,7 +39,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get delete => 'Delete';
 
   @override
-  String confirmDeleteHost(String host) {
+  String confirmDeleteHost(Object host) {
     return 'Are you sure you want to delete the host $host?';
   }
 
@@ -133,4 +133,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get yearEndName => 'Year end name';
+
+  @override
+  String get offlineError =>
+      'For this action you need to be connected to the internet';
+
+  @override
+  String get unauthenticatedError => 'There was an error authenticating';
+
+  @override
+  String get unknownError => 'An unknown error occurred.';
+
+  @override
+  String get internetConnectionError => 'A connection error occurred';
+
+  @override
+  String get duplicateHostError => 'Host already exist';
+
+  @override
+  String get notFoundError => 'The resource was not found';
 }

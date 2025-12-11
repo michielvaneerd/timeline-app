@@ -3,48 +3,57 @@ import 'dart:io';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timeline/models/timeline_host.dart';
+import 'package:timeline/my_exception.dart';
 import 'package:timeline/my_store.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:collection/collection.dart';
 
 class TimelineHostsScreenState extends Equatable {
-  final String? error;
+  final MyException? exception;
   final bool busy;
   final TimelineAll? timelineAll;
   final bool showAddHostOnStart;
 
-  const TimelineHostsScreenState(
-      {this.error,
-      this.busy = false,
-      this.timelineAll,
-      this.showAddHostOnStart = false});
+  const TimelineHostsScreenState({
+    this.exception,
+    this.busy = false,
+    this.timelineAll,
+    this.showAddHostOnStart = false,
+  });
 
-  TimelineHostsScreenState copyWith(
-      {bool? showAddHostOnStart,
-      String? error,
-      bool? busy,
-      TimelineAll? timelineAll}) {
+  TimelineHostsScreenState copyWith({
+    bool showAddHostOnStart = false,
+    MyException? exception,
+    bool removeException = false,
+    bool busy = false,
+    TimelineAll? timelineAll,
+  }) {
     return TimelineHostsScreenState(
-        showAddHostOnStart: showAddHostOnStart ?? this.showAddHostOnStart,
-        busy: busy ?? this.busy,
-        timelineAll: timelineAll ?? this.timelineAll,
-        error: error ?? this.error);
+      showAddHostOnStart: showAddHostOnStart,
+      busy: busy,
+      timelineAll: timelineAll ?? this.timelineAll,
+      exception: removeException ? null : (exception ?? this.exception),
+    );
   }
 
   @override
-  List<Object?> get props => [error, busy, timelineAll, showAddHostOnStart];
+  List<Object?> get props => [exception, busy, timelineAll, showAddHostOnStart];
 }
 
 class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
   final TimelineRepository timelineRepository;
   TimelineHostsScreenCubit(this.timelineRepository)
-      : super(const TimelineHostsScreenState());
+    : super(const TimelineHostsScreenState());
 
   void refresh() async {
-    emit(const TimelineHostsScreenState(busy: true));
+    emit(state.copyWith(busy: true, removeException: true));
     await Future.delayed(const Duration(seconds: 1));
-    final all = await timelineRepository.getAll();
-    emit(TimelineHostsScreenState(timelineAll: all));
+    try {
+      final all = await timelineRepository.getAll();
+      emit(state.copyWith(timelineAll: all, removeException: true));
+    } on MyException catch (ex) {
+      emit(state.copyWith(exception: ex));
+    }
   }
 
   void removeHosts(TimelineAll timelineAll, List<int> hostIds) async {
@@ -64,30 +73,45 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
   }
 
   void refreshHost(TimelineAll timelineAll, TimelineHost host) async {
-    emit(TimelineHostsScreenState(timelineAll: timelineAll, busy: true));
+    emit(state.copyWith(busy: true, removeException: true));
     await Future.delayed(const Duration(seconds: 1));
     await MyStore.removeTimelineHosts([host.id], removeHosts: false);
 
     try {
-      final response =
-          await timelineRepository.getTimelinesFromHostname(host.host);
+      final response = await timelineRepository.getTimelinesFromHostname(
+        host.host,
+      );
       await MyStore.putTimelinesFromResponse(
-          response.map((e) => e as Map<String, dynamic>).toList(), host.id);
-    } on SocketException catch (ex) {
+        response.map((e) => e as Map<String, dynamic>).toList(),
+        host.id,
+      );
       final all = await timelineRepository.getAll();
-      emit(TimelineHostsScreenState(error: ex.message, timelineAll: all));
-      return;
+      emit(state.copyWith(timelineAll: all));
+    } on SocketException {
+      final all = await timelineRepository.getAll();
+      emit(
+        state.copyWith(
+          exception: MyException(type: MyExceptionType.internetConnection),
+          timelineAll: all,
+        ),
+      );
     } catch (ex) {
       final all = await timelineRepository.getAll();
-      emit(TimelineHostsScreenState(error: ex.toString(), timelineAll: all));
-      return;
+      emit(
+        state.copyWith(
+          exception: MyException(type: MyExceptionType.unknown),
+          timelineAll: all,
+        ),
+      );
     }
-    final all = await timelineRepository.getAll();
-    emit(TimelineHostsScreenState(timelineAll: all));
   }
 
-  void login(TimelineAll timelineAll, TimelineHost host, String username,
-      String plainPassword) async {
+  void login(
+    TimelineAll timelineAll,
+    TimelineHost host,
+    String username,
+    String plainPassword,
+  ) async {
     // Make request to see we can connect and if true, store credentials.
     emit(TimelineHostsScreenState(busy: true, timelineAll: timelineAll));
     await Future.delayed(const Duration(seconds: 1));
@@ -95,10 +119,11 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
       await timelineRepository.login(host, username, plainPassword);
       await MyStore.updateTimelineHost(host.id, username, plainPassword);
       final all = await timelineRepository.getAll();
-      emit(TimelineHostsScreenState(timelineAll: all));
+      emit(state.copyWith(timelineAll: all));
     } catch (ex) {
-      emit(TimelineHostsScreenState(
-          error: 'Error loging in', timelineAll: timelineAll));
+      emit(
+        state.copyWith(exception: MyException(type: MyExceptionType.unknown)),
+      );
     }
   }
 
@@ -108,37 +133,45 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
     emit(TimelineHostsScreenState(timelineAll: all));
   }
 
-  void addHost(String name, String host, TimelineAll timelineAll,
-      {String? username, String? plainPassword}) async {
-    if (host.isEmpty) {
-      emit(TimelineHostsScreenState(
-          error: 'Invalid host', timelineAll: timelineAll));
-      return;
-    }
-    emit(const TimelineHostsScreenState(busy: true));
+  void addHost(
+    String name,
+    String host,
+    TimelineAll timelineAll, {
+    String? username,
+    String? plainPassword,
+  }) async {
+    emit(state.copyWith(busy: true, removeException: true));
     final currentHosts = await MyStore.getTimelineHosts();
-    final existingHost =
-        currentHosts.firstWhereOrNull((element) => element.host == host);
+    final existingHost = currentHosts.firstWhereOrNull(
+      (element) => element.host == host,
+    );
     if (existingHost != null) {
-      emit(TimelineHostsScreenState(
-          error: 'Host already exists', timelineAll: timelineAll));
+      emit(
+        state.copyWith(
+          exception: MyException(type: MyExceptionType.duplicateHost),
+        ),
+      );
       return;
     }
 
     try {
       final response = await timelineRepository.getTimelinesFromHostname(host);
-      final timelineHost =
-          await MyStore.putTimelineHost(host, name, username, plainPassword);
+      final timelineHost = await MyStore.putTimelineHost(
+        host,
+        name,
+        username,
+        plainPassword,
+      );
       await MyStore.putTimelinesFromResponse(
-          response.map((e) => e as Map<String, dynamic>).toList(),
-          timelineHost.id);
+        response.map((e) => e as Map<String, dynamic>).toList(),
+        timelineHost.id,
+      );
+      final all = await timelineRepository.getAll();
+      emit(TimelineHostsScreenState(timelineAll: all));
     } catch (ex) {
-      emit(TimelineHostsScreenState(error: ex.toString()));
-      return;
+      emit(
+        state.copyWith(exception: MyException(type: MyExceptionType.unknown)),
+      );
     }
-
-    //await timelineRepository.getTimelines(timelineHost: timelineHost);
-    final all = await timelineRepository.getAll();
-    emit(TimelineHostsScreenState(timelineAll: all));
   }
 }

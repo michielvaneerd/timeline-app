@@ -4,16 +4,21 @@ import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_host.dart';
 import 'package:timeline/my_two_fields_dialog.dart';
 import 'package:timeline/my_loading_overlay.dart';
+import 'package:timeline/my_widgets.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:timeline/screens/draft_items_screen/draft_items_screen.dart';
 import 'package:timeline/screens/timeline_hosts_screen/timeline_hosts_screen_bloc.dart';
+import 'package:timeline/translation_helper.dart';
 import 'package:timeline/utils.dart';
 
 class TimelineHostsScreen extends StatefulWidget {
   final TimelineAll timelineAll;
   final bool showAddHostDialog;
-  const TimelineHostsScreen(
-      {super.key, required this.timelineAll, this.showAddHostDialog = false});
+  const TimelineHostsScreen({
+    super.key,
+    required this.timelineAll,
+    this.showAddHostDialog = false,
+  });
 
   @override
   State<TimelineHostsScreen> createState() => _TimelineHostsScreenState();
@@ -41,8 +46,11 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
     return state?.timelineAll ?? widget.timelineAll;
   }
 
-  Future onDelete(TimelineHost host, TimelineHostsScreenCubit cubit,
-      TimelineAll timelineAll) async {
+  Future onDelete(
+    TimelineHost host,
+    TimelineHostsScreenCubit cubit,
+    TimelineAll timelineAll,
+  ) async {
     final response = await showDialog<bool?>(
       context: context,
       builder: (context) {
@@ -50,18 +58,22 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
           content: Text(myLoc(context).confirmDeleteHost(host.name)),
           actions: [
             TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(false);
-                },
-                child: Text(myLoc(context).cancel)),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: Text(myLoc(context).cancel),
+            ),
             FilledButton(
-                style: ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(
-                        Theme.of(context).colorScheme.error)),
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-                child: Text(myLoc(context).delete)),
+              style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                  Theme.of(context).colorScheme.error,
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: Text(myLoc(context).delete),
+            ),
           ],
         );
       },
@@ -72,14 +84,19 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
     }
   }
 
-  Future onLoginLogout(TimelineHost host, TimelineHostsScreenCubit cubit,
-      TimelineAll timelineAll) async {
+  Future onLoginLogout(
+    TimelineHost host,
+    TimelineHostsScreenCubit cubit,
+    TimelineAll timelineAll,
+  ) async {
     if (host.username == null || host.username!.isEmpty) {
       myTwoFieldsDialog.clear();
-      final result = await myTwoFieldsDialog.show(context,
-          field1Text: myLoc(context).username,
-          field2Text: myLoc(context).password,
-          title: myLoc(context).login);
+      final result = await myTwoFieldsDialog.show(
+        context,
+        field1Text: myLoc(context).username,
+        field2Text: myLoc(context).password,
+        title: myLoc(context).login,
+      );
       if (result != null &&
           result.field1.isNotEmpty &&
           result.field2.isNotEmpty) {
@@ -94,28 +111,37 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
   }
 
   Future onDraft(TimelineHost host, List<Timeline> timelines) async {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (context) =>
-          DraftItemsScreen(timelineHost: host, timelines: timelines),
-    ));
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) =>
+            DraftItemsScreen(timelineHost: host, timelines: timelines),
+      ),
+    );
   }
 
-  Future onRefresh(TimelineHost host, TimelineHostsScreenCubit cubit,
-      TimelineAll timelineAll) async {
+  Future onRefresh(
+    TimelineHost host,
+    TimelineHostsScreenCubit cubit,
+    TimelineAll timelineAll,
+  ) async {
     _loadingOverlay.show(context);
     cubit.refreshHost(timelineAll, host);
   }
 
-  Widget getHostTimelines(TimelineAll timelineAll, TimelineHost host,
-      TimelineHostsScreenCubit cubit) {
+  Widget getHostTimelines(
+    TimelineAll timelineAll,
+    TimelineHost host,
+    TimelineHostsScreenCubit cubit,
+  ) {
     final timelines = timelineAll.timelines
         .where((element) => element.hostId == host.id)
         .toList();
     final timelineTiles = timelines
         .map(
           (e) => ListTile(
-              title: Text(e.name),
-              subtitle: e.yearMin != null ? Text(e.yearMinMax()) : null),
+            title: Text(e.name),
+            subtitle: e.yearMin != null ? Text(e.yearMinMax()) : null,
+          ),
         )
         .toList();
     return Card(
@@ -126,8 +152,11 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
             children: [
               Expanded(
                 child: ListTile(
-                    title: Text(host.name,
-                        style: Theme.of(context).textTheme.headlineSmall)),
+                  title: Text(
+                    host.name,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                ),
               ),
               PopupMenuButton(
                 icon: const Icon(Icons.more_vert),
@@ -172,12 +201,15 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
                     ),
                   ];
                 },
-              )
+              ),
             ],
           ),
           ListTile(
-              title: Text(host.host,
-                  style: const TextStyle(fontWeight: FontWeight.bold))),
+            title: Text(
+              host.host,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
           ...timelineTiles,
           if (host.isLoggedIn())
             ListTile(
@@ -186,20 +218,26 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
                 onDraft(host, timelines);
               },
               trailing: const Icon(Icons.arrow_forward_ios),
-            )
+            ),
         ],
       ),
     );
   }
 
   void onAddHost(
-      TimelineHostsScreenCubit cubit, TimelineAll timelineAll) async {
+    TimelineHostsScreenCubit cubit,
+    TimelineAll timelineAll,
+  ) async {
     myTwoFieldsDialog.clear();
-    final response = await myTwoFieldsDialog.show(context,
-        field1Text: myLoc(context).name,
-        field2Text: myLoc(context).host,
-        title: myLoc(context).addHost);
-    if (response != null) {
+    final response = await myTwoFieldsDialog.show(
+      context,
+      field1Text: myLoc(context).name,
+      field2Text: myLoc(context).host,
+      title: myLoc(context).addHost,
+    );
+    if (response != null &&
+        response.field1.isNotEmpty &&
+        response.field2.isNotEmpty) {
       cubit.addHost(response.field1, response.field2, timelineAll);
     }
   }
@@ -208,20 +246,28 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
   Widget build(BuildContext context) {
     final repo = RepositoryProvider.of<TimelineRepository>(context);
     return BlocProvider(
-      create: (context) => TimelineHostsScreenCubit(repo)
-        ..showAddHostOnStart(widget.showAddHostDialog),
+      create: (context) =>
+          TimelineHostsScreenCubit(repo)
+            ..showAddHostOnStart(widget.showAddHostDialog),
       child: BlocConsumer<TimelineHostsScreenCubit, TimelineHostsScreenState>(
         listener: (context, state) {
           if (!state.busy) {
             _loadingOverlay.hide();
           }
-          if (state.error != null) {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text(state.error!)));
+          if (state.exception != null) {
+            MyWidgets.showSnackBarError(
+              context,
+              TranslationHelper.getMyExceptionMessage(
+                context,
+                state.exception!,
+              ),
+            );
           }
           if (state.showAddHostOnStart) {
-            onAddHost(BlocProvider.of<TimelineHostsScreenCubit>(context),
-                _getTimelineAll(state));
+            onAddHost(
+              BlocProvider.of<TimelineHostsScreenCubit>(context),
+              _getTimelineAll(state),
+            );
           }
         },
         builder: (context, state) {
@@ -232,26 +278,19 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
             items.add(getHostTimelines(timelineAll, h, cubit));
           }
           return Scaffold(
-              appBar: AppBar(
-                title: Text(myLoc(context).hosts),
-                actions: [
-                  IconButton(
-                      onPressed: () async {
-                        onAddHost(cubit, timelineAll);
-                      },
-                      icon: const Icon(Icons.add))
-                ],
-              ),
-              body: items.isNotEmpty
-                  ? ListView(children: items)
-                  : Center(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          onAddHost(cubit, timelineAll);
-                        },
-                        child: Text(myLoc(context).addHost),
-                      ),
-                    ));
+            appBar: AppBar(
+              title: Text(myLoc(context).hosts),
+              actions: [
+                IconButton(
+                  onPressed: () async {
+                    onAddHost(cubit, timelineAll);
+                  },
+                  icon: const Icon(Icons.add),
+                ),
+              ],
+            ),
+            body: items.isNotEmpty ? ListView(children: items) : Container(),
+          );
         },
       ),
     );

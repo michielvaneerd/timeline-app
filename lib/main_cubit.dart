@@ -4,26 +4,45 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timeline/models/settings.dart';
+import 'package:timeline/my_exception.dart';
 import 'package:timeline/my_store.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
+import 'package:timeline/utils.dart';
 
 class MainState extends Equatable {
   final TimelineAll? timelineAll;
-  final String? error;
+  final MyException? exception;
   final bool busy;
   final YearAndTimelineItems? items;
   final bool? loadImages;
-  final List<ConnectivityResult>? connectivityResult;
 
-  const MainState(
-      {this.timelineAll,
-      this.items,
-      this.error,
-      this.busy = false,
-      this.connectivityResult,
-      this.loadImages});
+  const MainState({
+    this.timelineAll,
+    this.items,
+    this.exception,
+    this.busy = false,
+    this.loadImages,
+  });
+
+  MainState copyWith({
+    TimelineAll? timelineAll,
+    bool busy = false,
+    bool removeException = false,
+    MyException? exception,
+    YearAndTimelineItems? items,
+    bool? loadImages,
+  }) {
+    return MainState(
+      timelineAll: timelineAll ?? this.timelineAll,
+      busy: busy,
+      exception: removeException ? null : (exception ?? this.exception),
+      items: items ?? this.items,
+      loadImages: loadImages ?? this.loadImages,
+    );
+  }
+
   @override
-  List<Object?> get props => [error, busy, timelineAll, items, loadImages];
+  List<Object?> get props => [exception, busy, timelineAll, items, loadImages];
 }
 
 class MainCubit extends Cubit<MainState> {
@@ -32,12 +51,12 @@ class MainCubit extends Cubit<MainState> {
 
   Future checkAtStart({bool withBusy = true, bool refresh = false}) async {
     if (withBusy) {
-      emit(const MainState(busy: true));
+      emit(state.copyWith(busy: true, removeException: true));
     }
 
     TimelineAll timelineAll = await timelineRepository.getAll();
     var loadImages = false;
-    List<ConnectivityResult>? connectivityResult;
+    final connectivityResults = await Connectivity().checkConnectivity();
     switch (timelineAll.settings.loadImages) {
       case LoadImages.always:
         loadImages = true;
@@ -46,59 +65,67 @@ class MainCubit extends Cubit<MainState> {
         loadImages = false;
         break;
       case LoadImages.wifi:
-        connectivityResult = await Connectivity().checkConnectivity();
-        loadImages = connectivityResult.contains(ConnectivityResult.wifi);
+        loadImages = Utils.isOnWifiOrEthernet(connectivityResults);
         break;
       case LoadImages.cachedWhenNotOnWifi:
-        connectivityResult = await Connectivity().checkConnectivity();
-        loadImages = timelineAll.settings.cachedImages ||
-            connectivityResult.contains(ConnectivityResult.wifi);
+        loadImages =
+            timelineAll.settings.cachedImages ||
+            Utils.isOnWifiOrEthernet(connectivityResults);
         break;
     }
     final activeTimelines = timelineAll.timelines
-        .where(
-          (element) => element.isActive(),
-        )
+        .where((element) => element.isActive())
         .toList();
     YearAndTimelineItems? items;
     if (activeTimelines.isNotEmpty) {
       if (refresh) {
         await MyStore.removeTimelineItems(
-            activeTimelines.map((e) => e.id).toList());
+          activeTimelines.map((e) => e.id).toList(),
+        );
       }
       try {
         items = await timelineRepository.getTimelineItems(
-            timelineAll.timelineHosts, activeTimelines);
-      } on SocketException catch (ex) {
-        // No internet connection, or host does not exist
-        emit(MainState(
-            error: ex.message,
+          timelineAll.timelineHosts,
+          activeTimelines,
+        );
+      } on SocketException {
+        emit(
+          state.copyWith(
+            exception: MyException(type: MyExceptionType.internetConnection),
             timelineAll: timelineAll,
-            loadImages: loadImages));
+            loadImages: loadImages,
+          ),
+        );
         return;
       } catch (ex) {
-        emit(MainState(
-            error: ex.toString(),
+        emit(
+          state.copyWith(
+            exception: MyException(type: MyExceptionType.unknown),
             timelineAll: timelineAll,
-            loadImages: loadImages));
+            loadImages: loadImages,
+          ),
+        );
         return;
       }
 
       final updatedTimelines = await MyStore.getTimelines();
       timelineAll = TimelineAll(
-          settings: timelineAll.settings,
-          timelineHosts: timelineAll.timelineHosts,
-          timelines: updatedTimelines);
+        settings: timelineAll.settings,
+        timelineHosts: timelineAll.timelineHosts,
+        timelines: updatedTimelines,
+      );
     }
-    emit(MainState(
+    emit(
+      state.copyWith(
         timelineAll: timelineAll,
         items: items,
         loadImages: loadImages,
-        connectivityResult: connectivityResult));
+      ),
+    );
   }
 
   void activateTimelines(List<int> timelineIds) async {
-    emit(const MainState(busy: true));
+    emit(state.copyWith(busy: true, removeException: true));
 
     // Needed, so the TimelineItemsScreen will be removed and created, so initState and BlocProvider.create will be called.
     await Future.delayed(const Duration(seconds: 1));
@@ -108,7 +135,7 @@ class MainCubit extends Cubit<MainState> {
   }
 
   void closeTimeline() async {
-    emit(const MainState(busy: true));
+    emit(state.copyWith(busy: true, removeException: true));
     await MyStore.putActiveTimelineIds([]);
     checkAtStart();
   }

@@ -28,15 +28,14 @@ class TimelineItemsWidget extends StatefulWidget {
   final bool showSearch;
   final bool loadImages;
   final void Function() onRefresh;
-  final List<ConnectivityResult>? connectivityResult;
-  const TimelineItemsWidget(
-      {super.key,
-      required this.timelineAll,
-      required this.loadImages,
-      this.connectivityResult,
-      required this.yearAndTimelineItems,
-      required this.onRefresh,
-      required this.showSearch});
+  const TimelineItemsWidget({
+    super.key,
+    required this.timelineAll,
+    required this.loadImages,
+    required this.yearAndTimelineItems,
+    required this.onRefresh,
+    required this.showSearch,
+  });
 
   @override
   State<TimelineItemsWidget> createState() => _TimelineItemsWidgetState();
@@ -46,7 +45,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   final scrollController = ScrollController();
   final yearScrollController = ScrollController();
   late final ObserverControllerWithLazyLoading
-      observerControllerWithLazyLoading;
+  observerControllerWithLazyLoading;
   List<int> builtIndexes = [];
   List<int> imageIndexes = [];
   final searchController = TextEditingController();
@@ -60,19 +59,19 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
     super.initState();
     pixelRatio =
         WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
-    screenWidth = WidgetsBinding
-            .instance.platformDispatcher.views.first.physicalSize.width /
+    screenWidth =
+        WidgetsBinding
+            .instance
+            .platformDispatcher
+            .views
+            .first
+            .physicalSize
+            .width /
         pixelRatio;
     observerControllerWithLazyLoading = ObserverControllerWithLazyLoading(
-        onBuiltEnd: onBuiltEnd, scrollController: scrollController)
-      ..init();
-  }
-
-  bool hasWifiInternet() {
-    return widget.connectivityResult != null &&
-        !widget.connectivityResult!.contains(ConnectivityResult.none) &&
-        (widget.connectivityResult!.contains(ConnectivityResult.wifi) ||
-            widget.connectivityResult!.contains(ConnectivityResult.ethernet));
+      onBuiltEnd: onBuiltEnd,
+      scrollController: scrollController,
+    )..init();
   }
 
   void onBuiltEnd(List<int> indexes) async {
@@ -92,29 +91,29 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
 
   void _scrollToIndex(int index) async {
     await observerControllerWithLazyLoading.scrollToIndex(index);
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) async {
-        await Future.delayed(const Duration(
-            milliseconds:
-                300)); // needed because images may still be loading so the list view items may get different height
-        observerControllerWithLazyLoading.scrollToIndex(index);
-      },
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future.delayed(
+        const Duration(milliseconds: 300),
+      ); // needed because images may still be loading so the list view items may get different height
+      observerControllerWithLazyLoading.scrollToIndex(index);
+    });
   }
 
-  Widget getRefreshIndicatorOrContainer(Widget child,
-      TimelineItemsScreenCubit cubit, List<Timeline> activeTimelines) {
+  Widget getRefreshIndicatorOrContainer(
+    Widget child,
+    TimelineItemsScreenCubit cubit,
+    List<Timeline> activeTimelines,
+  ) {
     if (activeTimelines.length > 1) {
-      return Container(
-        child: child,
-      );
+      return Container(child: child);
     } else {
       return RefreshIndicator(
-          onRefresh: () async {
-            await Future.delayed(const Duration(seconds: 1));
-            widget.onRefresh();
-          },
-          child: child);
+        onRefresh: () async {
+          await Future.delayed(const Duration(seconds: 1));
+          widget.onRefresh();
+        },
+        child: child,
+      );
     }
   }
 
@@ -133,8 +132,9 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   void _launchUrl(String url) async {
     if (!await launchUrl(Uri.parse(url))) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Cannot open link $url')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Cannot open link $url')));
       }
     }
   }
@@ -143,9 +143,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   @override
   Widget build(BuildContext context) {
     final activeTimelines = widget.timelineAll.timelines
-        .where(
-          (element) => element.isActive(),
-        )
+        .where((element) => element.isActive())
         .toList();
     final repo = RepositoryProvider.of<TimelineRepository>(context);
     return BlocProvider(
@@ -163,16 +161,21 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
 
           final cubit = BlocProvider.of<TimelineItemsScreenCubit>(context);
           final realItems = state.filteredItems ?? widget.yearAndTimelineItems;
-          final yearItems =
-              realItems.timelineItems.whereType<TimelineYearItem>().toList();
+          final yearItems = realItems.timelineItems
+              .whereType<TimelineYearItem>()
+              .toList();
           final suffixIcon = state.filter.isNotEmpty
               ? IconButton(
                   onPressed: () {
-                    cubit.filterItems('', widget.yearAndTimelineItems,
-                        widget.timelineAll.settings);
+                    cubit.filterItems(
+                      '',
+                      widget.yearAndTimelineItems,
+                      widget.timelineAll.settings,
+                    );
                     searchController.clear();
                   },
-                  icon: const Icon(Icons.close))
+                  icon: const Icon(Icons.close),
+                )
               : null;
           return Column(
             mainAxisSize: MainAxisSize.max,
@@ -185,500 +188,530 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                     controller: searchController,
                     suffixIcon: suffixIcon,
                     onChanged: (value) {
-                      cubit.filterItems(value, widget.yearAndTimelineItems,
-                          widget.timelineAll.settings);
+                      cubit.filterItems(
+                        value,
+                        widget.yearAndTimelineItems,
+                        widget.timelineAll.settings,
+                      );
                     },
                   ),
                 ),
               Container(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  height: 90,
-                  child: Scrollbar(
-                    interactive: true,
-                    //thickness: 8,
-                    scrollbarOrientation: ScrollbarOrientation.top,
+                color: Theme.of(context).colorScheme.primaryContainer,
+                height: 90,
+                child: Scrollbar(
+                  interactive: true,
+                  //thickness: 8,
+                  scrollbarOrientation: ScrollbarOrientation.top,
+                  controller: yearScrollController,
+                  child: ListView.builder(
                     controller: yearScrollController,
-                    child: ListView.builder(
-                      controller: yearScrollController,
-                      itemCount: yearItems.length,
-                      scrollDirection: Axis.horizontal,
-                      itemBuilder: (context, index) {
-                        final item = yearItems[index];
-                        return Container(
-                          width: yearWidth,
-                          padding: const EdgeInsets.all(12.0),
-                          child: Material(
-                            color: Theme.of(context).colorScheme.inversePrimary,
+                    itemCount: yearItems.length,
+                    scrollDirection: Axis.horizontal,
+                    itemBuilder: (context, index) {
+                      final item = yearItems[index];
+                      return Container(
+                        width: yearWidth,
+                        padding: const EdgeInsets.all(12.0),
+                        child: Material(
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                          borderRadius: BorderRadius.circular(32),
+                          child: InkWell(
                             borderRadius: BorderRadius.circular(32),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(32),
-                              onTap: () async {
-                                final index = realItems.yearIndexes[item.year]!;
-                                _scrollToIndex(index);
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0),
-                                child: Center(
-                                    child: Text(
+                            onTap: () async {
+                              final index = realItems.yearIndexes[item.year]!;
+                              _scrollToIndex(index);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                              ),
+                              child: Center(
+                                child: Text(
                                   item.getYear(),
                                   style: Theme.of(context).textTheme.bodyLarge,
-                                )),
+                                ),
                               ),
                             ),
                           ),
-                        );
-                      },
-                    ),
-                  )),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
               Expanded(
-                  child: getRefreshIndicatorOrContainer(
-                      ListViewObserver(
-                        controller: observerControllerWithLazyLoading
-                            .listObserverController,
-                        onObserve: observerControllerWithLazyLoading.onObserve,
-                        child: Scrollbar(
-                          //thickness: 8,
-                          interactive: true,
-                          controller: scrollController,
-                          child: ListView.builder(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              controller: scrollController,
-                              itemCount: realItems.timelineItems.length,
-                              itemBuilder: (context, index) {
-                                final e = realItems.timelineItems[index];
-                                if (e is TimelineYearItem) {
-                                  return Card(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .primaryContainer,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        e.getYear(),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .headlineLarge,
-                                      ),
-                                    ),
-                                  );
-                                } else {
-                                  final TimelineItem item = e as TimelineItem;
-                                  final timeline = activeTimelines.firstWhere(
-                                      (element) => element.id == e.timelineId);
-                                  final itemImage = item.getImage(
-                                      TimelineItemImageSizes.medium,
-                                      key2: TimelineItemImageSizes.thumbnail);
-                                  final fullScreenImage = item
-                                      .getImage(TimelineItemImageSizes.full);
-                                  final loadImage = itemImage != null &&
-                                      observerControllerWithLazyLoading
-                                          .shouldActivelyLoad(
-                                              index, builtIndexes) &&
-                                      (widget.loadImages ||
-                                          imageIndexes.contains(index));
-                                  final realImageWidth = itemImage != null
-                                      ? (imageWidth > itemImage.width
-                                          ? itemImage.width.toDouble()
-                                          : imageWidth)
-                                      : imageWidth;
-                                  final realImageHeight = itemImage != null
-                                      ? (itemImage.height *
-                                          (realImageWidth / itemImage.width))
-                                      : 100.0;
-                                  return Card(
-                                    // color:
-                                    //     Theme.of(context).colorScheme.surface,
-                                    key: observerControllerWithLazyLoading
-                                        .getKey(index),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
+                child: getRefreshIndicatorOrContainer(
+                  ListViewObserver(
+                    controller: observerControllerWithLazyLoading
+                        .listObserverController,
+                    onObserve: observerControllerWithLazyLoading.onObserve,
+                    child: Scrollbar(
+                      //thickness: 8,
+                      interactive: true,
+                      controller: scrollController,
+                      child: ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        controller: scrollController,
+                        itemCount: realItems.timelineItems.length,
+                        itemBuilder: (context, index) {
+                          final e = realItems.timelineItems[index];
+                          if (e is TimelineYearItem) {
+                            return Card(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primaryContainer,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  e.getYear(),
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.headlineLarge,
+                                ),
+                              ),
+                            );
+                          } else {
+                            final TimelineItem item = e as TimelineItem;
+                            final timeline = activeTimelines.firstWhere(
+                              (element) => element.id == e.timelineId,
+                            );
+                            final itemImage = item.getImage(
+                              TimelineItemImageSizes.medium,
+                              key2: TimelineItemImageSizes.thumbnail,
+                            );
+                            final fullScreenImage = item.getImage(
+                              TimelineItemImageSizes.full,
+                            );
+                            final loadImage =
+                                itemImage != null &&
+                                observerControllerWithLazyLoading
+                                    .shouldActivelyLoad(index, builtIndexes) &&
+                                (widget.loadImages ||
+                                    imageIndexes.contains(index));
+                            final realImageWidth = itemImage != null
+                                ? (imageWidth > itemImage.width
+                                      ? itemImage.width.toDouble()
+                                      : imageWidth)
+                                : imageWidth;
+                            final realImageHeight = itemImage != null
+                                ? (itemImage.height *
+                                      (realImageWidth / itemImage.width))
+                                : 100.0;
+                            return Card(
+                              // color:
+                              //     Theme.of(context).colorScheme.surface,
+                              key: observerControllerWithLazyLoading.getKey(
+                                index,
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Row(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.start,
+                                          MainAxisAlignment.spaceBetween,
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                        Flexible(
+                                          child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              Flexible(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    if (activeTimelines.length >
-                                                        1) ...[
-                                                      Container(
-                                                        decoration: BoxDecoration(
-                                                            color: Theme.of(
-                                                                    context)
-                                                                .colorScheme
-                                                                .tertiaryContainer,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        4)),
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .symmetric(
-                                                                horizontal: 8.0,
-                                                                vertical: 2.0),
-                                                        child: Text(
-                                                            timeline.name,
-                                                            style: Theme.of(
-                                                                    context)
-                                                                .textTheme
-                                                                .bodySmall!
-                                                                .copyWith(
-                                                                    color: Theme.of(
-                                                                            context)
-                                                                        .colorScheme
-                                                                        .onTertiaryContainer)),
+                                              if (activeTimelines.length >
+                                                  1) ...[
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .tertiaryContainer,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          4,
+                                                        ),
+                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8.0,
+                                                        vertical: 2.0,
                                                       ),
-                                                      const Padding(
-                                                          padding:
-                                                              EdgeInsets.only(
-                                                                  top: 4.0))
-                                                    ],
-                                                    Text(
-                                                      item.title,
-                                                      style: Theme.of(context)
-                                                          .textTheme
-                                                          .titleLarge,
-                                                    ),
-                                                    Text(item.years(),
-                                                        style: Theme.of(context)
-                                                            .textTheme
-                                                            .bodySmall),
-                                                  ],
+                                                  child: Text(
+                                                    timeline.name,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall!
+                                                        .copyWith(
+                                                          color: Theme.of(context)
+                                                              .colorScheme
+                                                              .onTertiaryContainer,
+                                                        ),
+                                                  ),
                                                 ),
+                                                const Padding(
+                                                  padding: EdgeInsets.only(
+                                                    top: 4.0,
+                                                  ),
+                                                ),
+                                              ],
+                                              Text(
+                                                item.title,
+                                                style: Theme.of(
+                                                  context,
+                                                ).textTheme.titleLarge,
                                               ),
-                                              Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.end,
-                                                children: [
-                                                  if (!widget.timelineAll
-                                                          .settings.condensed &&
-                                                      !widget.loadImages &&
-                                                      itemImage != null)
-                                                    InkWell(
-                                                      child: Icon(
-                                                          color:
-                                                              Theme.of(context)
-                                                                  .colorScheme
-                                                                  .primary,
-                                                          Icons.image_outlined,
-                                                          size:
-                                                              Theme.of(context)
-                                                                  .textTheme
-                                                                  .titleLarge
-                                                                  ?.fontSize),
-                                                      onTap: () {
-                                                        var tmp =
-                                                            List<int>.from(
-                                                                imageIndexes);
-                                                        if (tmp
-                                                            .contains(index)) {
-                                                          tmp.remove(index);
-                                                        } else {
-                                                          tmp.add(index);
-                                                        }
-                                                        setState(() {
-                                                          imageIndexes = tmp;
-                                                        });
-                                                      },
-                                                    ),
-                                                  if (item.hasContent)
-                                                    InkWell(
-                                                      child: Icon(
-                                                          color:
-                                                              Theme.of(context)
-                                                                  .colorScheme
-                                                                  .primary,
-                                                          Icons.arrow_outward,
-                                                          size:
-                                                              Theme.of(context)
-                                                                  .textTheme
-                                                                  .titleLarge
-                                                                  ?.fontSize),
-                                                      onTap: () => Navigator.of(
-                                                              context)
-                                                          .push(
-                                                              MaterialPageRoute(
-                                                                  builder:
-                                                                      (context) =>
-                                                                          ContentScreen(
-                                                                            onSurfaceColor:
-                                                                                Theme.of(context).colorScheme.onSurface,
-                                                                            linkColor:
-                                                                                Theme.of(context).colorScheme.secondary,
-                                                                            surfaceColor:
-                                                                                Theme.of(context).colorScheme.surface,
-                                                                            timelineHost: widget.timelineAll.timelineHosts.firstWhere((element) =>
-                                                                                element.id ==
-                                                                                timeline.hostId),
-                                                                            timeline:
-                                                                                timeline,
-                                                                            timelineItem:
-                                                                                item,
-                                                                            settings:
-                                                                                widget.timelineAll.settings,
-                                                                          ))),
-                                                    )
-                                                ],
+                                              Text(
+                                                item.years(),
+                                                style: Theme.of(
+                                                  context,
+                                                ).textTheme.bodySmall,
                                               ),
                                             ],
                                           ),
                                         ),
-                                        if (!widget.timelineAll.settings
-                                                .condensed &&
-                                            item.intro.isNotEmpty)
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: MyHtmlText.getRichText(
-                                                item.intro,
-                                                onLinkClicked: ({id, url}) {
-                                              if (id != null) {
-                                                int i = 0;
-                                                for (final t in widget
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            if (!widget
+                                                    .timelineAll
+                                                    .settings
+                                                    .condensed &&
+                                                !widget.loadImages &&
+                                                itemImage != null)
+                                              InkWell(
+                                                child: Icon(
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary,
+                                                  Icons.image_outlined,
+                                                  size: Theme.of(context)
+                                                      .textTheme
+                                                      .titleLarge
+                                                      ?.fontSize,
+                                                ),
+                                                onTap: () {
+                                                  var tmp = List<int>.from(
+                                                    imageIndexes,
+                                                  );
+                                                  if (tmp.contains(index)) {
+                                                    tmp.remove(index);
+                                                  } else {
+                                                    tmp.add(index);
+                                                  }
+                                                  setState(() {
+                                                    imageIndexes = tmp;
+                                                  });
+                                                },
+                                              ),
+                                            if (item.hasContent)
+                                              InkWell(
+                                                child: Icon(
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary,
+                                                  Icons.arrow_outward,
+                                                  size: Theme.of(context)
+                                                      .textTheme
+                                                      .titleLarge
+                                                      ?.fontSize,
+                                                ),
+                                                onTap: () => Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        ContentScreen(
+                                                          onSurfaceColor:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .onSurface,
+                                                          linkColor:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .secondary,
+                                                          surfaceColor:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .surface,
+                                                          timelineHost: widget
+                                                              .timelineAll
+                                                              .timelineHosts
+                                                              .firstWhere(
+                                                                (element) =>
+                                                                    element
+                                                                        .id ==
+                                                                    timeline
+                                                                        .hostId,
+                                                              ),
+                                                          timeline: timeline,
+                                                          timelineItem: item,
+                                                          settings: widget
+                                                              .timelineAll
+                                                              .settings,
+                                                        ),
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (!widget.timelineAll.settings.condensed &&
+                                      item.intro.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: MyHtmlText.getRichText(
+                                        item.intro,
+                                        onLinkClicked: ({id, url}) {
+                                          if (id != null) {
+                                            int i = 0;
+                                            for (final t
+                                                in widget
                                                     .yearAndTimelineItems
                                                     .timelineItems) {
-                                                  if (t is TimelineItem) {
-                                                    // Important to also check for timeline ID, because we can display many different timelines from different hosts
-                                                    // so postId is not unique!
-                                                    if (t.postId == id &&
-                                                        t.timelineId ==
-                                                            item.timelineId) {
-                                                      _scrollToIndex(i);
-                                                      return;
+                                              if (t is TimelineItem) {
+                                                // Important to also check for timeline ID, because we can display many different timelines from different hosts
+                                                // so postId is not unique!
+                                                if (t.postId == id &&
+                                                    t.timelineId ==
+                                                        item.timelineId) {
+                                                  _scrollToIndex(i);
+                                                  return;
+                                                }
+                                              }
+                                              i += 1;
+                                            }
+                                          } else if (url != null) {
+                                            _launchUrl(url);
+                                          }
+                                        },
+                                        textStyle: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge,
+                                      ),
+                                    ),
+
+                                  // Load image only if we scroll manually (requestedIndex == -1) or when the index is less than 3 away from requestedIndex
+                                  if (!widget.timelineAll.settings.condensed &&
+                                      loadImage) ...[
+                                    const Padding(
+                                      padding: EdgeInsets.only(top: 8.0),
+                                    ),
+                                    Center(
+                                      //widthFactor: imageWidth,
+                                      child: Column(
+                                        // crossAxisAlignment:
+                                        //     CrossAxisAlignment.stretch,
+                                        children: [
+                                          InkWell(
+                                            onTap: fullScreenImage != null
+                                                ? () async {
+                                                    // Preload full image, so hero animation goes smooth
+                                                    _loadingOverlay.show(
+                                                      context,
+                                                    );
+                                                    final image =
+                                                        await _loadImage(
+                                                          fullScreenImage,
+                                                        );
+                                                    _loadingOverlay.hide();
+                                                    if (context.mounted) {
+                                                      Navigator.of(
+                                                        context,
+                                                      ).push(
+                                                        MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              ImageScreen(
+                                                                tag:
+                                                                    'image-${item.id}',
+                                                                image: image,
+                                                              ),
+                                                        ),
+                                                      );
                                                     }
                                                   }
-                                                  i += 1;
-                                                }
-                                              } else if (url != null) {
-                                                _launchUrl(url);
-                                              }
-                                            },
-                                                textStyle: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyLarge),
-                                          ),
-
-                                        // Load image only if we scroll manually (requestedIndex == -1) or when the index is less than 3 away from requestedIndex
-                                        if (!widget.timelineAll.settings
-                                                .condensed &&
-                                            loadImage) ...[
-                                          const Padding(
-                                            padding: EdgeInsets.only(top: 8.0),
-                                          ),
-                                          Center(
-                                            //widthFactor: imageWidth,
-                                            child: Column(
-                                              // crossAxisAlignment:
-                                              //     CrossAxisAlignment.stretch,
-                                              children: [
-                                                InkWell(
-                                                  onTap: fullScreenImage != null
-                                                      ? () async {
-                                                          // Preload full image, so hero animation goes smooth
-                                                          _loadingOverlay
-                                                              .show(context);
-                                                          final image =
-                                                              await _loadImage(
-                                                                  fullScreenImage);
-                                                          _loadingOverlay
-                                                              .hide();
-                                                          if (context.mounted) {
-                                                            Navigator.of(
-                                                                    context)
-                                                                .push(
-                                                                    MaterialPageRoute(
-                                                              builder: (context) =>
-                                                                  ImageScreen(
-                                                                      tag:
-                                                                          'image-${item.id}',
-                                                                      image:
-                                                                          image),
-                                                            ));
-                                                          }
-                                                        }
-                                                      : null,
-                                                  child: Hero(
-                                                      tag: 'image-${item.id}',
-                                                      child: widget
-                                                              .timelineAll
-                                                              .settings
-                                                              .cachedImages
-                                                          ? MyImageWithCache(
-                                                              cacheOnly: widget
-                                                                          .timelineAll
-                                                                          .settings
-                                                                          .loadImages ==
-                                                                      LoadImages
-                                                                          .cachedWhenNotOnWifi &&
-                                                                  !hasWifiInternet(),
-                                                              dirPath: MyStore
-                                                                  .getImageCachePath(),
-                                                              uri:
-                                                                  itemImage.url,
-                                                              width:
-                                                                  realImageWidth,
-                                                              height:
-                                                                  realImageHeight,
-                                                              pixelRatio:
-                                                                  pixelRatio,
-                                                            )
-                                                          : Image.network(
-                                                              itemImage.url,
-                                                              width:
-                                                                  realImageWidth,
-                                                              height:
-                                                                  realImageHeight,
-                                                              errorBuilder: (context,
-                                                                      error,
-                                                                      stackTrace) =>
-                                                                  Placeholder(
-                                                                fallbackHeight:
-                                                                    realImageHeight,
-                                                                fallbackWidth:
-                                                                    realImageWidth,
-                                                              ),
-                                                              cacheWidth:
-                                                                  (realImageWidth *
-                                                                          pixelRatio)
-                                                                      .toInt(),
-                                                              cacheHeight:
-                                                                  (realImageHeight *
-                                                                          pixelRatio)
-                                                                      .toInt(),
-                                                            )),
-                                                ),
-                                                if ((item.imageInfo != null &&
-                                                        item.imageInfo!
-                                                            .isNotEmpty) ||
-                                                    (item.imageSource != null &&
-                                                        item.imageSource!
-                                                            .isNotEmpty))
-                                                  Row(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      if (item.imageInfo !=
-                                                          null)
-                                                        Flexible(
-                                                          child: Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(8.0),
-                                                            child: Align(
-                                                              alignment: Alignment
-                                                                  .centerRight,
-                                                              child: Text(
-                                                                  item
-                                                                      .imageInfo!,
-                                                                  style: Theme.of(
-                                                                          context)
-                                                                      .textTheme
-                                                                      .bodySmall!
-                                                                      .copyWith(
-                                                                          color: Theme.of(context)
-                                                                              .colorScheme
-                                                                              .secondary)),
-                                                            ),
+                                                : null,
+                                            child: Hero(
+                                              tag: 'image-${item.id}',
+                                              child:
+                                                  widget
+                                                      .timelineAll
+                                                      .settings
+                                                      .cachedImages
+                                                  ? MyImageWithCache(
+                                                      cacheOnly:
+                                                          widget
+                                                                  .timelineAll
+                                                                  .settings
+                                                                  .loadImages ==
+                                                              LoadImages
+                                                                  .cachedWhenNotOnWifi &&
+                                                          widget.loadImages,
+                                                      dirPath:
+                                                          MyStore.getImageCachePath(),
+                                                      uri: itemImage.url,
+                                                      width: realImageWidth,
+                                                      height: realImageHeight,
+                                                      pixelRatio: pixelRatio,
+                                                    )
+                                                  : Image.network(
+                                                      itemImage.url,
+                                                      width: realImageWidth,
+                                                      height: realImageHeight,
+                                                      errorBuilder:
+                                                          (
+                                                            context,
+                                                            error,
+                                                            stackTrace,
+                                                          ) => Placeholder(
+                                                            fallbackHeight:
+                                                                realImageHeight,
+                                                            fallbackWidth:
+                                                                realImageWidth,
                                                           ),
-                                                        ),
-                                                      if (item.imageSource !=
-                                                              null &&
-                                                          item.imageSource!
-                                                              .isNotEmpty)
-                                                        Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(8.0),
-                                                          child: Align(
-                                                            alignment: Alignment
-                                                                .centerRight,
-                                                            child: InkWell(
-                                                              onTap: () {
-                                                                ScaffoldMessenger.of(
-                                                                        context)
-                                                                    .showSnackBar(SnackBar(
-                                                                        content:
-                                                                            Text(item.imageSource!)));
-                                                              },
-                                                              child: Text(
-                                                                  'Source',
-                                                                  style: Theme.of(
-                                                                          context)
-                                                                      .textTheme
-                                                                      .bodySmall),
-                                                            ),
-                                                          ),
-                                                        )
-                                                    ],
-                                                  ),
-                                              ],
+                                                      cacheWidth:
+                                                          (realImageWidth *
+                                                                  pixelRatio)
+                                                              .toInt(),
+                                                      cacheHeight:
+                                                          (realImageHeight *
+                                                                  pixelRatio)
+                                                              .toInt(),
+                                                    ),
                                             ),
-                                          )
-                                        ],
-                                        if (!widget.timelineAll.settings
-                                                .condensed &&
-                                            item.links.isNotEmpty)
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
+                                          ),
+                                          if ((item.imageInfo != null &&
+                                                  item.imageInfo!.isNotEmpty) ||
+                                              (item.imageSource != null &&
+                                                  item.imageSource!.isNotEmpty))
+                                            Row(
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                Text(myLoc(context).links,
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .titleSmall),
-                                                ...item.links
-                                                    .map((e) => InkWell(
-                                                          child: Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .only(
-                                                                    bottom:
-                                                                        4.0),
-                                                            child: Text(e.name,
-                                                                style: Theme.of(
-                                                                        context)
-                                                                    .textTheme
-                                                                    .bodySmall
-                                                                    ?.copyWith(
-                                                                        decoration:
-                                                                            TextDecoration.underline)),
+                                                if (item.imageInfo != null)
+                                                  Flexible(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            8.0,
                                                           ),
-                                                          onTap: () async {
-                                                            _launchUrl(e.url);
-                                                          },
-                                                        ))
+                                                      child: Align(
+                                                        alignment: Alignment
+                                                            .centerRight,
+                                                        child: Text(
+                                                          item.imageInfo!,
+                                                          style: Theme.of(context)
+                                                              .textTheme
+                                                              .bodySmall!
+                                                              .copyWith(
+                                                                color: Theme.of(
+                                                                  context,
+                                                                ).colorScheme.secondary,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                if (item.imageSource != null &&
+                                                    item
+                                                        .imageSource!
+                                                        .isNotEmpty)
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          8.0,
+                                                        ),
+                                                    child: Align(
+                                                      alignment:
+                                                          Alignment.centerRight,
+                                                      child: InkWell(
+                                                        onTap: () {
+                                                          ScaffoldMessenger.of(
+                                                            context,
+                                                          ).showSnackBar(
+                                                            SnackBar(
+                                                              content: Text(
+                                                                item.imageSource!,
+                                                              ),
+                                                            ),
+                                                          );
+                                                        },
+                                                        child: Text(
+                                                          'Source',
+                                                          style: Theme.of(
+                                                            context,
+                                                          ).textTheme.bodySmall,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
                                               ],
                                             ),
-                                          ),
-                                        if (item.links.isEmpty)
-                                          const Padding(
-                                              padding:
-                                                  EdgeInsets.only(top: 8.0))
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                  );
-                                }
-                              }),
-                        ),
+                                  ],
+                                  if (!widget.timelineAll.settings.condensed &&
+                                      item.links.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            myLoc(context).links,
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.titleSmall,
+                                          ),
+                                          ...item.links.map(
+                                            (e) => InkWell(
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                  bottom: 4.0,
+                                                ),
+                                                child: Text(
+                                                  e.name,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                        decoration:
+                                                            TextDecoration
+                                                                .underline,
+                                                      ),
+                                                ),
+                                              ),
+                                              onTap: () async {
+                                                _launchUrl(e.url);
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  if (item.links.isEmpty)
+                                    const Padding(
+                                      padding: EdgeInsets.only(top: 8.0),
+                                    ),
+                                ],
+                              ),
+                            );
+                          }
+                        },
                       ),
-                      cubit,
-                      activeTimelines))
+                    ),
+                  ),
+                  cubit,
+                  activeTimelines,
+                ),
+              ),
             ],
           );
         },

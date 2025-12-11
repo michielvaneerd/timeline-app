@@ -5,24 +5,30 @@ import 'dart:convert' as convert;
 import 'dart:developer' as developer;
 
 import 'package:http/http.dart';
+import 'package:timeline/my_exception.dart';
 
 class MyHttp {
   String _getAuthHeader(
-      String basicAuthUsername, String basicAuthPlainPassword) {
+    String basicAuthUsername,
+    String basicAuthPlainPassword,
+  ) {
     return 'Basic ${convert.base64.encode(convert.utf8.encode('$basicAuthUsername:$basicAuthPlainPassword'))}';
   }
 
-  Map<String, String> _getHeaders(
-      {String? basicAuthUsername,
-      String? basicAuthPlainPassword,
-      bool json = false}) {
+  Map<String, String> _getHeaders({
+    String? basicAuthUsername,
+    String? basicAuthPlainPassword,
+    bool json = false,
+  }) {
     final Map<String, String> headers = {};
     if (json) {
       headers[HttpHeaders.contentTypeHeader] = 'application/json';
     }
     if (basicAuthUsername != null && basicAuthPlainPassword != null) {
-      headers[HttpHeaders.authorizationHeader] =
-          _getAuthHeader(basicAuthUsername, basicAuthPlainPassword);
+      headers[HttpHeaders.authorizationHeader] = _getAuthHeader(
+        basicAuthUsername,
+        basicAuthPlainPassword,
+      );
     }
     return headers;
   }
@@ -34,15 +40,24 @@ class MyHttp {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return convert.jsonDecode(response.body);
     } else {
-      throw Exception(response.toString());
+      switch (response.statusCode) {
+        case 404:
+          throw MyException(type: MyExceptionType.notFound);
+        default:
+          throw MyException(type: MyExceptionType.unknown);
+      }
     }
   }
 
-  Future<T> delete<T>(String uri,
-      {String? basicAuthUsername, String? basicAuthPlainPassword}) async {
+  Future<T> delete<T>(
+    String uri, {
+    String? basicAuthUsername,
+    String? basicAuthPlainPassword,
+  }) async {
     final headers = _getHeaders(
-        basicAuthUsername: basicAuthUsername,
-        basicAuthPlainPassword: basicAuthPlainPassword);
+      basicAuthUsername: basicAuthUsername,
+      basicAuthPlainPassword: basicAuthPlainPassword,
+    );
     final response = await http.delete(Uri.parse(uri), headers: headers);
     developer.log(uri);
     if (headers.isNotEmpty) {
@@ -51,20 +66,27 @@ class MyHttp {
     return _handleResponse<T>(response);
   }
 
-  Future<List> getWithPagination(String uri,
-      {String? basicAuthUsername, String? basicAuthPlainPassword}) async {
+  Future<List> getWithPagination(
+    String uri, {
+    String? basicAuthUsername,
+    String? basicAuthPlainPassword,
+  }) async {
     List totalResult = [];
     var currentPage = 0;
     while (true) {
       currentPage += 1;
-      final response = await getResponse(uri,
-          basicAuthUsername: basicAuthUsername,
-          basicAuthPlainPassword: basicAuthPlainPassword,
-          page: currentPage);
-      final totalPageCount =
-          int.parse(response.headers['x-wp-totalpages'].toString());
-      final totalItemCount =
-          int.parse(response.headers['x-wp-total'].toString());
+      final response = await _getResponse(
+        uri,
+        basicAuthUsername: basicAuthUsername,
+        basicAuthPlainPassword: basicAuthPlainPassword,
+        page: currentPage,
+      );
+      final totalPageCount = int.parse(
+        response.headers['x-wp-totalpages'].toString(),
+      );
+      final totalItemCount = int.parse(
+        response.headers['x-wp-total'].toString(),
+      );
       totalResult.addAll(_handleResponse<List>(response));
       if (totalResult.length >= totalItemCount ||
           currentPage >= totalPageCount) {
@@ -74,13 +96,16 @@ class MyHttp {
     return totalResult;
   }
 
-  Future<Response> getResponse(String uri,
-      {String? basicAuthUsername,
-      String? basicAuthPlainPassword,
-      int? page}) async {
+  Future<Response> _getResponse(
+    String uri, {
+    String? basicAuthUsername,
+    String? basicAuthPlainPassword,
+    int? page,
+  }) async {
     final headers = _getHeaders(
-        basicAuthUsername: basicAuthUsername,
-        basicAuthPlainPassword: basicAuthPlainPassword);
+      basicAuthUsername: basicAuthUsername,
+      basicAuthPlainPassword: basicAuthPlainPassword,
+    );
     if (headers.isNotEmpty) {
       developer.log(headers.toString());
     }
@@ -93,24 +118,37 @@ class MyHttp {
     return response;
   }
 
-  Future<T> get<T>(String uri,
-      {String? basicAuthUsername, String? basicAuthPlainPassword}) async {
-    final response = await getResponse(uri,
-        basicAuthUsername: basicAuthUsername,
-        basicAuthPlainPassword: basicAuthPlainPassword);
+  Future<T> get<T>(
+    String uri, {
+    String? basicAuthUsername,
+    String? basicAuthPlainPassword,
+  }) async {
+    final response = await _getResponse(
+      uri,
+      basicAuthUsername: basicAuthUsername,
+      basicAuthPlainPassword: basicAuthPlainPassword,
+    );
     return _handleResponse<T>(response);
   }
 
-  Future<T> post<T>(String uri, Map<String, Object?> body,
-      {String? basicAuthUsername, String? basicAuthPlainPassword}) async {
+  Future<T> post<T>(
+    String uri,
+    Map<String, Object?> body, {
+    String? basicAuthUsername,
+    String? basicAuthPlainPassword,
+  }) async {
     final headers = _getHeaders(
-        json: true,
-        basicAuthUsername: basicAuthUsername,
-        basicAuthPlainPassword: basicAuthPlainPassword);
+      json: true,
+      basicAuthUsername: basicAuthUsername,
+      basicAuthPlainPassword: basicAuthPlainPassword,
+    );
     developer.log(uri);
     developer.log(convert.json.encode(body));
-    final response = await http.post(Uri.parse(uri),
-        headers: headers, body: convert.json.encode(body));
+    final response = await http.post(
+      Uri.parse(uri),
+      headers: headers,
+      body: convert.json.encode(body),
+    );
     return _handleResponse<T>(response);
   }
 }

@@ -7,9 +7,11 @@ import 'package:timeline/models/timeline.dart';
 import 'package:timeline/my_http.dart';
 import 'package:timeline/my_store.dart';
 import 'package:timeline/color_schemes.2.dart';
+import 'package:timeline/my_styles.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:timeline/screens/timeline_hosts_screen/timeline_hosts_screen.dart';
 import 'package:timeline/screens/timeline_items_screen/timeline_items_screen.dart';
+import 'package:timeline/translation_helper.dart';
 import 'package:timeline/utils.dart';
 
 // https://github.com/fluttercandies/flutter_scrollview_observer/blob/main/lib/src/common/observer_controller.dart#L334
@@ -19,24 +21,27 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await MyStore.init();
   final repo = TimelineRepository(myHttp: MyHttp());
-  runApp(RepositoryProvider.value(
-    value: repo,
-    child: BlocProvider(
-      create: (context) => MainCubit(repo)..checkAtStart(),
-      child: BlocBuilder<MainCubit, MainState>(
-        builder: (context, state) {
-          return MaterialApp(
+  runApp(
+    RepositoryProvider.value(
+      value: repo,
+      child: BlocProvider(
+        create: (context) => MainCubit(repo)..checkAtStart(),
+        child: BlocBuilder<MainCubit, MainState>(
+          builder: (context, state) {
+            return MaterialApp(
               title: 'Timeline',
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               theme: lightColorTheme,
               darkTheme: darkColorTheme,
               themeMode: state.timelineAll?.settings.getThemeMode(),
-              home: const MyApp());
-        },
+              home: const MyApp(),
+            );
+          },
+        ),
       ),
     ),
-  ));
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -51,6 +56,7 @@ class _MyAppState extends State<MyApp> {
 
   Widget infoWidget(MainState state, MainCubit cubit) {
     return Column(
+      spacing: MyStyles.paddingNormal,
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -59,94 +65,103 @@ class _MyAppState extends State<MyApp> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(MyStyles.paddingNormal),
                   child: Text(
                     myLoc(context).selectTimelinesInfoText,
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Builder(builder: (context) {
-                    return FilledButton(
+                  padding: const EdgeInsets.all(MyStyles.paddingNormal),
+                  child: Builder(
+                    builder: (context) {
+                      return FilledButton(
                         onPressed: () async {
                           Scaffold.of(context).openDrawer();
                         },
-                        child: Text(myLoc(context).ok));
-                  }),
-                )
+                        child: Text(myLoc(context).ok),
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
           ),
-        const Padding(
-          padding: EdgeInsets.only(top: 16),
-        ),
-        Card(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  myLoc(context).addHostInfoText,
-                  style: Theme.of(context).textTheme.bodyLarge,
+        if (state.timelineAll!.timelines.isEmpty)
+          Card(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(MyStyles.paddingNormal),
+                  child: Text(
+                    myLoc(context).addHostInfoText,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: FilledButton(
+                Padding(
+                  padding: const EdgeInsets.all(MyStyles.paddingNormal),
+                  child: FilledButton(
                     onPressed: () async {
-                      await Navigator.of(context).push(MaterialPageRoute(
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
                           builder: (context) => TimelineHostsScreen(
-                                showAddHostDialog: true,
-                                timelineAll: state.timelineAll!,
-                              )));
+                            showAddHostDialog: true,
+                            timelineAll: state.timelineAll!,
+                          ),
+                        ),
+                      );
                       cubit.checkAtStart();
                     },
-                    child: Text(myLoc(context).addHost)),
-              ),
-            ],
+                    child: Text(myLoc(context).addHost),
+                  ),
+                ),
+              ],
+            ),
           ),
-        )
       ],
     );
   }
 
   Widget _getBody(
-      MainCubit cubit, MainState state, List<Timeline>? activeTimelines) {
-    if (state.error != null) {
+    MainCubit cubit,
+    MainState state,
+    List<Timeline>? activeTimelines,
+  ) {
+    if (state.exception != null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(MyStyles.paddingNormal),
               child: Text(
-                state.error!,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge!
-                    .copyWith(color: Theme.of(context).colorScheme.error),
+                TranslationHelper.getMyExceptionMessage(
+                  context,
+                  state.exception!,
+                ),
+                style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(MyStyles.paddingNormal),
               child: FilledButton(
-                  onPressed: () {
-                    cubit.checkAtStart();
-                  },
-                  child: Text(myLoc(context).retry)),
-            )
+                onPressed: () {
+                  cubit.checkAtStart();
+                },
+                child: Text(myLoc(context).retry),
+              ),
+            ),
           ],
         ),
       );
     } else if (state.busy) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     } else if (activeTimelines != null && activeTimelines.isNotEmpty) {
       return TimelineItemsWidget(
         loadImages: state.loadImages!,
-        connectivityResult: state.connectivityResult,
         showSearch: showSearch,
         timelineAll: state.timelineAll!,
         yearAndTimelineItems: state.items!,
@@ -172,35 +187,34 @@ class _MyAppState extends State<MyApp> {
       builder: (context, state) {
         final cubit = BlocProvider.of<MainCubit>(context);
         final activeTimelines = state.timelineAll?.timelines
-            .where(
-              (element) => element.isActive(),
-            )
+            .where((element) => element.isActive())
             .toList();
         return Scaffold(
-            appBar: AppBar(
-              //backgroundColor: Theme.of(context).secondaryHeaderColor,
-              title: Text(activeTimelines != null && activeTimelines.isNotEmpty
+          appBar: AppBar(
+            //backgroundColor: Theme.of(context).secondaryHeaderColor,
+            title: Text(
+              activeTimelines != null && activeTimelines.isNotEmpty
                   ? activeTimelines.map((e) => e.name).join(', ')
-                  : myLoc(context).timeline),
-              actions: activeTimelines != null && activeTimelines.isNotEmpty
-                  ? [
-                      IconButton(
-                          onPressed: () {
-                            setState(() {
-                              showSearch = !showSearch;
-                            });
-                          },
-                          icon: const Icon(Icons.search))
-                    ]
-                  : null,
+                  : myLoc(context).timeline,
             ),
-            drawer: state.timelineAll != null
-                ? MainDrawer(
-                    timelineAll: state.timelineAll!,
-                    mainCubit: cubit,
-                  )
+            actions: activeTimelines != null && activeTimelines.isNotEmpty
+                ? [
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          showSearch = !showSearch;
+                        });
+                      },
+                      icon: const Icon(Icons.search),
+                    ),
+                  ]
                 : null,
-            body: _getBody(cubit, state, activeTimelines));
+          ),
+          drawer: state.timelineAll != null
+              ? MainDrawer(timelineAll: state.timelineAll!, mainCubit: cubit)
+              : null,
+          body: _getBody(cubit, state, activeTimelines),
+        );
       },
     );
   }

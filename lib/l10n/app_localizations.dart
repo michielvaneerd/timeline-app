@@ -158,7 +158,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Are you sure you want to delete the host {host}?'**
-  String confirmDeleteHost(String host);
+  String confirmDeleteHost(Object host);
 
   /// No description provided for @condensedView.
   ///
@@ -339,6 +339,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Year end name'**
   String get yearEndName;
+
+  /// No description provided for @offlineError.
+  ///
+  /// In en, this message translates to:
+  /// **'For this action you need to be connected to the internet'**
+  String get offlineError;
+
+  /// No description provided for @unauthenticatedError.
+  ///
+  /// In en, this message translates to:
+  /// **'There was an error authenticating'**
+  String get unauthenticatedError;
+
+  /// No description provided for @unknownError.
+  ///
+  /// In en, this message translates to:
+  /// **'An unknown error occurred.'**
+  String get unknownError;
+
+  /// No description provided for @internetConnectionError.
+  ///
+  /// In en, this message translates to:
+  /// **'A connection error occurred'**
+  String get internetConnectionError;
+
+  /// No description provided for @duplicateHostError.
+  ///
+  /// In en, this message translates to:
+  /// **'Host already exist'**
+  String get duplicateHostError;
+
+  /// No description provided for @notFoundError.
+  ///
+  /// In en, this message translates to:
+  /// **'The resource was not found'**
+  String get notFoundError;
 }
 
 class _AppLocalizationsDelegate

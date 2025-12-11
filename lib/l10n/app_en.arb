@@ -10,13 +10,6 @@
   "refresh": "Refresh",
   "delete": "Delete",
   "confirmDeleteHost": "Are you sure you want to delete the host {host}?",
-  "@confirmDeleteHost": {
-    "placeholders": {
-      "host": {
-        "type": "String"
-      }
-    }
-  },
   "condensedView": "Condensed view",
   "loadImages": "Load images",
   "always": "Always",
@@ -46,5 +39,11 @@
   "title": "Title",
   "yearWidth": "Year width",
   "yearName": "Year name",
-  "yearEndName": "Year end name"
+  "yearEndName": "Year end name",
+  "offlineError": "For this action you need to be connected to the internet",
+  "unauthenticatedError": "There was an error authenticating",
+  "unknownError": "An unknown error occurred.",
+  "internetConnectionError": "A connection error occurred",
+  "duplicateHostError": "Host already exist",
+  "notFoundError": "The resource was not found"
 }
