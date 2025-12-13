@@ -166,6 +166,12 @@ abstract class AppLocalizations {
   /// **'Condensed view'**
   String get condensedView;
 
+  /// No description provided for @displayTimelineChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Display timeline chart'**
+  String get displayTimelineChart;
+
   /// No description provided for @loadImages.
   ///
   /// In en, this message translates to:

@@ -47,6 +47,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get condensedView => 'Condensed view';
 
   @override
+  String get displayTimelineChart => 'Display timeline chart';
+
+  @override
   String get loadImages => 'Load images';
 
   @override

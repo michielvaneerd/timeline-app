@@ -24,8 +24,10 @@ class ObserverControllerWithLazyLoading {
   /// is only loaded after the scrolling ended.
   late final ListObserverController listObserverController;
 
-  ObserverControllerWithLazyLoading(
-      {required this.onBuiltEnd, required this.scrollController});
+  ObserverControllerWithLazyLoading({
+    required this.onBuiltEnd,
+    required this.scrollController,
+  });
 
   /// Gets a unique key for each list item, should be called when building the list items.
   GlobalKey getKey(int index) {
@@ -37,9 +39,9 @@ class ObserverControllerWithLazyLoading {
 
   /// Should be called before using this class
   void init() {
-    listObserverController =
-        ListObserverController(controller: scrollController)
-          ..cacheJumpIndexOffset = false;
+    listObserverController = ListObserverController(
+      controller: scrollController,
+    )..cacheJumpIndexOffset = false;
   }
 
   Future scrollToIndex(int index) async {

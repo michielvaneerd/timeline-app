@@ -11,6 +11,7 @@
   "delete": "Delete",
   "confirmDeleteHost": "Are you sure you want to delete the host {host}?",
   "condensedView": "Condensed view",
+  "displayTimelineChart": "Display timeline chart",
   "loadImages": "Load images",
   "always": "Always",
   "onlyWhenOnWifi": "Only when on WIFI",

@@ -27,14 +27,17 @@ class Settings extends Equatable {
   final MyThemeModes themeMode;
   final bool cachedImages;
   final int? yearWidth;
+  final bool displayTimelineChart;
 
-  const Settings(
-      {required this.loadImages,
-      required this.condensed,
-      required this.imageWidth,
-      required this.yearWidth,
-      required this.cachedImages,
-      required this.themeMode});
+  const Settings({
+    required this.loadImages,
+    required this.condensed,
+    required this.imageWidth,
+    required this.yearWidth,
+    required this.cachedImages,
+    required this.displayTimelineChart,
+    required this.themeMode,
+  });
 
   ThemeMode getThemeMode() {
     switch (themeMode) {
@@ -47,25 +50,36 @@ class Settings extends Equatable {
     }
   }
 
-  Settings copyWith(
-      {LoadImages? loadImages,
-      bool? condensed,
-      int? imageWidth,
-      int? yearWidth,
-      MyThemeModes? themeMode,
-      bool? cachedImages,
-      bool removeImageWidth = false,
-      bool removeYearWidth = false}) {
+  Settings copyWith({
+    LoadImages? loadImages,
+    bool? condensed,
+    int? imageWidth,
+    int? yearWidth,
+    MyThemeModes? themeMode,
+    bool? cachedImages,
+    bool? displayTimelineChart,
+    bool removeImageWidth = false,
+    bool removeYearWidth = false,
+  }) {
     return Settings(
-        cachedImages: cachedImages ?? this.cachedImages,
-        themeMode: themeMode ?? this.themeMode,
-        loadImages: loadImages ?? this.loadImages,
-        condensed: condensed ?? this.condensed,
-        yearWidth: removeYearWidth ? null : (yearWidth ?? this.yearWidth),
-        imageWidth: removeImageWidth ? null : (imageWidth ?? this.imageWidth));
+      cachedImages: cachedImages ?? this.cachedImages,
+      themeMode: themeMode ?? this.themeMode,
+      displayTimelineChart: displayTimelineChart ?? this.displayTimelineChart,
+      loadImages: loadImages ?? this.loadImages,
+      condensed: condensed ?? this.condensed,
+      yearWidth: removeYearWidth ? null : (yearWidth ?? this.yearWidth),
+      imageWidth: removeImageWidth ? null : (imageWidth ?? this.imageWidth),
+    );
   }
 
   @override
-  List<Object?> get props =>
-      [loadImages, condensed, imageWidth, themeMode, cachedImages, yearWidth];
+  List<Object?> get props => [
+    loadImages,
+    condensed,
+    imageWidth,
+    themeMode,
+    cachedImages,
+    yearWidth,
+    displayTimelineChart,
+  ];
 }

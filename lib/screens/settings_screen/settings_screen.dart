@@ -28,9 +28,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     settings = widget.initialSettings.copyWith();
     initialSettingsHash = settings.hashCode;
     imageWidthController = TextEditingController(
-        text: widget.initialSettings.imageWidth?.toString());
+      text: widget.initialSettings.imageWidth?.toString(),
+    );
     yearWidthController = TextEditingController(
-        text: widget.initialSettings.yearWidth?.toString());
+      text: widget.initialSettings.yearWidth?.toString(),
+    );
   }
 
   @override
@@ -74,64 +76,85 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   CheckboxListTile(
-                      title: Text(myLoc(context).condensedView),
-                      value: settings.condensed,
-                      onChanged: (newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            settings = settings.copyWith(condensed: newValue);
-                          });
-                        }
-                      }),
+                    title: Text(myLoc(context).condensedView),
+                    value: settings.condensed,
+                    onChanged: (newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          settings = settings.copyWith(condensed: newValue);
+                        });
+                      }
+                    },
+                  ),
                   CheckboxListTile(
-                      title: Text(myLoc(context).cachedImages),
-                      value: settings.cachedImages,
-                      onChanged: (newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            settings =
-                                settings.copyWith(cachedImages: newValue);
-                          });
-                        }
-                      }),
+                    title: Text(myLoc(context).displayTimelineChart),
+                    value: settings.displayTimelineChart,
+                    onChanged: (newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          settings = settings.copyWith(
+                            displayTimelineChart: newValue,
+                          );
+                        });
+                      }
+                    },
+                  ),
+                  CheckboxListTile(
+                    title: Text(myLoc(context).cachedImages),
+                    value: settings.cachedImages,
+                    onChanged: (newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          settings = settings.copyWith(cachedImages: newValue);
+                        });
+                      }
+                    },
+                  ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: OutlinedButton(
-                        onPressed: state.busy
-                            ? null
-                            : () {
-                                _loadingOverlay.show(context);
-                                cubit.clearCache(settings);
-                              },
-                        child: Text(myLoc(context).clearCache)),
+                      onPressed: state.busy
+                          ? null
+                          : () {
+                              _loadingOverlay.show(context);
+                              cubit.clearCache(settings);
+                            },
+                      child: Text(myLoc(context).clearCache),
+                    ),
                   ),
                   if (!settings.condensed) ...[
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: DropdownMenu<LoadImages>(
-                          inputDecorationTheme: InputDecorationTheme(
-                              enabledBorder:
-                                  MyWidgets.getOutlineInputBorderEnabled(
-                                      context),
-                              focusedBorder:
-                                  MyWidgets.getOutlineInputBorderFocused(
-                                      context)),
-                          label: Text(myLoc(context).loadImages),
-                          initialSelection: settings.loadImages,
-                          onSelected: (value) {
-                            if (value != null) {
-                              setState(() {
-                                settings = settings.copyWith(loadImages: value);
-                              });
-                            }
-                          },
-                          dropdownMenuEntries: LoadImages.values
-                              .map<DropdownMenuEntry<LoadImages>>((e) =>
-                                  DropdownMenuEntry<LoadImages>(
-                                      value: e,
-                                      label: TranslationHelper.getLoadImages(
-                                          context, e)))
-                              .toList()),
+                        inputDecorationTheme: InputDecorationTheme(
+                          enabledBorder: MyWidgets.getOutlineInputBorderEnabled(
+                            context,
+                          ),
+                          focusedBorder: MyWidgets.getOutlineInputBorderFocused(
+                            context,
+                          ),
+                        ),
+                        label: Text(myLoc(context).loadImages),
+                        initialSelection: settings.loadImages,
+                        onSelected: (value) {
+                          if (value != null) {
+                            setState(() {
+                              settings = settings.copyWith(loadImages: value);
+                            });
+                          }
+                        },
+                        dropdownMenuEntries: LoadImages.values
+                            .map<DropdownMenuEntry<LoadImages>>(
+                              (e) => DropdownMenuEntry<LoadImages>(
+                                value: e,
+                                label: TranslationHelper.getLoadImages(
+                                  context,
+                                  e,
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -140,17 +163,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         controller: imageWidthController,
                         labelText: myLoc(context).imageWidth,
                         onChanged: (value) {
-                          final valueInt =
-                              value.isNotEmpty ? int.tryParse(value) : null;
+                          final valueInt = value.isNotEmpty
+                              ? int.tryParse(value)
+                              : null;
                           if (valueInt == null) {
                             setState(() {
-                              settings =
-                                  settings.copyWith(removeImageWidth: true);
+                              settings = settings.copyWith(
+                                removeImageWidth: true,
+                              );
                             });
                           } else {
                             setState(() {
-                              settings =
-                                  settings.copyWith(imageWidth: valueInt);
+                              settings = settings.copyWith(
+                                imageWidth: valueInt,
+                              );
                             });
                           }
                         },
@@ -163,12 +189,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         controller: yearWidthController,
                         labelText: myLoc(context).yearWidth,
                         onChanged: (value) {
-                          final valueInt =
-                              value.isNotEmpty ? int.tryParse(value) : null;
+                          final valueInt = value.isNotEmpty
+                              ? int.tryParse(value)
+                              : null;
                           if (valueInt == null) {
                             setState(() {
-                              settings =
-                                  settings.copyWith(removeYearWidth: true);
+                              settings = settings.copyWith(
+                                removeYearWidth: true,
+                              );
                             });
                           } else {
                             setState(() {
@@ -181,30 +209,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: DropdownMenu<MyThemeModes>(
-                          inputDecorationTheme: InputDecorationTheme(
-                              enabledBorder:
-                                  MyWidgets.getOutlineInputBorderEnabled(
-                                      context),
-                              focusedBorder:
-                                  MyWidgets.getOutlineInputBorderFocused(
-                                      context)),
-                          label: Text(myLoc(context).theme),
-                          initialSelection: settings.themeMode,
-                          onSelected: (value) {
-                            if (value != null) {
-                              setState(() {
-                                settings = settings.copyWith(themeMode: value);
-                              });
-                            }
-                          },
-                          dropdownMenuEntries: MyThemeModes.values
-                              .map<DropdownMenuEntry<MyThemeModes>>((e) =>
-                                  DropdownMenuEntry<MyThemeModes>(
-                                      value: e,
-                                      label: TranslationHelper.getMyThemeModes(
-                                          context, e)))
-                              .toList()),
-                    )
+                        inputDecorationTheme: InputDecorationTheme(
+                          enabledBorder: MyWidgets.getOutlineInputBorderEnabled(
+                            context,
+                          ),
+                          focusedBorder: MyWidgets.getOutlineInputBorderFocused(
+                            context,
+                          ),
+                        ),
+                        label: Text(myLoc(context).theme),
+                        initialSelection: settings.themeMode,
+                        onSelected: (value) {
+                          if (value != null) {
+                            setState(() {
+                              settings = settings.copyWith(themeMode: value);
+                            });
+                          }
+                        },
+                        dropdownMenuEntries: MyThemeModes.values
+                            .map<DropdownMenuEntry<MyThemeModes>>(
+                              (e) => DropdownMenuEntry<MyThemeModes>(
+                                value: e,
+                                label: TranslationHelper.getMyThemeModes(
+                                  context,
+                                  e,
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
                   ],
                 ],
               ),
