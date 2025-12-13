@@ -256,7 +256,6 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                         final widg = realItems.timelineItems[widgetIndex];
                         if (widg is TimelineYearItem) {
                           setState(() {
-                            print(widg.year);
                             currentTopVisibleYear = widg.year;
                           });
                         }
