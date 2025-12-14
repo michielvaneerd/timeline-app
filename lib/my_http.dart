@@ -66,6 +66,7 @@ class MyHttp {
     return _handleResponse<T>(response);
   }
 
+  /// Make as many GET requests as needed to get all items by using the Wordpress paging mechanism.
   Future<List> getWithPagination(
     String uri, {
     String? basicAuthUsername,

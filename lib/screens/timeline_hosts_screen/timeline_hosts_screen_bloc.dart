@@ -75,12 +75,12 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
   void refreshHost(TimelineAll timelineAll, TimelineHost host) async {
     emit(state.copyWith(busy: true, removeException: true));
     await Future.delayed(const Duration(seconds: 1));
-    await MyStore.removeTimelineHosts([host.id], removeHosts: false);
 
     try {
       final response = await timelineRepository.getTimelinesFromHostname(
         host.host,
       );
+      await MyStore.removeTimelineHosts([host.id], removeHosts: false);
       await MyStore.putTimelinesFromResponse(
         response.map((e) => e as Map<String, dynamic>).toList(),
         host.id,

@@ -61,31 +61,29 @@ class _MyAppState extends State<MyApp> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (state.timelineAll!.timelines.isNotEmpty)
-          Card(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(MyStyles.paddingNormal),
-                  child: Text(
-                    myLoc(context).selectTimelinesInfoText,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(MyStyles.paddingNormal),
+                child: Text(
+                  myLoc(context).selectTimelinesInfoText,
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(MyStyles.paddingNormal),
-                  child: Builder(
-                    builder: (context) {
-                      return FilledButton(
-                        onPressed: () async {
-                          Scaffold.of(context).openDrawer();
-                        },
-                        child: Text(myLoc(context).ok),
-                      );
-                    },
-                  ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(MyStyles.paddingNormal),
+                child: Builder(
+                  builder: (context) {
+                    return FilledButton(
+                      onPressed: () async {
+                        Scaffold.of(context).openDrawer();
+                      },
+                      child: Text(myLoc(context).ok),
+                    );
+                  },
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         if (state.timelineAll!.timelines.isEmpty)
           Card(

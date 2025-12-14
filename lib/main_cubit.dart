@@ -79,6 +79,7 @@ class MainCubit extends Cubit<MainState> {
     YearAndTimelineItems? items;
     if (activeTimelines.isNotEmpty) {
       if (refresh) {
+        // TODO: We should do this AFTER we have received the new ones, to make sure that we keep the old ones in case of an Exception.
         await MyStore.removeTimelineItems(
           activeTimelines.map((e) => e.id).toList(),
         );

@@ -140,9 +140,6 @@ class TimelineRepository {
         (element) => element.id == entry.key,
       );
       final hostTimelineExternalIds = hostIdTimelineIdsMap[host.id]!.keys;
-      // final uri =
-      //     '${host.host}/wp-json/mve-timeline/v1/timelines/${hostTimelineExternalIds.join(',')}';
-      // http://localhost:8000/wp-json/wp/v2/mve_timeline_item?_fields=id,title,mve_timeline,meta&order=desc&orderby=meta.mve_timeline_year&mve_timeline=11,8
       final uri =
           '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,mve_timeline,meta,title,title_raw&mve_timeline=${hostTimelineExternalIds.join(',')}&per_page=100';
       fetchFutures.add(myHttp.getWithPagination(uri));

@@ -70,6 +70,10 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
             .physicalSize
             .width /
         pixelRatio;
+    setState(() {
+      currentTopVisibleYear =
+          widget.yearAndTimelineItems.yearIndexes.keys.first;
+    });
     observerControllerWithLazyLoading = ObserverControllerWithLazyLoading(
       onBuiltEnd: onBuiltEnd,
       scrollController: scrollController,
