@@ -58,12 +58,18 @@ class MyHttp {
       basicAuthUsername: basicAuthUsername,
       basicAuthPlainPassword: basicAuthPlainPassword,
     );
-    final response = await http.delete(Uri.parse(uri), headers: headers);
-    developer.log(uri);
-    if (headers.isNotEmpty) {
-      developer.log(headers.toString());
+    try {
+      final response = await http.delete(Uri.parse(uri), headers: headers);
+      developer.log(uri);
+      if (headers.isNotEmpty) {
+        developer.log(headers.toString());
+      }
+      return _handleResponse<T>(response);
+    } on ClientException {
+      throw MyException(type: MyExceptionType.internetConnection);
+    } catch (ex) {
+      throw MyException(type: MyExceptionType.unknown);
     }
-    return _handleResponse<T>(response);
   }
 
   /// Make as many GET requests as needed to get all items by using the Wordpress paging mechanism.
@@ -115,8 +121,14 @@ class MyHttp {
       uri = ('$uri&page=$page');
     }
     developer.log(uri);
-    final response = await http.get(Uri.parse(uri), headers: headers);
-    return response;
+    try {
+      final response = await http.get(Uri.parse(uri), headers: headers);
+      return response;
+    } on ClientException {
+      throw MyException(type: MyExceptionType.internetConnection);
+    } catch (ex) {
+      throw MyException(type: MyExceptionType.unknown);
+    }
   }
 
   Future<T> get<T>(
@@ -145,11 +157,17 @@ class MyHttp {
     );
     developer.log(uri);
     developer.log(convert.json.encode(body));
-    final response = await http.post(
-      Uri.parse(uri),
-      headers: headers,
-      body: convert.json.encode(body),
-    );
-    return _handleResponse<T>(response);
+    try {
+      final response = await http.post(
+        Uri.parse(uri),
+        headers: headers,
+        body: convert.json.encode(body),
+      );
+      return _handleResponse<T>(response);
+    } on ClientException {
+      throw MyException(type: MyExceptionType.internetConnection);
+    } catch (ex) {
+      throw MyException(type: MyExceptionType.unknown);
+    }
   }
 }

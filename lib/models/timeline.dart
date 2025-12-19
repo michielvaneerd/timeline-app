@@ -11,7 +11,7 @@ class Timeline extends Equatable {
   final int? yearMin;
   final int? yearMax;
   final int count;
-  final int? color; // Dit kan alleen in de app gezet worden
+  final String? color; // Set in app only, hex string
 
   const Timeline({
     required this.id,
@@ -39,6 +39,18 @@ class Timeline extends Equatable {
     count,
     color,
   ];
+
+  Timeline copyWith({String? color, bool removeColor = false}) {
+    return Timeline(
+      id: id,
+      termId: termId,
+      hostId: hostId,
+      name: name,
+      active: active,
+      description: description,
+      color: removeColor ? null : (color ?? this.color),
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -71,9 +83,7 @@ class Timeline extends Equatable {
       count = map['count'],
       active = active ?? map['active'],
       name = map['name'],
-      color = map.containsKey('color')
-          ? Utils.fromHexString(map['color'].toString())
-          : null,
+      color = map['color'],
       hostId =
           hostId ??
           map['host_id'], // When we select from database, myHostId can be null, but when we fetch from API, then we need myHostId.

@@ -86,36 +86,34 @@ class _MyAppState extends State<MyApp> {
             ],
           ),
         if (state.timelineAll!.timelines.isEmpty)
-          Card(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(MyStyles.paddingNormal),
-                  child: Text(
-                    myLoc(context).addHostInfoText,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                    textAlign: TextAlign.center,
-                  ),
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(MyStyles.paddingNormal),
+                child: Text(
+                  myLoc(context).addHostInfoText,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                  textAlign: TextAlign.center,
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(MyStyles.paddingNormal),
-                  child: FilledButton(
-                    onPressed: () async {
-                      await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => TimelineHostsScreen(
-                            showAddHostDialog: true,
-                            timelineAll: state.timelineAll!,
-                          ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(MyStyles.paddingNormal),
+                child: FilledButton(
+                  onPressed: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => TimelineHostsScreen(
+                          showAddHostDialog: true,
+                          timelineAll: state.timelineAll!,
                         ),
-                      );
-                      cubit.checkAtStart();
-                    },
-                    child: Text(myLoc(context).addHost),
-                  ),
+                      ),
+                    );
+                    cubit.checkAtStart();
+                  },
+                  child: Text(myLoc(context).addHost),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
       ],
     );
@@ -189,7 +187,6 @@ class _MyAppState extends State<MyApp> {
             .toList();
         return Scaffold(
           appBar: AppBar(
-            //backgroundColor: Theme.of(context).secondaryHeaderColor,
             title: Text(
               activeTimelines != null && activeTimelines.isNotEmpty
                   ? activeTimelines.map((e) => e.name).join(', ')

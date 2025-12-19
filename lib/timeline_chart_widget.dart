@@ -13,6 +13,7 @@ class TimelineChartWidget extends StatelessWidget {
 
   static const _bulletWidth = 10.0;
   static const _widgetWidth = 20.0;
+  static const _lineWidth = 1.0;
 
   @override
   Widget build(BuildContext context) {
@@ -50,11 +51,28 @@ class TimelineChartWidget extends StatelessWidget {
         return SizedBox(
           height: maxHeight + _bulletWidth,
           width: _widgetWidth,
-          child: Row(
+          child: Stack(
             children: [
-              SizedBox(width: _widgetWidth - _bulletWidth - (_bulletWidth / 2)),
-              Expanded(child: Stack(children: yearWidgets)),
-              SizedBox(width: _widgetWidth - _bulletWidth - (_bulletWidth / 2)),
+              Positioned(
+                left: _widgetWidth / 2 - (_lineWidth / 2),
+                top: _bulletWidth,
+                child: Container(
+                  width: _lineWidth,
+                  height: maxHeight - _bulletWidth,
+                  color: Theme.of(context).colorScheme.primary.withAlpha(50),
+                ),
+              ),
+              Row(
+                children: [
+                  SizedBox(
+                    width: _widgetWidth - _bulletWidth - (_bulletWidth / 2),
+                  ),
+                  Expanded(child: Stack(children: yearWidgets)),
+                  SizedBox(
+                    width: _widgetWidth - _bulletWidth - (_bulletWidth / 2),
+                  ),
+                ],
+              ),
             ],
           ),
         );

@@ -6,8 +6,11 @@ import 'package:timeline/screens/timeline_hosts_screen/timeline_hosts_screen.dar
 import 'package:timeline/utils.dart';
 
 class MainDrawer extends StatefulWidget {
-  const MainDrawer(
-      {super.key, required this.timelineAll, required this.mainCubit});
+  const MainDrawer({
+    super.key,
+    required this.timelineAll,
+    required this.mainCubit,
+  });
   final TimelineAll timelineAll;
   final MainCubit mainCubit;
 
@@ -30,80 +33,91 @@ class _MainDrawerState extends State<MainDrawer> {
   List<Widget> _getDrawerItems(BuildContext context) {
     final List<Widget> items = [];
 
-    items.add(ListTile(
-      title: Text(myLoc(context).hosts),
-      titleTextStyle: Theme.of(context).textTheme.titleLarge,
-      onTap: () async {
-        Navigator.of(context).pop();
-        await Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => TimelineHostsScreen(
-                  timelineAll: widget.timelineAll,
-                )));
-        widget.mainCubit.checkAtStart(withBusy: false);
-      },
-    ));
-
-    items.add(ListTile(
-      title: Text(myLoc(context).settings),
-      titleTextStyle: Theme.of(context).textTheme.titleLarge,
-      onTap: () async {
-        Navigator.of(context).pop(); // Drawer
-        final hasChanged = await Navigator.of(context).push<bool?>(
+    items.add(
+      ListTile(
+        title: Text(myLoc(context).hosts),
+        titleTextStyle: Theme.of(context).textTheme.titleLarge,
+        onTap: () async {
+          Navigator.of(context).pop();
+          await Navigator.of(context).push(
             MaterialPageRoute(
-                builder: (context) => SettingsScreen(
-                    initialSettings: widget.timelineAll.settings)));
-        if (hasChanged != null && hasChanged) {
-          widget.mainCubit.checkAtStart();
-        }
-      },
-    ));
+              builder: (context) =>
+                  TimelineHostsScreen(timelineAll: widget.timelineAll),
+            ),
+          );
+          widget.mainCubit.checkAtStart(withBusy: false);
+        },
+      ),
+    );
+
+    items.add(
+      ListTile(
+        title: Text(myLoc(context).settings),
+        titleTextStyle: Theme.of(context).textTheme.titleLarge,
+        onTap: () async {
+          Navigator.of(context).pop(); // Drawer
+          final hasChanged = await Navigator.of(context).push<bool?>(
+            MaterialPageRoute(
+              builder: (context) =>
+                  SettingsScreen(initialSettings: widget.timelineAll.settings),
+            ),
+          );
+          if (hasChanged != null && hasChanged) {
+            widget.mainCubit.checkAtStart();
+          }
+        },
+      ),
+    );
 
     for (final host in widget.timelineAll.timelineHosts) {
       items.add(const Divider());
-      items.add(ListTile(
-        title: Text(host.name),
-        titleTextStyle: Theme.of(context).textTheme.titleLarge,
-      ));
-      for (final timeline in widget.timelineAll.timelines
-          .where((element) => element.hostId == host.id)) {
+      items.add(
+        ListTile(
+          title: Text(host.name),
+          titleTextStyle: Theme.of(context).textTheme.titleLarge,
+        ),
+      );
+      for (final timeline in widget.timelineAll.timelines.where(
+        (element) => element.hostId == host.id,
+      )) {
         if (timeline.count > 0) {
-          items.add(CheckboxListTile(
-            title: Text(timeline.name),
-            // subtitle:
-            //     timeline.yearMin != null ? Text(timeline.yearMinMax()) : null,
-            // subtitle: timeline.description.isNotEmpty
-            //     ? Text(timeline.description)
-            //     : null,
-            value: activeTimelineIds.contains(timeline.id),
-            onChanged: (newValue) {
-              if (newValue != null) {
-                var tmp = List<int>.from(activeTimelineIds);
-                if (newValue) {
-                  if (!tmp.contains(timeline.id)) {
-                    tmp.add(timeline.id);
+          items.add(
+            CheckboxListTile(
+              title: Text(timeline.name),
+              value: activeTimelineIds.contains(timeline.id),
+              onChanged: (newValue) {
+                if (newValue != null) {
+                  var tmp = List<int>.from(activeTimelineIds);
+                  if (newValue) {
+                    if (!tmp.contains(timeline.id)) {
+                      tmp.add(timeline.id);
+                    }
+                  } else {
+                    tmp.remove(timeline.id);
                   }
-                } else {
-                  tmp.remove(timeline.id);
+                  setState(() {
+                    activeTimelineIds = tmp;
+                  });
                 }
-                setState(() {
-                  activeTimelineIds = tmp;
-                });
-              }
-            },
-          ));
+              },
+            ),
+          );
         }
       }
     }
     if (widget.timelineAll.timelineHosts.isNotEmpty) {
       items.add(const Divider());
-      items.add(ListTile(
+      items.add(
+        ListTile(
           title: FilledButton(
-        child: Text(myLoc(context).ok),
-        onPressed: () {
-          Navigator.of(context).pop();
-          widget.mainCubit.activateTimelines(activeTimelineIds);
-        },
-      )));
+            child: Text(myLoc(context).ok),
+            onPressed: () {
+              Navigator.of(context).pop();
+              widget.mainCubit.activateTimelines(activeTimelineIds);
+            },
+          ),
+        ),
+      );
     }
 
     return items;
@@ -111,10 +125,6 @@ class _MainDrawerState extends State<MainDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        children: _getDrawerItems(context),
-      ),
-    );
+    return Drawer(child: ListView(children: _getDrawerItems(context)));
   }
 }

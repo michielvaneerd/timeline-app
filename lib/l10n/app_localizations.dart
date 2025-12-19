@@ -381,6 +381,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The resource was not found'**
   String get notFoundError;
+
+  /// No description provided for @color.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get color;
 }
 
 class _AppLocalizationsDelegate

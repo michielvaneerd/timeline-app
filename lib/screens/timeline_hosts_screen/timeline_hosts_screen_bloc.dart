@@ -2,11 +2,13 @@ import 'dart:io';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_host.dart';
 import 'package:timeline/my_exception.dart';
 import 'package:timeline/my_store.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:collection/collection.dart';
+import 'package:timeline/utils.dart';
 
 class TimelineHostsScreenState extends Equatable {
   final MyException? exception;
@@ -56,10 +58,8 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
     }
   }
 
-  void removeHosts(TimelineAll timelineAll, List<int> hostIds) async {
-    emit(const TimelineHostsScreenState(busy: true));
-    await Future.delayed(const Duration(seconds: 1));
-
+  void removeHosts(List<int> hostIds) async {
+    emit(state.copyWith(busy: true));
     await MyStore.removeTimelineHosts(hostIds, removeHosts: true);
     final all = await timelineRepository.getAll();
     emit(TimelineHostsScreenState(timelineAll: all));
@@ -104,6 +104,12 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
         ),
       );
     }
+  }
+
+  void updateTimelineColor({required Timeline timeline, String? color}) async {
+    await MyStore.updateTimelineColor(timeline.id, color);
+    final all = await timelineRepository.getAll();
+    emit(state.copyWith(timelineAll: all));
   }
 
   void login(
@@ -168,6 +174,8 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
       );
       final all = await timelineRepository.getAll();
       emit(TimelineHostsScreenState(timelineAll: all));
+    } on MyException catch (ex) {
+      emit(state.copyWith(exception: ex));
     } catch (ex) {
       emit(
         state.copyWith(exception: MyException(type: MyExceptionType.unknown)),

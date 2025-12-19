@@ -151,6 +151,13 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
     final activeTimelines = widget.timelineAll.timelines
         .where((element) => element.isActive())
         .toList();
+    final timelineColors = {}; // Timeline id => color
+    for (final tl in activeTimelines) {
+      final intColor = tl.color != null ? Utils.fromHexString(tl.color!) : null;
+      timelineColors[tl.id] = intColor != null
+          ? Color(intColor)
+          : Theme.of(context).colorScheme.tertiaryContainer;
+    }
     final repo = RepositoryProvider.of<TimelineRepository>(context);
     return BlocProvider(
       create: (context) => TimelineItemsScreenCubit(repo),
@@ -374,9 +381,9 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                         1) ...[
                                                       Container(
                                                         decoration: BoxDecoration(
-                                                          color: Theme.of(context)
-                                                              .colorScheme
-                                                              .tertiaryContainer,
+                                                          color:
+                                                              timelineColors[timeline
+                                                                  .id],
                                                           borderRadius:
                                                               BorderRadius.circular(
                                                                 4,

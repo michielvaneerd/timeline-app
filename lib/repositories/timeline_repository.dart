@@ -97,14 +97,19 @@ class TimelineRepository {
 
   Future<YearAndTimelineItems> getTimelineItems(
     List<TimelineHost> timelineHosts,
-    List<Timeline> timelines,
-  ) async {
-    final itemsFromStore = await MyStore.getTimelineItems(
-      timelines.map((e) => e.id).toList(),
-    );
+    List<Timeline> timelines, {
+    bool removeExistingItems = false,
+  }) async {
+    // If removeExistingItems, we create an empty YearAndTimelineItems instance, so it seems we don't have any items at all.
+    // Previously we really removed the items first and then tried to get the new ones, but if there was an error during getting the new ones,
+    // we had nothing. So now: first get the new ones, and if that succeeds, remove the old ones and insert the new ones.
+    final itemsFromStore = removeExistingItems
+        ? YearAndTimelineItems(timelineItems: [], yearIndexes: {})
+        : await MyStore.getTimelineItems(timelines.map((e) => e.id).toList());
 
     // Watch out because for some timelines we may have items, but for other we don't, so we have to see for which ones we need to fetch the items.
     // See for which timelines we already have items
+    // Here we collect all the timelines that we don't have timeline items for, because these are the ones we need to fetch.
     List<int> timelineIdsToFetch = timelines.map((e) => e.id).toList();
     for (final item in itemsFromStore.timelineItems) {
       if (item is TimelineItem) {
@@ -148,6 +153,10 @@ class TimelineRepository {
     final responses = await Future.wait(fetchFutures);
     final List<Future> putFutures = [];
     // Per host we get response back for items of all timelines.
+    if (removeExistingItems) {
+      // Now we have the response, so now remove the current ones before putting in the new ones.
+      await MyStore.removeTimelineItems(timelines.map((e) => e.id).toList());
+    }
     for (var i = 0; i < responses.length; i++) {
       final hostId = hostIdTimelineIdsMap.keys.elementAt(i);
       putFutures.add(

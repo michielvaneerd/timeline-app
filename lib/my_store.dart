@@ -78,7 +78,7 @@ class MyStore {
             host_id INT,
             active INT,
             count INT,
-            color INT,
+            color TEXT,
             FOREIGN KEY(host_id) REFERENCES hosts(id)
           )''');
         await db.execute('''CREATE TABLE items (
@@ -245,6 +245,15 @@ class MyStore {
       });
       await batch.commit(noResult: true);
     });
+  }
+
+  static Future updateTimelineColor(int timelineId, String? color) async {
+    return _database!.update(
+      'timelines',
+      {'color': color},
+      where: 'id = ?',
+      whereArgs: [timelineId],
+    );
   }
 
   static Future putActiveTimelineIds(List<int> timelineIds) async {

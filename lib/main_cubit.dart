@@ -78,16 +78,16 @@ class MainCubit extends Cubit<MainState> {
         .toList();
     YearAndTimelineItems? items;
     if (activeTimelines.isNotEmpty) {
-      if (refresh) {
-        // TODO: We should do this AFTER we have received the new ones, to make sure that we keep the old ones in case of an Exception.
-        await MyStore.removeTimelineItems(
-          activeTimelines.map((e) => e.id).toList(),
-        );
-      }
+      // if (refresh) {
+      //   await MyStore.removeTimelineItems(
+      //     activeTimelines.map((e) => e.id).toList(),
+      //   );
+      // }
       try {
         items = await timelineRepository.getTimelineItems(
           timelineAll.timelineHosts,
           activeTimelines,
+          removeExistingItems: refresh,
         );
       } on SocketException {
         emit(

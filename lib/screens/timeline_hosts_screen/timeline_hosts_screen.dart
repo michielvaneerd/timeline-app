@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_host.dart';
-import 'package:timeline/my_two_fields_dialog.dart';
+import 'package:timeline/my_text_fields_dialog.dart';
 import 'package:timeline/my_loading_overlay.dart';
 import 'package:timeline/my_widgets.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
@@ -26,7 +26,7 @@ class TimelineHostsScreen extends StatefulWidget {
 
 class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
   bool hasShowedHostDialogOnStart = false;
-  late final MyTwoFieldsDialog myTwoFieldsDialog = MyTwoFieldsDialog();
+  late final MyTextFieldsDialog myTwoFieldsDialog = MyTextFieldsDialog();
   late int timelineAllHash;
   final _loadingOverlay = LoadingOverlay();
   @override
@@ -80,7 +80,7 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
     );
     if (mounted && response != null && response) {
       _loadingOverlay.show(context);
-      cubit.removeHosts(timelineAll, [host.id]);
+      cubit.removeHosts([host.id]);
     }
   }
 
@@ -99,10 +99,10 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
       );
       if (result != null &&
           result.field1.isNotEmpty &&
-          result.field2.isNotEmpty) {
+          result.field2!.isNotEmpty) {
         if (mounted) {
           _loadingOverlay.show(context);
-          cubit.login(timelineAll, host, result.field1, result.field2);
+          cubit.login(timelineAll, host, result.field1, result.field2!);
         }
       }
     } else {
@@ -138,13 +138,40 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
         .toList();
     final timelineTiles = timelines
         .map(
-          (e) => ListTile(
-            title: Text(e.name),
-            subtitle: e.yearMin != null ? Text(e.yearMinMax()) : null,
+          (e) => Row(
+            children: [
+              Expanded(
+                child: ListTile(
+                  title: Text(e.name),
+                  //subtitle: e.yearMin != null ? Text(e.yearMinMax()) : null,
+                  subtitle: Text(e.color ?? ''),
+                ),
+              ),
+              IconButton(
+                onPressed: () async {
+                  final response = await myTwoFieldsDialog.show(
+                    context,
+                    field1Text: myLoc(context).color,
+                    title: myLoc(context).ok,
+                    field1Value: e.color,
+                  );
+                  if (response != null) {
+                    final color = response.field1.isEmpty
+                        ? null
+                        : (Utils.fromHexString(response.field1) != null
+                              ? response.field1
+                              : null);
+                    cubit.updateTimelineColor(timeline: e, color: color);
+                  }
+                },
+                icon: Icon(Icons.colorize),
+              ),
+            ],
           ),
         )
         .toList();
     return Card(
+      //elevation: 2.0,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -237,8 +264,8 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
     );
     if (response != null &&
         response.field1.isNotEmpty &&
-        response.field2.isNotEmpty) {
-      cubit.addHost(response.field1, response.field2, timelineAll);
+        response.field2!.isNotEmpty) {
+      cubit.addHost(response.field1, response.field2!, timelineAll);
     }
   }
 

@@ -155,4 +155,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notFoundError => 'The resource was not found';
+
+  @override
+  String get color => 'Color';
 }
