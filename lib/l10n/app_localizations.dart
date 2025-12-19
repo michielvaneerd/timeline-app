@@ -387,6 +387,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Color'**
   String get color;
+
+  /// No description provided for @displayScrollLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Display scroll label'**
+  String get displayScrollLabel;
 }
 
 class _AppLocalizationsDelegate

@@ -100,6 +100,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                   CheckboxListTile(
+                    title: Text(myLoc(context).displayScrollLabel),
+                    value: settings.displayScrollLabel,
+                    onChanged: (newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          settings = settings.copyWith(
+                            displayScrollLabel: newValue,
+                          );
+                        });
+                      }
+                    },
+                  ),
+                  CheckboxListTile(
                     title: Text(myLoc(context).cachedImages),
                     value: settings.cachedImages,
                     onChanged: (newValue) {

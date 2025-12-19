@@ -28,6 +28,7 @@ class Settings extends Equatable {
   final bool cachedImages;
   final int? yearWidth;
   final bool displayTimelineChart;
+  final bool displayScrollLabel;
 
   const Settings({
     required this.loadImages,
@@ -37,6 +38,7 @@ class Settings extends Equatable {
     required this.cachedImages,
     required this.displayTimelineChart,
     required this.themeMode,
+    required this.displayScrollLabel,
   });
 
   ThemeMode getThemeMode() {
@@ -58,6 +60,7 @@ class Settings extends Equatable {
     MyThemeModes? themeMode,
     bool? cachedImages,
     bool? displayTimelineChart,
+    bool? displayScrollLabel,
     bool removeImageWidth = false,
     bool removeYearWidth = false,
   }) {
@@ -65,6 +68,7 @@ class Settings extends Equatable {
       cachedImages: cachedImages ?? this.cachedImages,
       themeMode: themeMode ?? this.themeMode,
       displayTimelineChart: displayTimelineChart ?? this.displayTimelineChart,
+      displayScrollLabel: displayScrollLabel ?? this.displayScrollLabel,
       loadImages: loadImages ?? this.loadImages,
       condensed: condensed ?? this.condensed,
       yearWidth: removeYearWidth ? null : (yearWidth ?? this.yearWidth),
@@ -81,5 +85,6 @@ class Settings extends Equatable {
     cachedImages,
     yearWidth,
     displayTimelineChart,
+    displayScrollLabel,
   ];
 }

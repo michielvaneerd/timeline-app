@@ -158,4 +158,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get color => 'Color';
+
+  @override
+  String get displayScrollLabel => 'Display scroll label';
 }

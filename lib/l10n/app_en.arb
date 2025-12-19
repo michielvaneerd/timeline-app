@@ -47,5 +47,6 @@
   "internetConnectionError": "A connection error occurred",
   "duplicateHostError": "Host already exist",
   "notFoundError": "The resource was not found",
-  "color": "Color"
+  "color": "Color",
+  "displayScrollLabel": "Display scroll label"
 }

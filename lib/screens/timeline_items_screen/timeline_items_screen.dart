@@ -45,6 +45,8 @@ class TimelineItemsWidget extends StatefulWidget {
 }
 
 class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
+  static const _msDisplayScrollLabel = 1000;
+
   final scrollController = ScrollController();
   final yearScrollController = ScrollController();
   late final ObserverControllerWithLazyLoading
@@ -59,15 +61,26 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   int? currentTopVisibleYear;
   String? currentTopVisibleYearName;
   var lastScrollTimestamp = 0;
+  var lastScrollToIndexTimestamp = 0;
   late final Timer intervalTimer;
   var displayScrollLabel = false;
+  //bool fromScrollToIndexClick = false;
 
   void handleIntervalScrollCheckTimer(Timer timer) {
-    setState(() {
-      displayScrollLabel =
-          lastScrollTimestamp > 0 &&
-          DateTime.now().millisecondsSinceEpoch - lastScrollTimestamp < 1000;
-    });
+    if (mounted) {
+      if (lastScrollToIndexTimestamp > 0 &&
+          DateTime.now().millisecondsSinceEpoch - lastScrollToIndexTimestamp >
+              _msDisplayScrollLabel) {
+        lastScrollToIndexTimestamp = 0;
+      }
+      setState(() {
+        displayScrollLabel =
+            lastScrollToIndexTimestamp == 0 &&
+            lastScrollTimestamp > 0 &&
+            DateTime.now().millisecondsSinceEpoch - lastScrollTimestamp <
+                _msDisplayScrollLabel;
+      });
+    }
   }
 
   void handleScrollListener() {
@@ -129,6 +142,7 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   }
 
   void _scrollToIndex(int index) async {
+    lastScrollToIndexTimestamp = DateTime.now().millisecondsSinceEpoch;
     await observerControllerWithLazyLoading.scrollToIndex(index);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await Future.delayed(
@@ -905,7 +919,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                   ),
                 ],
               ),
-              if (displayScrollLabel)
+              if (displayScrollLabel &&
+                  widget.timelineAll.settings.displayScrollLabel)
                 Align(
                   alignment: AlignmentGeometry.centerRight,
                   child: Padding(
@@ -915,10 +930,15 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
-                        color: Colors.amber,
+                        color: Theme.of(context).colorScheme.tertiary,
                       ),
                       padding: EdgeInsets.all(MyStyles.paddingNormal),
-                      child: Text(currentTopVisibleYearName?.toString() ?? '?'),
+                      child: Text(
+                        currentTopVisibleYearName?.toString() ?? '?',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onTertiary,
+                        ),
+                      ),
                     ),
                   ),
                 ),

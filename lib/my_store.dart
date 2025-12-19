@@ -21,6 +21,7 @@ class MyStore {
   static const keySettingsThemeMode = 'theme_mode';
   static const keySettingsCachedImages = 'cached_images';
   static const keySettingsDisplayTimelineChart = 'display_timeline_chart';
+  static const keySettingsDisplayScrollLabel = 'display_scroll_label';
 
   static const keySecureStorageKey = 'key';
   static const _dbVersion = 1;
@@ -168,6 +169,7 @@ class MyStore {
     int? yearWidth;
     bool cachedImages = false;
     bool displayTimelineChart = false;
+    bool displayScrollLabel = false;
     MyThemeModes themeMode = MyThemeModes.system;
     for (var row in rows) {
       switch (row['key']) {
@@ -198,6 +200,9 @@ class MyStore {
         case keySettingsDisplayTimelineChart:
           displayTimelineChart = row['value'].toString() == '1';
           break;
+        case keySettingsDisplayScrollLabel:
+          displayScrollLabel = row['value'].toString() == '1';
+          break;
       }
     }
     return Settings(
@@ -208,6 +213,7 @@ class MyStore {
       condensed: condensed,
       imageWidth: imageWidth,
       themeMode: themeMode,
+      displayScrollLabel: displayScrollLabel,
     );
   }
 
@@ -226,6 +232,10 @@ class MyStore {
       batch.insert('settings', {
         'key': keySettingsDisplayTimelineChart,
         'value': settings.displayTimelineChart ? '1' : '0',
+      });
+      batch.insert('settings', {
+        'key': keySettingsDisplayScrollLabel,
+        'value': settings.displayScrollLabel ? '1' : '0',
       });
       batch.insert('settings', {
         'key': keySettingsCachedImages,
