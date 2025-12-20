@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_host.dart';
+import 'package:timeline/my_color_picker.dart';
+import 'package:timeline/my_color_picker_new.dart';
 import 'package:timeline/my_text_fields_dialog.dart';
 import 'package:timeline/my_loading_overlay.dart';
 import 'package:timeline/my_widgets.dart';
@@ -149,20 +151,34 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
               ),
               IconButton(
                 onPressed: () async {
-                  final response = await myTwoFieldsDialog.show(
-                    context,
-                    field1Text: myLoc(context).color,
-                    title: myLoc(context).ok,
-                    field1Value: e.color,
+                  final currentColorIntValue = e.color != null
+                      ? int.tryParse('0xFF${e.color}')
+                      : null;
+                  final dialog = CommonColorPickerDialog(
+                    selectedColor: currentColorIntValue != null
+                        ? Color(currentColorIntValue)
+                        : null,
                   );
-                  if (response != null) {
-                    final color = response.field1.isEmpty
-                        ? null
-                        : (Utils.fromHexString(response.field1) != null
-                              ? response.field1
-                              : null);
-                    cubit.updateTimelineColor(timeline: e, color: color);
-                  }
+                  final newColor = await dialog.show(context: context);
+                  final newHex = newColor != null
+                      ? Utils.getHex(newColor)
+                      : null;
+                  cubit.updateTimelineColor(timeline: e, color: newHex);
+
+                  // final response = await myTwoFieldsDialog.show(
+                  //   context,
+                  //   field1Text: myLoc(context).color,
+                  //   title: myLoc(context).ok,
+                  //   field1Value: e.color,
+                  // );
+                  // if (response != null) {
+                  //   final color = response.field1.isEmpty
+                  //       ? null
+                  //       : (Utils.fromHexString(response.field1) != null
+                  //             ? response.field1
+                  //             : null);
+                  //   cubit.updateTimelineColor(timeline: e, color: color);
+                  // }
                 },
                 icon: Icon(Icons.colorize),
               ),

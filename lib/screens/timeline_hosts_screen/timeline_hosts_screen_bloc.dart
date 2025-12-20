@@ -8,7 +8,6 @@ import 'package:timeline/my_exception.dart';
 import 'package:timeline/my_store.dart';
 import 'package:timeline/repositories/timeline_repository.dart';
 import 'package:collection/collection.dart';
-import 'package:timeline/utils.dart';
 
 class TimelineHostsScreenState extends Equatable {
   final MyException? exception;
