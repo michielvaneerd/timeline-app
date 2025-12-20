@@ -138,54 +138,37 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
     final timelines = timelineAll.timelines
         .where((element) => element.hostId == host.id)
         .toList();
-    final timelineTiles = timelines
-        .map(
-          (e) => Row(
-            children: [
-              Expanded(
-                child: ListTile(
-                  title: Text(e.name),
-                  //subtitle: e.yearMin != null ? Text(e.yearMinMax()) : null,
-                  subtitle: Text(e.color ?? ''),
-                ),
-              ),
-              IconButton(
-                onPressed: () async {
-                  final currentColorIntValue = e.color != null
-                      ? int.tryParse('0xFF${e.color}')
-                      : null;
-                  final dialog = CommonColorPickerDialog(
-                    selectedColor: currentColorIntValue != null
-                        ? Color(currentColorIntValue)
-                        : null,
-                  );
-                  final newColor = await dialog.show(context: context);
-                  final newHex = newColor != null
-                      ? Utils.getHex(newColor)
-                      : null;
-                  cubit.updateTimelineColor(timeline: e, color: newHex);
-
-                  // final response = await myTwoFieldsDialog.show(
-                  //   context,
-                  //   field1Text: myLoc(context).color,
-                  //   title: myLoc(context).ok,
-                  //   field1Value: e.color,
-                  // );
-                  // if (response != null) {
-                  //   final color = response.field1.isEmpty
-                  //       ? null
-                  //       : (Utils.fromHexString(response.field1) != null
-                  //             ? response.field1
-                  //             : null);
-                  //   cubit.updateTimelineColor(timeline: e, color: color);
-                  // }
-                },
-                icon: Icon(Icons.colorize),
-              ),
-            ],
+    final timelineTiles = timelines.map((e) {
+      final currentColorIntValue = e.color != null
+          ? int.tryParse('0xFF${e.color}')
+          : null;
+      final currentColor = currentColorIntValue != null
+          ? Color(currentColorIntValue)
+          : Theme.of(context).colorScheme.tertiaryContainer;
+      return ListTile(
+        onTap: () async {
+          final dialog = CommonColorPickerDialog(
+            selectedColor: currentColorIntValue != null
+                ? Color(currentColorIntValue)
+                : null,
+          );
+          final newColor = await dialog.show(context: context);
+          final newHex = newColor != null ? Utils.getHex(newColor) : null;
+          cubit.updateTimelineColor(timeline: e, color: newHex);
+        },
+        leading: Container(
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(
+            color: currentColor,
+            borderRadius: BorderRadius.circular(20),
           ),
-        )
-        .toList();
+        ),
+        title: Text(e.name),
+        //subtitle: e.yearMin != null ? Text(e.yearMinMax()) : null,
+        //subtitle: Text(e.color ?? ''),
+      );
+    }).toList();
     return Card(
       //elevation: 2.0,
       child: Column(

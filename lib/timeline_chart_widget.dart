@@ -17,6 +17,9 @@ class TimelineChartWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (orderedYears.length < 2) {
+      return SizedBox(width: _widgetWidth);
+    }
     return LayoutBuilder(
       builder: (context, constraints) {
         final maxHeight = constraints.maxHeight - _bulletWidth;
