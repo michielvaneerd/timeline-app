@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timeline/models/timeline.dart';
 import 'package:timeline/models/timeline_host.dart';
-import 'package:timeline/my_color_picker.dart';
 import 'package:timeline/my_color_picker_new.dart';
 import 'package:timeline/my_text_fields_dialog.dart';
 import 'package:timeline/my_loading_overlay.dart';

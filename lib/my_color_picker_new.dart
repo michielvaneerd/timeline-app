@@ -24,60 +24,42 @@ class CommonColorPicker extends StatefulWidget {
     Colors.pink.shade500,
     Colors.pink.shade300,
     Colors.pink.shade100,
-    // Purples
-    Colors.purple.shade900,
-    Colors.purple.shade700,
-    Colors.purple.shade500,
-    Colors.purple.shade300,
-    Colors.purple.shade100,
-    // Deep Purples
-    Colors.deepPurple.shade900,
-    Colors.deepPurple.shade700,
-    Colors.deepPurple.shade500,
-    Colors.deepPurple.shade300,
-    Colors.deepPurple.shade100,
-    // Indigos
-    Colors.indigo.shade900,
-    Colors.indigo.shade700,
-    Colors.indigo.shade500,
-    Colors.indigo.shade300,
-    Colors.indigo.shade100,
-    // Blues
-    Colors.blue.shade900,
-    Colors.blue.shade700,
-    Colors.blue.shade500,
-    Colors.blue.shade300,
-    Colors.blue.shade100,
-    // Light Blues
-    Colors.lightBlue.shade900,
-    Colors.lightBlue.shade700,
-    Colors.lightBlue.shade500,
-    Colors.lightBlue.shade300,
-    Colors.lightBlue.shade100,
-    // Cyans
-    Colors.cyan.shade900,
-    Colors.cyan.shade700,
-    Colors.cyan.shade500,
-    Colors.cyan.shade300,
-    Colors.cyan.shade100,
-    // Teals
-    Colors.teal.shade900,
-    Colors.teal.shade700,
-    Colors.teal.shade500,
-    Colors.teal.shade300,
-    Colors.teal.shade100,
-    // Greens
-    Colors.green.shade900,
-    Colors.green.shade700,
-    Colors.green.shade500,
-    Colors.green.shade300,
-    Colors.green.shade100,
+    // Oranges
+    Colors.orange.shade900,
+    Colors.orange.shade700,
+    Colors.orange.shade500,
+    Colors.orange.shade300,
+    Colors.orange.shade100,
     // Yellows
     Colors.yellow.shade900,
     Colors.yellow.shade700,
     Colors.yellow.shade500,
     Colors.yellow.shade300,
     Colors.yellow.shade100,
+    // Greens
+    Colors.green.shade900,
+    Colors.green.shade700,
+    Colors.green.shade500,
+    Colors.green.shade300,
+    Colors.green.shade100,
+    // Purples
+    Colors.purple.shade900,
+    Colors.purple.shade700,
+    Colors.purple.shade500,
+    Colors.purple.shade300,
+    Colors.purple.shade100,
+    // Blues
+    Colors.blue.shade900,
+    Colors.blue.shade700,
+    Colors.blue.shade500,
+    Colors.blue.shade300,
+    Colors.blue.shade100,
+    // Greys
+    Colors.grey.shade900,
+    Colors.grey.shade700,
+    Colors.grey.shade500,
+    Colors.grey.shade300,
+    Colors.grey.shade100,
   ];
 
   @override
