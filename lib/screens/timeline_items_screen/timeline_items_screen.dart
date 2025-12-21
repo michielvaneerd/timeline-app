@@ -65,6 +65,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   late final Timer intervalTimer;
   var displayScrollLabel = false;
   //bool fromScrollToIndexClick = false;
+  int? longPressedStartYear;
+  int? longPressedEndYear;
 
   void handleIntervalScrollCheckTimer(Timer timer) {
     if (mounted) {
@@ -84,6 +86,10 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   }
 
   void handleScrollListener() {
+    setState(() {
+      longPressedStartYear = null;
+      longPressedEndYear = null;
+    });
     lastScrollTimestamp = DateTime.now().millisecondsSinceEpoch;
   }
 
@@ -346,6 +352,8 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                   left: false,
                                   right: false,
                                   child: TimelineChartWidget(
+                                    longPressedStartYear: longPressedStartYear,
+                                    longPressedEndYear: longPressedEndYear,
                                     orderedYears: yearItems
                                         .map((e) => e.year)
                                         .toList(),
@@ -486,12 +494,38 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                                 ),
                                                           ),
                                                         ],
-                                                        Text(
-                                                          item.title,
-                                                          style:
-                                                              Theme.of(context)
-                                                                  .textTheme
-                                                                  .titleLarge,
+                                                        InkWell(
+                                                          onTap:
+                                                              item.yearEnd !=
+                                                                  null
+                                                              ? () {
+                                                                  setState(() {
+                                                                    if (longPressedStartYear !=
+                                                                            null &&
+                                                                        longPressedStartYear ==
+                                                                            item.year) {
+                                                                      longPressedStartYear =
+                                                                          null;
+                                                                      longPressedEndYear =
+                                                                          null;
+                                                                    } else {
+                                                                      longPressedStartYear =
+                                                                          item.year;
+                                                                      longPressedEndYear =
+                                                                          item.yearEnd;
+                                                                    }
+                                                                  });
+                                                                }
+                                                              : null,
+                                                          child: Text(
+                                                            item.title,
+                                                            style:
+                                                                Theme.of(
+                                                                      context,
+                                                                    )
+                                                                    .textTheme
+                                                                    .titleLarge,
+                                                          ),
                                                         ),
                                                         Text(
                                                           item.years(),

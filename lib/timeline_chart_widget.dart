@@ -5,10 +5,14 @@ class TimelineChartWidget extends StatelessWidget {
     super.key,
     required this.orderedYears,
     this.currentYear,
+    this.longPressedStartYear,
+    this.longPressedEndYear,
     this.onYearClick,
   });
   final List<int> orderedYears;
   final int? currentYear;
+  final int? longPressedStartYear;
+  final int? longPressedEndYear;
   final void Function(int year)? onYearClick;
 
   static const _bulletWidth = 10.0;
@@ -27,17 +31,29 @@ class TimelineChartWidget extends StatelessWidget {
             maxHeight / (orderedYears.last - orderedYears.first);
         final List<Widget> yearWidgets = [];
         for (final year in orderedYears) {
+          final yearHasLongPress =
+              longPressedStartYear != null &&
+              longPressedEndYear != null &&
+              longPressedStartYear! == year;
           yearWidgets.add(
             Positioned(
               top: heightOneYear * (year - orderedYears.first),
               child: Container(
                 width: _bulletWidth,
-                height: _bulletWidth,
+                height: yearHasLongPress
+                    ? (heightOneYear *
+                              (longPressedEndYear! - longPressedStartYear!)) +
+                          _bulletWidth
+                    : _bulletWidth,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(_bulletWidth),
-                  color: year == currentYear
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.primary.withAlpha(50),
+                  color: yearHasLongPress
+                      ? (Theme.of(context).colorScheme.inversePrimary)
+                      : (year == currentYear
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(
+                                context,
+                              ).colorScheme.primary.withAlpha(50)),
                 ),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(10),
