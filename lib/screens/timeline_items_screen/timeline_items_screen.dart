@@ -86,10 +86,6 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
   }
 
   void handleScrollListener() {
-    setState(() {
-      longPressedStartYear = null;
-      longPressedEndYear = null;
-    });
     lastScrollTimestamp = DateTime.now().millisecondsSinceEpoch;
   }
 
@@ -427,6 +423,9 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                 (realImageWidth /
                                                     itemImage.width))
                                           : 100.0;
+                                      final hasLongPressYear =
+                                          longPressedStartYear != null &&
+                                          longPressedStartYear == item.year;
                                       return Card(
                                         // color:
                                         //     Theme.of(context).colorScheme.surface,
@@ -494,16 +493,21 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                                 ),
                                                           ),
                                                         ],
-                                                        InkWell(
-                                                          onTap:
+                                                        GestureDetector(
+                                                          onLongPressEnd: (details) {
+                                                            setState(() {
+                                                              longPressedStartYear =
+                                                                  null;
+                                                              longPressedEndYear =
+                                                                  null;
+                                                            });
+                                                          },
+                                                          onLongPressStart:
                                                               item.yearEnd !=
                                                                   null
-                                                              ? () {
+                                                              ? (details) {
                                                                   setState(() {
-                                                                    if (longPressedStartYear !=
-                                                                            null &&
-                                                                        longPressedStartYear ==
-                                                                            item.year) {
+                                                                    if (hasLongPressYear) {
                                                                       longPressedStartYear =
                                                                           null;
                                                                       longPressedEndYear =
@@ -519,12 +523,16 @@ class _TimelineItemsWidgetState extends State<TimelineItemsWidget> {
                                                               : null,
                                                           child: Text(
                                                             item.title,
-                                                            style:
-                                                                Theme.of(
-                                                                      context,
-                                                                    )
-                                                                    .textTheme
-                                                                    .titleLarge,
+                                                            style: Theme.of(context)
+                                                                .textTheme
+                                                                .titleLarge!
+                                                                .copyWith(
+                                                                  decoration:
+                                                                      hasLongPressYear
+                                                                      ? TextDecoration
+                                                                            .underline
+                                                                      : null,
+                                                                ),
                                                           ),
                                                         ),
                                                         Text(
