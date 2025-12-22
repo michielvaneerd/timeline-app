@@ -16,8 +16,11 @@ import 'package:timeline/utils.dart';
 class DraftItemsScreen extends StatefulWidget {
   final List<Timeline> timelines;
   final TimelineHost timelineHost;
-  const DraftItemsScreen(
-      {super.key, required this.timelineHost, required this.timelines});
+  const DraftItemsScreen({
+    super.key,
+    required this.timelineHost,
+    required this.timelines,
+  });
 
   @override
   State<DraftItemsScreen> createState() => _DraftItemsScreenState();
@@ -43,42 +46,52 @@ class _DraftItemsScreenState extends State<DraftItemsScreen> {
     super.dispose();
   }
 
-  List<Widget> _listViewItems(List<TimelineItem> items, BuildContext context,
-      DraftItemsScreenCubit cubit) {
+  List<Widget> _listViewItems(
+    List<TimelineItem> items,
+    BuildContext context,
+    DraftItemsScreenCubit cubit,
+  ) {
     return items
-        .map((e) => Card(
-              child: ListTile(
-                title: Text(e.title),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(widget.timelines
+        .map(
+          (e) => Card(
+            child: ListTile(
+              title: Text(e.title),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.timelines
                             .firstWhereOrNull(
-                                (element) => element.id == e.timelineId)
+                              (element) => element.id == e.timelineId,
+                            )
                             ?.name ??
-                        '-'),
-                    Text(e.years()),
-                    Text(DateFormat.yMd().add_jm().format(e.modified!))
-                  ],
-                ),
-                trailing: const Icon(Icons.arrow_forward_ios),
-                onTap: () async {
-                  final isChanged =
-                      await Navigator.of(context).push<bool?>(MaterialPageRoute(
-                    builder: (context) => DraftItemScreen(
-                        timelineItem: e,
-                        timelines: widget.timelines,
-                        timelineHost: widget.timelineHost),
-                  ));
-                  if (isChanged != null && isChanged) {
-                    if (mounted) {
-                      //_loadingOverlay.show(context);
-                      cubit.getItems(widget.timelineHost, widget.timelines);
-                    }
-                  }
-                },
+                        '-',
+                  ),
+                  Text(e.years()),
+                  Text(DateFormat.yMd().add_jm().format(e.modified)),
+                ],
               ),
-            ))
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () async {
+                final isChanged = await Navigator.of(context).push<bool?>(
+                  MaterialPageRoute(
+                    builder: (context) => DraftItemScreen(
+                      timelineItem: e,
+                      timelines: widget.timelines,
+                      timelineHost: widget.timelineHost,
+                    ),
+                  ),
+                );
+                if (isChanged != null && isChanged) {
+                  if (mounted) {
+                    //_loadingOverlay.show(context);
+                    cubit.getItems(widget.timelineHost, widget.timelines);
+                  }
+                }
+              },
+            ),
+          ),
+        )
         .toList();
   }
 
@@ -86,8 +99,9 @@ class _DraftItemsScreenState extends State<DraftItemsScreen> {
   Widget build(BuildContext context) {
     final repo = RepositoryProvider.of<TimelineRepository>(context);
     return BlocProvider(
-      create: (context) => DraftItemsScreenCubit(repo)
-        ..getItems(widget.timelineHost, widget.timelines),
+      create: (context) =>
+          DraftItemsScreenCubit(repo)
+            ..getItems(widget.timelineHost, widget.timelines),
       child: BlocConsumer<DraftItemsScreenCubit, DraftItemsScreenState>(
         listener: (context, state) {
           if (state.items != null) {
@@ -100,30 +114,34 @@ class _DraftItemsScreenState extends State<DraftItemsScreen> {
         builder: (context, state) {
           final cubit = BlocProvider.of<DraftItemsScreenCubit>(context);
           return Scaffold(
-              appBar: AppBar(
-                title: Text(myLoc(context).draftItems),
-                actions: [
-                  IconButton(
-                      onPressed: () async {
-                        final hasChanged =
-                            await Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => DraftItemScreen(
-                              timelineItem: null,
-                              timelines: widget.timelines,
-                              timelineHost: widget.timelineHost),
-                        ));
-                        if (hasChanged != null && hasChanged) {
-                          cubit.getItems(widget.timelineHost, widget.timelines);
-                        }
-                      },
-                      icon: const Icon(Icons.add))
-                ],
-              ),
-              body: state.items != null
-                  ? ListView(
-                      children: _listViewItems(state.items!, context, cubit),
-                    )
-                  : Container());
+            appBar: AppBar(
+              title: Text(myLoc(context).draftItems),
+              actions: [
+                IconButton(
+                  onPressed: () async {
+                    final hasChanged = await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => DraftItemScreen(
+                          timelineItem: null,
+                          timelines: widget.timelines,
+                          timelineHost: widget.timelineHost,
+                        ),
+                      ),
+                    );
+                    if (hasChanged != null && hasChanged) {
+                      cubit.getItems(widget.timelineHost, widget.timelines);
+                    }
+                  },
+                  icon: const Icon(Icons.add),
+                ),
+              ],
+            ),
+            body: state.items != null
+                ? ListView(
+                    children: _listViewItems(state.items!, context, cubit),
+                  )
+                : Container(),
+          );
         },
       ),
     );

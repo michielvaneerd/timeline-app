@@ -25,7 +25,7 @@ class TimelineItem extends TimelineAbstractItem {
   final int? id;
   final int? timelineId;
   final Map<TimelineItemImageSizes, TimelineItemImage>
-      image; // for example: large: {}, medium: {}
+  image; // for example: large: {}, medium: {}
   final String intro;
   final List<TimelineItemLink> links;
   final String title;
@@ -35,26 +35,30 @@ class TimelineItem extends TimelineAbstractItem {
   final String? yearEndName;
   final int postId;
   final bool hasContent;
-  final DateTime? modified; // Only for draft items
+  final DateTime
+  modified; // We store it in the sqlite db as a string like '2025-01-01T09:00:00'
 
-  static final dateFormat = intl.DateFormat('y-MM-ddTHH:mm:ss');
+  static final dateFormat = intl.DateFormat(
+    'y-MM-ddTHH:mm:ss',
+  ); // This is the format we get from WP api.
 
-  const TimelineItem(
-      {this.id,
-      required this.image,
-      required this.intro,
-      required this.title,
-      required this.timelineId,
-      required super.year,
-      super.yearName,
-      this.yearEndName,
-      required this.postId,
-      required this.hasContent,
-      this.yearEnd,
-      this.imageSource,
-      this.imageInfo,
-      this.modified,
-      required this.links});
+  const TimelineItem({
+    this.id,
+    required this.image,
+    required this.intro,
+    required this.title,
+    required this.timelineId,
+    required super.year,
+    super.yearName,
+    this.yearEndName,
+    required this.postId,
+    required this.hasContent,
+    this.yearEnd,
+    this.imageSource,
+    this.imageInfo,
+    required this.modified,
+    required this.links,
+  });
 
   String? getYearEnd() {
     return yearEndName != null && yearEndName!.isNotEmpty
@@ -64,19 +68,19 @@ class TimelineItem extends TimelineAbstractItem {
 
   @override
   List<Object?> get props => [
-        id,
-        image,
-        intro,
-        year,
-        yearName,
-        title,
-        timelineId,
-        yearEnd,
-        yearEndName,
-        postId,
-        modified,
-        hasContent
-      ];
+    id,
+    image,
+    intro,
+    year,
+    yearName,
+    title,
+    timelineId,
+    yearEnd,
+    yearEndName,
+    postId,
+    modified,
+    hasContent,
+  ];
 
   String years() {
     if (getYearEnd() == null) {
@@ -94,35 +98,38 @@ class TimelineItem extends TimelineAbstractItem {
         'mve_timeline_year_name': yearName?.toString(),
         'mve_timeline_year_end_name': yearEndName?.toString(),
         'mve_timeline_intro': intro,
-        'mve_timeline_links': convert.json.encode(links)
+        'mve_timeline_links': convert.json.encode(links),
       },
-      'mve_timeline': [timelineExternalId]
+      'mve_timeline': [timelineExternalId],
     };
   }
 
-  TimelineItem copyWith(
-      {String? title,
-      int? timelineId,
-      int? year,
-      String? yearName,
-      bool removeYearName = false,
-      String? yearEndName,
-      bool removeYearEndName = false,
-      int? yearEnd,
-      bool removeYearEnd = false}) {
+  TimelineItem copyWith({
+    String? title,
+    int? timelineId,
+    int? year,
+    String? yearName,
+    bool removeYearName = false,
+    String? yearEndName,
+    bool removeYearEndName = false,
+    int? yearEnd,
+    bool removeYearEnd = false,
+    DateTime? modified,
+  }) {
     return TimelineItem(
-        hasContent: hasContent,
-        image: image,
-        intro: intro,
-        title: title ?? this.title,
-        timelineId: timelineId ?? this.timelineId,
-        year: year ?? this.year,
-        yearName: removeYearName ? null : (yearName ?? this.yearName),
-        yearEndName:
-            removeYearEndName ? null : (yearEndName ?? this.yearEndName),
-        yearEnd: removeYearEnd ? null : (yearEnd ?? this.yearEnd),
-        postId: postId,
-        links: links);
+      hasContent: hasContent,
+      image: image,
+      intro: intro,
+      title: title ?? this.title,
+      timelineId: timelineId ?? this.timelineId,
+      modified: modified ?? this.modified,
+      year: year ?? this.year,
+      yearName: removeYearName ? null : (yearName ?? this.yearName),
+      yearEndName: removeYearEndName ? null : (yearEndName ?? this.yearEndName),
+      yearEnd: removeYearEnd ? null : (yearEnd ?? this.yearEnd),
+      postId: postId,
+      links: links,
+    );
   }
 
   static List<TimelineItemLink> _getLinks(String? links) {
@@ -134,65 +141,67 @@ class TimelineItem extends TimelineAbstractItem {
         .map((e) => TimelineItemLink.fromJson(e as Map<String, dynamic>))
         .toList();
     return newLinks;
-    //final items = convert.jsonDecode(links).map((e) {
-    //  return TimelineItemLink.fromJson((e as Map<String, dynamic>));
-    // return TimelineItemLink.fromJson((e as Map<String, dynamic>)
-    //     .map<String, String>(
-    //         (key, value) => MapEntry(key, value.toString())));
-    //});
   }
 
   static Map<TimelineItemImageSizes, TimelineItemImage> _getImage(
-      String? image) {
+    String? image,
+  ) {
     if (image == null || image.isEmpty) {
       return {};
     }
-    return (convert.jsonDecode(image) as Map).map((key, value) => MapEntry(
+    return (convert.jsonDecode(image) as Map).map(
+      (key, value) => MapEntry(
         TimelineItemImageSizesExtension.byNameOrUnknown(key),
-        TimelineItemImage.fromMap(value as Map<String, dynamic>)));
+        TimelineItemImage.fromMap(value as Map<String, dynamic>),
+      ),
+    );
   }
 
   // Only when mapping db rows
   TimelineItem.fromDbMap(Map<String, dynamic> map)
-      : id = map['id'],
-        postId = map['post_id'],
-        timelineId = map['timeline_id'],
-        imageSource = map['image_source'],
-        hasContent = map['has_content'] == 1,
-        imageInfo = map['image_info'],
-        modified = null, // Only for draft items that we get from the server
-        yearEnd = map['year_end'],
-        yearEndName = map['year_end_name'],
-        links = _getLinks(map['links']),
-        image = _getImage(map['image']),
-        intro = map['intro'],
-        title = map['title'] ?? '',
-        super(year: map['year'], yearName: map['year_name']);
+    : id = map['id'],
+      postId = map['post_id'],
+      timelineId = map['timeline_id'],
+      imageSource = map['image_source'],
+      hasContent = map['has_content'] == 1,
+      imageInfo = map['image_info'],
+      modified = dateFormat.parse(map['modified']),
+      yearEnd = map['year_end'],
+      yearEndName = map['year_end_name'],
+      links = _getLinks(map['links']),
+      image = _getImage(map['image']),
+      intro = map['intro'],
+      title = map['title'] ?? '',
+      super(year: map['year'], yearName: map['year_name']);
 
   // Used when mapping draft items.
   static TimelineItem fromApiMap(Map<String, dynamic> map, int? timelineId) {
     final meta = map['meta'] as Map;
     return TimelineItem(
-        intro: meta['mve_timeline_intro'],
-        title: map['title_raw'],
-        hasContent: meta['mve_timeline_content'],
-        timelineId: timelineId,
-        modified: dateFormat.parse(map['modified']),
-        image: _getImage(meta['mve_timeline_image_src']),
-        imageInfo: meta['mve_timeline_image_info'],
-        imageSource: meta['mve_timeline_image_source'],
-        year: int.tryParse(meta['mve_timeline_year']) ?? 0,
-        yearEnd: meta['mve_timeline_year_end'].toString().isNotEmpty
-            ? int.parse(meta['mve_timeline_year_end'])
-            : null,
-        yearName: meta['mve_timeline_year_name'],
-        yearEndName: meta['mve_timeline_year_end_name'],
-        postId: map['id'],
-        links: _getLinks(meta['mve_timeline_links']));
+      intro: meta['mve_timeline_intro'],
+      title: map['title_raw'],
+      hasContent: meta['mve_timeline_content'],
+      timelineId: timelineId,
+      modified: dateFormat.parse(map['modified']),
+      image: _getImage(meta['mve_timeline_image_src']),
+      imageInfo: meta['mve_timeline_image_info'],
+      imageSource: meta['mve_timeline_image_source'],
+      year: int.tryParse(meta['mve_timeline_year']) ?? 0,
+      yearEnd: meta['mve_timeline_year_end'].toString().isNotEmpty
+          ? int.parse(meta['mve_timeline_year_end'])
+          : null,
+      yearName: meta['mve_timeline_year_name'],
+      yearEndName: meta['mve_timeline_year_end_name'],
+      postId: map['id'],
+      links: _getLinks(meta['mve_timeline_links']),
+    );
   }
 
-  TimelineItemImage? getImage(TimelineItemImageSizes key1,
-      {TimelineItemImageSizes? key2, TimelineItemImageSizes? key3}) {
+  TimelineItemImage? getImage(
+    TimelineItemImageSizes key1, {
+    TimelineItemImageSizes? key2,
+    TimelineItemImageSizes? key3,
+  }) {
     if (image.containsKey(key1)) {
       return image[key1];
     } else if (key2 != null && image.containsKey(key2)) {
@@ -218,15 +227,18 @@ class TimelineItemLink extends Equatable {
   }
 
   TimelineItemLink.fromJson(Map<String, dynamic> map)
-      : name = map['name'] as String,
-        url = map['url'] as String;
+    : name = map['name'] as String,
+      url = map['url'] as String;
 }
 
 // Used when editing so we can set the deleted flag.
 class DraftTimelineItemLink extends TimelineItemLink {
   final bool deleted;
-  const DraftTimelineItemLink(
-      {required super.name, required super.url, required this.deleted});
+  const DraftTimelineItemLink({
+    required super.name,
+    required super.url,
+    required this.deleted,
+  });
 }
 
 enum TimelineItemImageSizes {
@@ -243,8 +255,9 @@ enum TimelineItemImageSizes {
 
 extension TimelineItemImageSizesExtension on TimelineItemImageSizes {
   static TimelineItemImageSizes byNameOrUnknown(String name) {
-    return TimelineItemImageSizes.values
-            .firstWhereOrNull((element) => element.name == name) ??
+    return TimelineItemImageSizes.values.firstWhereOrNull(
+          (element) => element.name == name,
+        ) ??
         TimelineItemImageSizes.unknown;
   }
 }
@@ -255,18 +268,19 @@ class TimelineItemImage extends Equatable {
   final int width;
   final String orientation;
 
-  const TimelineItemImage(
-      {required this.url,
-      required this.height,
-      required this.width,
-      required this.orientation});
+  const TimelineItemImage({
+    required this.url,
+    required this.height,
+    required this.width,
+    required this.orientation,
+  });
 
   @override
   List<Object?> get props => [url, height, width, orientation];
 
   TimelineItemImage.fromMap(Map<String, dynamic> map)
-      : url = map['url'],
-        height = map['height'],
-        width = map['width'],
-        orientation = map['orientation'];
+    : url = map['url'],
+      height = map['height'],
+      width = map['width'],
+      orientation = map['orientation'];
 }

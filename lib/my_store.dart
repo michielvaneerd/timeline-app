@@ -97,6 +97,7 @@ class MyStore {
             image_info TEXT,
             post_id INTEGER,
             has_content INTEGER,
+            modified TEXT,
             FOREIGN KEY(timeline_id) REFERENCES timelines(id)
           )''');
       },
@@ -150,6 +151,7 @@ class MyStore {
               ? meta['mve_timeline_year_end']
               : null,
           'intro': meta['mve_timeline_intro'],
+          'modified': item['modified'],
           'image': meta['mve_timeline_image_src'],
           'links': meta['mve_timeline_links'],
           'image_source': meta['mve_timeline_image_source'],

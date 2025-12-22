@@ -146,7 +146,7 @@ class TimelineRepository {
       );
       final hostTimelineExternalIds = hostIdTimelineIdsMap[host.id]!.keys;
       final uri =
-          '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,mve_timeline,meta,title,title_raw&mve_timeline=${hostTimelineExternalIds.join(',')}&per_page=100';
+          '${host.host}/wp-json/wp/v2/mve_timeline_item?_fields=id,mve_timeline,modified,meta,title,title_raw&mve_timeline=${hostTimelineExternalIds.join(',')}&per_page=100';
       fetchFutures.add(myHttp.getWithPagination(uri));
     }
 
