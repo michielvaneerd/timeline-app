@@ -13,22 +13,39 @@ import 'package:timeline/translation_helper.dart';
 import 'package:timeline/utils.dart';
 
 class TimelineHostsScreen extends StatefulWidget {
-  final TimelineAll timelineAll;
   final bool showAddHostDialog;
-  const TimelineHostsScreen({
-    super.key,
-    required this.timelineAll,
-    this.showAddHostDialog = false,
-  });
+  const TimelineHostsScreen({super.key, this.showAddHostDialog = false});
 
   @override
   State<TimelineHostsScreen> createState() => _TimelineHostsScreenState();
+
+  static Future openScreen({
+    required BuildContext context,
+    required TimelineAll timelineAll,
+    bool showAddHostOnStart = false,
+  }) async {
+    final repo = RepositoryProvider.of<TimelineRepository>(context);
+    return Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => BlocProvider(
+          create: (context) =>
+              TimelineHostsScreenCubit(
+                timelineRepository: repo,
+                timelineAll: timelineAll,
+              )..showAddHostOnStart(
+                timelineAll: timelineAll,
+                show: showAddHostOnStart,
+              ),
+          child: TimelineHostsScreen(),
+        ),
+      ),
+    );
+  }
 }
 
 class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
   bool hasShowedHostDialogOnStart = false;
   late final MyTextFieldsDialog myTwoFieldsDialog = MyTextFieldsDialog();
-  late int timelineAllHash;
   final _loadingOverlay = LoadingOverlay();
   @override
   void dispose() {
@@ -39,12 +56,10 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
 
   @override
   void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadingOverlay.show(context);
+    });
     super.initState();
-    timelineAllHash = widget.timelineAll.hashCode;
-  }
-
-  TimelineAll _getTimelineAll(TimelineHostsScreenState? state) {
-    return state?.timelineAll ?? widget.timelineAll;
   }
 
   Future onDelete(
@@ -164,8 +179,11 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
           ),
         ),
         title: Text(e.name),
-        //subtitle: e.yearMin != null ? Text(e.yearMinMax()) : null,
-        //subtitle: Text(e.color ?? ''),
+        subtitle:
+            cubit.state.timelineChanged != null &&
+                cubit.state.timelineChanged!.containsKey(e.id)
+            ? Text(myLoc(context).modifiedOnServer)
+            : null,
       );
     }).toList();
     return Card(
@@ -269,55 +287,46 @@ class _TimelineHostsScreenState extends State<TimelineHostsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final repo = RepositoryProvider.of<TimelineRepository>(context);
-    return BlocProvider(
-      create: (context) =>
-          TimelineHostsScreenCubit(repo)
-            ..showAddHostOnStart(widget.showAddHostDialog),
-      child: BlocConsumer<TimelineHostsScreenCubit, TimelineHostsScreenState>(
-        listener: (context, state) {
-          if (!state.busy) {
-            _loadingOverlay.hide();
-          }
-          if (state.exception != null) {
-            MyWidgets.showSnackBarError(
-              context,
-              TranslationHelper.getMyExceptionMessage(
-                context,
-                state.exception!,
-              ),
-            );
-          }
-          if (state.showAddHostOnStart) {
-            onAddHost(
-              BlocProvider.of<TimelineHostsScreenCubit>(context),
-              _getTimelineAll(state),
-            );
-          }
-        },
-        builder: (context, state) {
-          final cubit = BlocProvider.of<TimelineHostsScreenCubit>(context);
-          final timelineAll = _getTimelineAll(state);
-          final List<Widget> items = [];
-          for (final h in timelineAll.timelineHosts) {
-            items.add(getHostTimelines(timelineAll, h, cubit));
-          }
-          return Scaffold(
-            appBar: AppBar(
-              title: Text(myLoc(context).hosts),
-              actions: [
-                IconButton(
-                  onPressed: () async {
-                    onAddHost(cubit, timelineAll);
-                  },
-                  icon: const Icon(Icons.add),
-                ),
-              ],
-            ),
-            body: items.isNotEmpty ? ListView(children: items) : Container(),
+    return BlocConsumer<TimelineHostsScreenCubit, TimelineHostsScreenState>(
+      listener: (context, state) {
+        if (!state.busy) {
+          _loadingOverlay.hide();
+        }
+        if (state.exception != null) {
+          MyWidgets.showSnackBarError(
+            context,
+            TranslationHelper.getMyExceptionMessage(context, state.exception!),
           );
-        },
-      ),
+        }
+        if (state.showAddHostOnStart) {
+          onAddHost(
+            BlocProvider.of<TimelineHostsScreenCubit>(context),
+            state.timelineAll,
+          );
+        }
+      },
+      builder: (context, state) {
+        final cubit = BlocProvider.of<TimelineHostsScreenCubit>(context);
+        final timelineAll = state.timelineAll;
+        final List<Widget> items = [];
+        for (final h in timelineAll.timelineHosts) {
+          items.add(getHostTimelines(timelineAll, h, cubit));
+        }
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(myLoc(context).hosts),
+            actions: [
+              IconButton(
+                onPressed: () async {
+                  onAddHost(cubit, timelineAll);
+                },
+                icon: const Icon(Icons.add),
+              ),
+            ],
+          ),
+          body: items.isNotEmpty ? ListView(children: items) : Container(),
+        );
+      },
     );
   }
 }

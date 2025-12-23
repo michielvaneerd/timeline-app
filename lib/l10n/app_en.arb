@@ -48,5 +48,6 @@
   "duplicateHostError": "Host already exist",
   "notFoundError": "The resource was not found",
   "color": "Color",
-  "displayScrollLabel": "Display scroll label"
+  "displayScrollLabel": "Display scroll label",
+  "modifiedOnServer": "Modified on server"
 }

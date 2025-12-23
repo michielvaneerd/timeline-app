@@ -169,7 +169,7 @@ class TimelineRepository {
 
   Future<List> getTimelinesFromHostname(String host) async {
     return await myHttp.get<List>(
-      '$host/wp-json/wp/v2/mve_timeline?_fields=id,description,name,count&mve_timeline_published=1',
+      '$host/wp-json/wp/v2/mve_timeline?_fields=id,description,name,count,last_modified_at&mve_timeline_published=1',
     );
   }
 

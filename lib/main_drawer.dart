@@ -39,11 +39,15 @@ class _MainDrawerState extends State<MainDrawer> {
         titleTextStyle: Theme.of(context).textTheme.titleLarge,
         onTap: () async {
           Navigator.of(context).pop();
-          await Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) =>
-                  TimelineHostsScreen(timelineAll: widget.timelineAll),
-            ),
+          // await Navigator.of(context).push(
+          //   MaterialPageRoute(
+          //     builder: (context) =>
+          //         TimelineHostsScreen(timelineAll: widget.timelineAll),
+          //   ),
+          // );
+          await TimelineHostsScreen.openScreen(
+            context: context,
+            timelineAll: widget.timelineAll,
           );
           widget.mainCubit.checkAtStart(withBusy: false);
         },

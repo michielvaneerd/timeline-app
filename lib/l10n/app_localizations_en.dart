@@ -161,4 +161,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get displayScrollLabel => 'Display scroll label';
+
+  @override
+  String get modifiedOnServer => 'Modified on server';
 }

@@ -35,7 +35,7 @@ class TimelineItem extends TimelineAbstractItem {
   final String? yearEndName;
   final int postId;
   final bool hasContent;
-  final DateTime
+  final String
   modified; // We store it in the sqlite db as a string like '2025-01-01T09:00:00'
 
   static final dateFormat = intl.DateFormat(
@@ -114,7 +114,7 @@ class TimelineItem extends TimelineAbstractItem {
     bool removeYearEndName = false,
     int? yearEnd,
     bool removeYearEnd = false,
-    DateTime? modified,
+    String? modified,
   }) {
     return TimelineItem(
       hasContent: hasContent,
@@ -165,7 +165,7 @@ class TimelineItem extends TimelineAbstractItem {
       imageSource = map['image_source'],
       hasContent = map['has_content'] == 1,
       imageInfo = map['image_info'],
-      modified = dateFormat.parse(map['modified']),
+      modified = map['modified'],
       yearEnd = map['year_end'],
       yearEndName = map['year_end_name'],
       links = _getLinks(map['links']),
@@ -182,7 +182,7 @@ class TimelineItem extends TimelineAbstractItem {
       title: map['title_raw'],
       hasContent: meta['mve_timeline_content'],
       timelineId: timelineId,
-      modified: dateFormat.parse(map['modified']),
+      modified: map['modified'],
       image: _getImage(meta['mve_timeline_image_src']),
       imageInfo: meta['mve_timeline_image_info'],
       imageSource: meta['mve_timeline_image_source'],

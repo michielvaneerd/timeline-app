@@ -12,13 +12,15 @@ import 'package:collection/collection.dart';
 class TimelineHostsScreenState extends Equatable {
   final MyException? exception;
   final bool busy;
-  final TimelineAll? timelineAll;
+  final TimelineAll timelineAll;
   final bool showAddHostOnStart;
+  final Map<int, bool>? timelineChanged;
 
   const TimelineHostsScreenState({
     this.exception,
     this.busy = false,
-    this.timelineAll,
+    required this.timelineAll,
+    this.timelineChanged,
     this.showAddHostOnStart = false,
   });
 
@@ -28,9 +30,11 @@ class TimelineHostsScreenState extends Equatable {
     bool removeException = false,
     bool busy = false,
     TimelineAll? timelineAll,
+    Map<int, bool>? timelineChanged,
   }) {
     return TimelineHostsScreenState(
       showAddHostOnStart: showAddHostOnStart,
+      timelineChanged: timelineChanged ?? this.timelineChanged,
       busy: busy,
       timelineAll: timelineAll ?? this.timelineAll,
       exception: removeException ? null : (exception ?? this.exception),
@@ -38,13 +42,21 @@ class TimelineHostsScreenState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [exception, busy, timelineAll, showAddHostOnStart];
+  List<Object?> get props => [
+    exception,
+    busy,
+    timelineAll,
+    showAddHostOnStart,
+    timelineChanged,
+  ];
 }
 
 class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
   final TimelineRepository timelineRepository;
-  TimelineHostsScreenCubit(this.timelineRepository)
-    : super(const TimelineHostsScreenState());
+  TimelineHostsScreenCubit({
+    required this.timelineRepository,
+    required TimelineAll timelineAll,
+  }) : super(TimelineHostsScreenState(timelineAll: timelineAll));
 
   void refresh() async {
     emit(state.copyWith(busy: true, removeException: true));
@@ -64,11 +76,43 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
     emit(TimelineHostsScreenState(timelineAll: all));
   }
 
-  void showAddHostOnStart(bool show) async {
-    if (show) {
-      await Future.delayed(const Duration(milliseconds: 400));
-      emit(const TimelineHostsScreenState(showAddHostOnStart: true));
+  // Called at the start when opening the screen.
+  void showAddHostOnStart({
+    bool show = false,
+    required TimelineAll timelineAll,
+  }) async {
+    // TODO: Inside try...catch!
+    emit(state.copyWith(busy: true));
+    await Future.delayed(Duration(seconds: 1));
+    final List<Future> futures = [];
+    for (final h in timelineAll.timelineHosts) {
+      futures.add(timelineRepository.getTimelinesFromHostname(h.host));
     }
+    final futureResponses = await Future.wait(futures);
+    var hostIndex = 0;
+    final Map<int, bool> timelineChanged = {};
+    for (final host in timelineAll.timelineHosts) {
+      final hostResponse = futureResponses[hostIndex];
+      for (final Map<String, dynamic> map in hostResponse) {
+        final termId = map['id'];
+        final lastModifiedAt = map['last_modified_at'];
+        final storedTimeline = timelineAll.timelines.firstWhereOrNull(
+          (e) => e.hostId == host.id && e.termId == termId,
+        );
+        if (storedTimeline != null &&
+            storedTimeline.lastModifiedAt != lastModifiedAt) {
+          timelineChanged[storedTimeline.id] = true;
+        }
+      }
+      hostIndex += 1;
+    }
+
+    emit(
+      state.copyWith(
+        showAddHostOnStart: show,
+        timelineChanged: timelineChanged,
+      ),
+    );
   }
 
   void refreshHost(TimelineAll timelineAll, TimelineHost host) async {
@@ -85,7 +129,17 @@ class TimelineHostsScreenCubit extends Cubit<TimelineHostsScreenState> {
         host.id,
       );
       final all = await timelineRepository.getAll();
-      emit(state.copyWith(timelineAll: all));
+      Map<int, bool> newTimelineChanged = {};
+      if (state.timelineChanged != null) {
+        for (final t in all.timelines) {
+          if (t.hostId != host.id && state.timelineChanged!.containsKey(t.id)) {
+            newTimelineChanged[t.id] = true;
+          }
+        }
+      }
+      emit(
+        state.copyWith(timelineAll: all, timelineChanged: newTimelineChanged),
+      );
     } on SocketException {
       final all = await timelineRepository.getAll();
       emit(

@@ -132,7 +132,9 @@ class _DraftItemScreenState extends State<DraftItemScreen> {
                                 widget.timelineItem?.hasContent ?? false,
                             intro: introController.text,
                             title: titleController.text,
-                            modified: DateTime.now(),
+                            modified: TimelineItem.dateFormat.format(
+                              DateTime.now(),
+                            ),
                             timelineId: timelineId!,
                             year: int.parse(yearController.text),
                             yearEndName: yearEndNameController.text,

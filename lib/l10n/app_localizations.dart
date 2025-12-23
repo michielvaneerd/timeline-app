@@ -393,6 +393,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Display scroll label'**
   String get displayScrollLabel;
+
+  /// No description provided for @modifiedOnServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Modified on server'**
+  String get modifiedOnServer;
 }
 
 class _AppLocalizationsDelegate

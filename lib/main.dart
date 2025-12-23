@@ -100,14 +100,19 @@ class _MyAppState extends State<MyApp> {
                 padding: const EdgeInsets.all(MyStyles.paddingNormal),
                 child: FilledButton(
                   onPressed: () async {
-                    await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => TimelineHostsScreen(
-                          showAddHostDialog: true,
-                          timelineAll: state.timelineAll!,
-                        ),
-                      ),
+                    await TimelineHostsScreen.openScreen(
+                      context: context,
+                      timelineAll: state.timelineAll!,
+                      showAddHostOnStart: true,
                     );
+                    // await Navigator.of(context).push(
+                    //   MaterialPageRoute(
+                    //     builder: (context) => TimelineHostsScreen(
+                    //       showAddHostDialog: true,
+                    //       timelineAll: state.timelineAll!,
+                    //     ),
+                    //   ),
+                    // );
                     cubit.checkAtStart();
                   },
                   child: Text(myLoc(context).addHost),

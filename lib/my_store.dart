@@ -80,6 +80,7 @@ class MyStore {
             active INT,
             count INT,
             color TEXT,
+            last_modified_at TEXT,
             FOREIGN KEY(host_id) REFERENCES hosts(id)
           )''');
         await db.execute('''CREATE TABLE items (
@@ -356,12 +357,12 @@ class MyStore {
       );
       for (final timeline in response) {
         txn.insert('timelines', {
-          //'term_id': timeline['term_taxonomy_id'], // from custom API
           'term_id': timeline['id'], // from std API
           'name': timeline['name'],
           'description': timeline['description'],
           'host_id': timelineHostId,
           'count': timeline['count'],
+          'last_modified_at': timeline['last_modified_at'],
           'active': 0,
           // Note: no 'color' because we set this only in the app.
         });

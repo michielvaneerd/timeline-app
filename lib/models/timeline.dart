@@ -10,6 +10,7 @@ class Timeline extends Equatable {
   final int? yearMin;
   final int? yearMax;
   final int count;
+  final String lastModifiedAt;
   final String? color; // Set in app only, hex string
 
   const Timeline({
@@ -19,6 +20,7 @@ class Timeline extends Equatable {
     required this.name,
     required this.active,
     required this.description,
+    required this.lastModifiedAt,
     this.color,
     this.count = 0,
     this.yearMax,
@@ -36,6 +38,7 @@ class Timeline extends Equatable {
     yearMax,
     yearMax,
     count,
+    lastModifiedAt,
     color,
   ];
 
@@ -45,6 +48,7 @@ class Timeline extends Equatable {
       termId: termId,
       hostId: hostId,
       name: name,
+      lastModifiedAt: lastModifiedAt,
       active: active,
       description: description,
       color: removeColor ? null : (color ?? this.color),
@@ -59,6 +63,7 @@ class Timeline extends Equatable {
       'host_id': hostId,
       'name': name,
       'description': description,
+      'last_modified_at': lastModifiedAt,
       'year_min': yearMin,
       'year_max': yearMax,
       'count': count,
@@ -83,6 +88,7 @@ class Timeline extends Equatable {
       active = active ?? map['active'],
       name = map['name'],
       color = map['color'],
+      lastModifiedAt = map['last_modified_at'],
       hostId =
           hostId ??
           map['host_id'], // When we select from database, myHostId can be null, but when we fetch from API, then we need myHostId.
